@@ -8,3 +8,7 @@
 {"timestamp":"00:05:43.315","source":"Server","level":"LOG","message":"✓ Compiled in 230ms"}
 {"timestamp":"00:05:44.266","source":"Server","level":"LOG","message":"✓ Compiled in 102ms"}
 {"timestamp":"00:07:26.094","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:09:34.673","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:09:39.878","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:14:10.851","source":"Server","level":"LOG","message":"✓ Compiled in 327ms"}
+{"timestamp":"00:16:35.879","source":"Server","level":"LOG","message":"  Reload env: .env.local"}

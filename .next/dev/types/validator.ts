@@ -344,10 +344,28 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/api/t/[tenant]/upload/complete/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/t/[tenant]/upload/complete">> = Specific
+  const handler = {} as typeof import("../../../src/app/api/t/[tenant]/upload/complete/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/api/t/[tenant]/upload/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/t/[tenant]/upload">> = Specific
   const handler = {} as typeof import("../../../src/app/api/t/[tenant]/upload/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/api/t/[tenant]/upload/sign/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/t/[tenant]/upload/sign">> = Specific
+  const handler = {} as typeof import("../../../src/app/api/t/[tenant]/upload/sign/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

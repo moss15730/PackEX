@@ -284,23 +284,63 @@ export default function StationConsolePage() {
 
   async function uploadRecording(recId: string, blob: Blob) {
     const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+    const contentType = blob.type || "video/webm";
     const camLabel =
       cameras.find((c) => c.deviceId === selectedCameraId)?.label || "device-camera";
-    const form = new FormData();
-    form.append("file", new File([blob], `${camLabel}.${ext}`, { type: blob.type || "video/webm" }));
-    form.append("recordingId", recId);
-    form.append("cameraLabel", camLabel);
-    form.append("kind", "video");
 
-    const res = await fetch(`/api/t/${tenant}/upload`, {
+    // 1) Ask server for a signed upload URL (tiny JSON — works on Vercel)
+    const signRes = await fetch(`/api/t/${tenant}/upload/sign`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recordingId: recId,
+        cameraLabel: camLabel,
+        contentType,
+        filename: `${camLabel.replace(/[^\w.\-ก-๙]+/gi, "_")}.${ext}`,
+      }),
+    });
+    const signData = await signRes.json().catch(() => ({}));
+    if (!signRes.ok) {
+      throw new Error(signData.error || `ขอ upload URL ไม่สำเร็จ (${signRes.status})`);
+    }
+
+    // 2) Upload the video bytes straight to Supabase (bypasses Vercel 4.5MB body limit)
+    const form = new FormData();
+    form.append("cacheControl", "3600");
+    form.append("", blob, `${camLabel}.${ext}`);
+    const putRes = await fetch(signData.signedUrl as string, {
+      method: "PUT",
+      headers: {
+        "x-upsert": "true",
+      },
       body: form,
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || `อัปโหลดวิดีโอไม่สำเร็จ (${res.status})`);
+    if (!putRes.ok) {
+      const text = await putRes.text().catch(() => "");
+      throw new Error(
+        text ||
+          `อัปโหลดไป Supabase ไม่สำเร็จ (${putRes.status}) — ตรวจขนาดไฟล์ (Free ≤50MB) และ Storage settings`,
+      );
     }
-    return data;
+
+    // 3) Register the file in PackEX DB
+    const completeRes = await fetch(`/api/t/${tenant}/upload/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recordingId: recId,
+        cameraLabel: camLabel,
+        storagePath: signData.storagePath,
+        sizeBytes: blob.size,
+        kind: "video",
+        contentType,
+      }),
+    });
+    const completeData = await completeRes.json().catch(() => ({}));
+    if (!completeRes.ok) {
+      throw new Error(completeData.error || `บันทึกไฟล์ไม่สำเร็จ (${completeRes.status})`);
+    }
+    return completeData;
   }
 
   async function stopRecording() {

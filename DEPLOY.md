@@ -30,8 +30,17 @@ npx tsx scripts/setup-storage.ts
 
 หรือสร้างเองใน Dashboard → Storage → New bucket ชื่อ `recordings` (แนะนำเป็น **Private**)
 
-อัปโหลดผ่าน `POST /api/t/[tenant]/upload`  
+อัปโหลดผ่าน:
+- **Production (แนะนำ):** เบราว์เซอร์ขอ signed URL จาก `/api/t/[tenant]/upload/sign` แล้วอัปตรงไป Supabase → ลงทะเบียนด้วย `/upload/complete`  
+  (หลีกเลี่ยงขีดจำกัด body ~4.5MB ของ Vercel)
+- **Local fallback:** `POST /api/t/[tenant]/upload` (multipart)
+
 หน้า Videos จะเล่นผ่าน **signed URL**
+
+Env ที่ต้องมีบน Vercel:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_STORAGE_BUCKET` (optional, default `recordings`)
 
 ถ้ายังไม่ตั้งค่า Storage ระบบจะเก็บไฟล์ไว้ในโฟลเดอร์ `storage/` ของเครื่อง (ใช้ได้ตอน local เท่านั้น)
 
