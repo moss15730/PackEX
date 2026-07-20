@@ -2,18 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireTenantSession, can } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import {
-  driveIdFromStorage,
-  getDriveViewLink,
-  getPlaybackInfo,
-  isDriveConfigured,
-  localPathFromStorage,
-} from "@/lib/drive";
+import { isStorageConfigured, resolvePlaybackUrl } from "@/lib/storage";
 import { PageHeader, Card, Badge, Button } from "@/components/ui";
 import { statusLabel, formatBytes } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { existsSync } from "fs";
 
 export default async function VideoDetailPage({
   params,
@@ -42,33 +35,22 @@ export default async function VideoDetailPage({
 
   const shareLink = recording.shareLinks[0];
   const canShare = can(session.role, "video.share");
-  const driveReady = isDriveConfigured();
+  const storageReady = isStorageConfigured();
 
   const filesWithLinks = await Promise.all(
     recording.files.map(async (file) => {
-      const driveLink = await getDriveViewLink(file.storagePath);
-      const playback = getPlaybackInfo(file.storagePath, {
+      const playback = await resolvePlaybackUrl({
+        storagePath: file.storagePath,
+        thumbnailPath: file.thumbnailPath,
         tenantSlug: session.tenantSlug!,
         fileId: file.id,
       });
 
-      // Prefer local <video> when the mirrored file exists on disk
-      const localCandidates = [file.thumbnailPath, file.storagePath].filter(Boolean) as string[];
-      const hasLocal = localCandidates.some((p) => {
-        const full = localPathFromStorage(p);
-        return full ? existsSync(full) : false;
-      });
-
-      const localSrc = hasLocal
-        ? `/api/t/${session.tenantSlug}/media/${file.id}`
-        : null;
-
       return {
         ...file,
-        viewLink: driveLink,
-        driveId: driveIdFromStorage(file.storagePath),
-        localSrc,
-        drivePreviewSrc: playback.kind === "drive" ? playback.src : null,
+        playSrc: playback.src,
+        playKind: playback.kind,
+        isSupabase: file.storagePath.startsWith("supabase:"),
       };
     }),
   );
@@ -93,8 +75,8 @@ export default async function VideoDetailPage({
           ครบถ้วน {recording.completenessScore}%
         </Badge>
         {recording.legalHold && <Badge tone="danger">Legal Hold</Badge>}
-        <Badge tone={driveReady ? "success" : "warning"}>
-          {driveReady ? "Google Drive พร้อม" : "Drive ยังไม่ตั้งค่า — เก็บในเครื่อง"}
+        <Badge tone={storageReady ? "success" : "warning"}>
+          {storageReady ? "Supabase Storage พร้อม" : "Storage ยังไม่ตั้งค่า — เก็บในเครื่อง"}
         </Badge>
       </div>
 
@@ -102,22 +84,24 @@ export default async function VideoDetailPage({
         {filesWithLinks.map((file) => (
           <Card key={file.id} className="overflow-hidden p-0">
             <div className="aspect-video bg-black">
-              {file.localSrc ? (
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="h-full w-full"
-                  src={file.localSrc}
-                />
-              ) : file.drivePreviewSrc ? (
-                <iframe
-                  title={file.cameraLabel}
-                  src={file.drivePreviewSrc}
-                  className="h-full w-full border-0"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                />
+              {file.playSrc && file.playKind !== "none" ? (
+                file.playSrc.includes("drive.google.com") ? (
+                  <iframe
+                    title={file.cameraLabel}
+                    src={file.playSrc}
+                    className="h-full w-full border-0"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full"
+                    src={file.playSrc}
+                  />
+                )
               ) : (
                 <div className="flex h-full items-center justify-center px-4 text-center text-sm text-white/70">
                   ไม่มีไฟล์วิดีโอให้เล่น
@@ -129,17 +113,10 @@ export default async function VideoDetailPage({
             <div className="space-y-1 p-4">
               <p className="font-medium text-[var(--ink)]">{file.cameraLabel}</p>
               <p className="text-xs text-[var(--muted)]">{formatBytes(file.sizeBytes)}</p>
-              {file.viewLink && (
-                <a
-                  href={file.viewLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block text-sm font-medium text-[var(--accent)] underline"
-                >
-                  เปิดใน Google Drive
-                </a>
+              {file.isSupabase && (
+                <p className="text-xs text-emerald-600">เก็บบน Supabase Storage</p>
               )}
-              {!file.localSrc && !file.drivePreviewSrc && (
+              {!file.playSrc && (
                 <p className="break-all text-xs text-[var(--muted)]">{file.storagePath}</p>
               )}
             </div>

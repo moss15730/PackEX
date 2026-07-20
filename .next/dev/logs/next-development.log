@@ -1,21 +1,10 @@
-{"timestamp":"00:00:01.575","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:02.015","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:00:16.772","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:00:19.408","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:00:20.189","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:01:25.414","source":"Server","level":"LOG","message":"○ Compiling /api/t/[tenant]/upload ..."}
-{"timestamp":"00:01:32.764","source":"Server","level":"ERROR","message":"⨯ Error: Service Accounts do not have storage quota. Leverage shared drives (https://developers.google.com/workspace/drive/api/guides/about-shareddrives), or use OAuth delegation (http://support.google.com/a/answer/7281227) instead."}
-{"timestamp":"00:02:01.850","source":"Server","level":"LOG","message":"○ Compiling /t/[tenant]/videos/[id] ..."}
-{"timestamp":"00:04:27.554","source":"Server","level":"LOG","message":"✓ Compiled in 1014ms"}
-{"timestamp":"00:04:29.489","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:04:52.554","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:05:11.453","source":"Server","level":"LOG","message":"✓ Compiled in 118ms"}
-{"timestamp":"00:05:24.632","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:05:31.981","source":"Server","level":"LOG","message":"✓ Compiled in 72ms"}
-{"timestamp":"00:05:32.611","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:06:24.941","source":"Server","level":"LOG","message":"✓ Compiled in 42ms"}
-{"timestamp":"00:06:25.409","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:06:29.469","source":"Server","level":"LOG","message":"✓ Compiled in 65ms"}
-{"timestamp":"00:06:29.719","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:07:03.782","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:07:33.211","source":"Server","level":"ERROR","message":"[drive] upload failed, keeping local copy only \"Service Accounts do not have storage quota. Leverage shared drives (https://developers.google.com/workspace/drive/api/guides/about-shareddrives), or use OAuth delegation (http://support.google.com/a/answer/7281227) instead.\""}
+{"timestamp":"00:00:02.087","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:05.697","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:02:08.764","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
+{"timestamp":"00:02:32.246","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:03:47.709","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:04:20.066","source":"Server","level":"ERROR","message":"[storage] supabase upload failed, keeping local copy \"The object exceeded the maximum allowed size\""}
+{"timestamp":"00:05:34.296","source":"Server","level":"LOG","message":"✓ Compiled in 1659ms"}
+{"timestamp":"00:05:43.315","source":"Server","level":"LOG","message":"✓ Compiled in 230ms"}
+{"timestamp":"00:05:44.266","source":"Server","level":"LOG","message":"✓ Compiled in 102ms"}
+{"timestamp":"00:07:26.094","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

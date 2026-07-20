@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { uploadToGoogleDrive } from "@/lib/drive";
+import { uploadRecordingFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,7 +39,6 @@ export async function POST(
   const cameraLabel = String(form.get("cameraLabel") || "camera");
   const kind = String(form.get("kind") || "video"); // video | snapshot
 
-  // Node FormData may yield Blob (not File) — accept both
   if (!(file instanceof Blob) || !recordingId) {
     return NextResponse.json({ error: "ต้องมี file และ recordingId" }, { status: 400 });
   }
@@ -61,7 +60,7 @@ export async function POST(
   const filename = `${sanitizeFilename(cameraLabel)}.${ext}`;
   const localMirror = `local:${session.tenantId}/${recordingId}/${filename}`;
 
-  const uploaded = await uploadToGoogleDrive({
+  const uploaded = await uploadRecordingFile({
     tenantId: session.tenantId,
     recordingId,
     filename,
@@ -80,9 +79,9 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       snapshot,
-      driveFileId: uploaded.fileId,
       storagePath: uploaded.storagePath,
       previewUrl: uploaded.previewUrl,
+      storageError: uploaded.storageError ?? null,
     });
   }
 
@@ -93,7 +92,6 @@ export async function POST(
       storagePath: uploaded.storagePath,
       sizeBytes: uploaded.sizeBytes,
       sha256: uploaded.sha256,
-      // Local mirror path for in-app playback (always written by uploadToGoogleDrive)
       thumbnailPath: uploaded.storagePath.startsWith("local:")
         ? uploaded.storagePath
         : localMirror,
@@ -109,10 +107,9 @@ export async function POST(
       entityId: recordingFile.id,
       meta: JSON.stringify({
         storagePath: uploaded.storagePath,
-        driveFileId: uploaded.fileId,
         sizeBytes: uploaded.sizeBytes,
         previewUrl: uploaded.previewUrl,
-        webViewLink: uploaded.webViewLink,
+        storageError: uploaded.storageError,
       }),
     },
   });
@@ -120,10 +117,8 @@ export async function POST(
   return NextResponse.json({
     ok: true,
     file: recordingFile,
-    driveFileId: uploaded.fileId,
-    webViewLink: uploaded.webViewLink,
     previewUrl: uploaded.previewUrl,
     storagePath: uploaded.storagePath,
-    driveError: uploaded.driveError ?? null,
+    storageError: uploaded.storageError ?? null,
   });
 }

@@ -1,4 +1,4 @@
-# Deploy PackEX → Vercel + Supabase + Google Drive
+# Deploy PackEX → Vercel + Supabase (Postgres + Storage)
 
 ## 1) Supabase (PostgreSQL)
 
@@ -15,20 +15,28 @@ npx prisma db push
 npx tsx prisma/seed.ts
 ```
 
-## 2) Google Drive (เก็บวิดีโอชั่วคราว)
+## 2) Supabase Storage (เก็บวิดีโอ)
 
-1. สร้าง Google Cloud project → เปิด **Google Drive API**
-2. สร้าง **Service Account** → Download JSON key
-3. สร้างโฟลเดอร์ใน Google Drive แล้ว **Share** ให้ email ของ service account (สิทธิ์ Editor)
-4. คัดลอก Folder ID จาก URL: `https://drive.google.com/drive/folders/<FOLDER_ID>`
-5. ตั้งค่า env:
-   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
-   - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` (ใส่ `\n` ในบรรทัด)
-   - `GOOGLE_DRIVE_FOLDER_ID`
+1. ไปที่ **Project Settings → API**
+2. คัดลอก:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (อย่าเปิดเผยฝั่ง client)
+3. (ถ้าต้องการ) ตั้งชื่อ bucket: `SUPABASE_STORAGE_BUCKET=recordings`
+4. สร้าง bucket:
 
-อัปโหลดผ่าน `POST /api/t/[tenant]/upload` (multipart: `file`, `recordingId`, `cameraLabel`, `kind`)
+```bash
+npx tsx scripts/setup-storage.ts
+```
 
-ถ้ายังไม่ตั้ง Drive ระบบจะเก็บ path แบบ `drive:pending/...` เป็น placeholder
+หรือสร้างเองใน Dashboard → Storage → New bucket ชื่อ `recordings` (แนะนำเป็น **Private**)
+
+อัปโหลดผ่าน `POST /api/t/[tenant]/upload`  
+หน้า Videos จะเล่นผ่าน **signed URL**
+
+ถ้ายังไม่ตั้งค่า Storage ระบบจะเก็บไฟล์ไว้ในโฟลเดอร์ `storage/` ของเครื่อง (ใช้ได้ตอน local เท่านั้น)
+
+**ขีดจำกัดขนาดไฟล์:** แผน Free สูงสุด **50 MB/ไฟล์** (ตั้งที่ Storage → Settings → Global file size limit)  
+แอปอัดที่ ~1.2 Mbps เพื่อให้คลิปสั้น–กลางขึ้นได้ — ถ้าต้องการคลิปยาว/คมชัด ต้องอัปเกรด Pro แล้วเพิ่ม global limit
 
 ## 3) Vercel
 
@@ -45,9 +53,9 @@ npx vercel link
 npx vercel env add DATABASE_URL
 npx vercel env add DIRECT_URL
 npx vercel env add AUTH_SECRET
-npx vercel env add GOOGLE_SERVICE_ACCOUNT_EMAIL
-npx vercel env add GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-npx vercel env add GOOGLE_DRIVE_FOLDER_ID
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY
+npx vercel env add SUPABASE_STORAGE_BUCKET
 npx vercel --prod
 ```
 

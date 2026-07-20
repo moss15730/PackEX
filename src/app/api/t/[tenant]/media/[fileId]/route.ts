@@ -3,7 +3,7 @@ import { Readable } from "stream";
 import { NextResponse } from "next/server";
 import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { localPathFromStorage } from "@/lib/drive";
+import { createSignedUrl, localPathFromStorage } from "@/lib/storage";
 
 export const runtime = "nodejs";
 
@@ -38,6 +38,14 @@ export async function GET(
     return NextResponse.json({ error: "ไม่พบไฟล์" }, { status: 404 });
   }
 
+  // Prefer Supabase signed URL when available
+  if (file.storagePath.startsWith("supabase:")) {
+    const signed = await createSignedUrl(file.storagePath, 60 * 60);
+    if (signed) {
+      return NextResponse.redirect(signed, 302);
+    }
+  }
+
   const candidates = [file.thumbnailPath, file.storagePath].filter(Boolean) as string[];
   let diskPath: string | null = null;
   for (const candidate of candidates) {
@@ -50,7 +58,7 @@ export async function GET(
 
   if (!diskPath) {
     return NextResponse.json(
-      { error: "ไฟล์ยังไม่อยู่บนเซิร์ฟเวอร์นี้ (ต้องดูผ่าน Google Drive)" },
+      { error: "ไม่พบไฟล์วิดีโอบนเซิร์ฟเวอร์" },
       { status: 404 },
     );
   }

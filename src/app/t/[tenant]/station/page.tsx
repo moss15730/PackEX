@@ -105,10 +105,23 @@ export default function StationConsolePage() {
         }
 
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+          },
           video: deviceId
-            ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
-            : { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            ? {
+                deviceId: { exact: deviceId },
+                width: { ideal: 960, max: 1280 },
+                height: { ideal: 540, max: 720 },
+                frameRate: { ideal: 20, max: 24 },
+              }
+            : {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 960, max: 1280 },
+                height: { ideal: 540, max: 720 },
+                frameRate: { ideal: 20, max: 24 },
+              },
         });
 
         streamRef.current = stream;
@@ -215,10 +228,21 @@ export default function StationConsolePage() {
       }
 
       chunksRef.current = [];
-      const recorder = new MediaRecorder(
-        streamRef.current,
-        mimeType ? { mimeType } : undefined,
-      );
+      // ~1.5 Mbps keeps a few minutes under Supabase Free 50MB/file limit
+      const recorderOptions: MediaRecorderOptions = {
+        ...(mimeType ? { mimeType } : {}),
+        videoBitsPerSecond: 1_200_000,
+        audioBitsPerSecond: 64_000,
+      };
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(streamRef.current, recorderOptions);
+      } catch {
+        recorder = new MediaRecorder(
+          streamRef.current,
+          mimeType ? { mimeType } : undefined,
+        );
+      }
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
@@ -312,9 +336,9 @@ export default function StationConsolePage() {
         ...h,
         sync: data.completenessScore >= 80 ? "ok" : "warn",
       }));
-      if (uploaded?.driveError) {
+      if (uploaded?.storageError) {
         setError(
-          `บันทึกวิดีโอแล้ว และดูได้ในหน้า Videos — แต่ยังขึ้น Drive ไม่ได้: ${uploaded.driveError}`,
+          `บันทึกวิดีโอแล้ว และดูได้ในหน้า Videos — แต่ยังขึ้น Supabase ไม่ได้: ${uploaded.storageError}`,
         );
       }
     } catch (err) {

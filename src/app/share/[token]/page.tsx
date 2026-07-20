@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { PackExWordmark } from "@/components/brand";
 import { Badge, Card } from "@/components/ui";
 import { formatBytes, statusLabel } from "@/lib/utils";
+import { createSignedUrl } from "@/lib/storage";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -44,6 +45,18 @@ export default async function SharePage({
 
   const rec = link.recording;
 
+  const filesWithSrc = await Promise.all(
+    rec.files.map(async (file) => {
+      let playSrc: string | null = null;
+      if (file.storagePath.startsWith("supabase:")) {
+        playSrc = await createSignedUrl(file.storagePath, 60 * 60);
+      } else if (file.storagePath.startsWith("gdrive:")) {
+        playSrc = `https://drive.google.com/file/d/${file.storagePath.slice("gdrive:".length)}/preview`;
+      }
+      return { ...file, playSrc };
+    }),
+  );
+
   return (
     <div className="min-h-screen bg-[var(--bg)] px-4 py-8">
       <div className="mx-auto max-w-3xl">
@@ -77,36 +90,41 @@ export default async function SharePage({
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {rec.files.map((file) => {
-                const driveId = file.storagePath.startsWith("gdrive:")
-                  ? file.storagePath.slice("gdrive:".length)
-                  : null;
-                return (
-                  <Card key={file.id} className="overflow-hidden p-0">
-                    <div className="aspect-video bg-black">
-                      {driveId ? (
+              {filesWithSrc.map((file) => (
+                <Card key={file.id} className="overflow-hidden p-0">
+                  <div className="aspect-video bg-black">
+                    {file.playSrc ? (
+                      file.playSrc.includes("drive.google.com") ? (
                         <iframe
                           title={file.cameraLabel}
-                          src={`https://drive.google.com/file/d/${driveId}/preview`}
+                          src={file.playSrc}
                           className="h-full w-full border-0"
                           allow="autoplay"
                           allowFullScreen
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-center text-sm text-white/70">
-                          {file.cameraLabel}
-                          <br />
-                          {formatBytes(file.sizeBytes)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 text-sm">
-                      <p className="font-medium">{file.cameraLabel}</p>
-                      <p className="text-xs text-[var(--muted)]">{formatBytes(file.sizeBytes)}</p>
-                    </div>
-                  </Card>
-                );
-              })}
+                        <video
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="h-full w-full"
+                          src={file.playSrc}
+                        />
+                      )
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-center text-sm text-white/70">
+                        {file.cameraLabel}
+                        <br />
+                        {formatBytes(file.sizeBytes)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 text-sm">
+                    <p className="font-medium">{file.cameraLabel}</p>
+                    <p className="text-xs text-[var(--muted)]">{formatBytes(file.sizeBytes)}</p>
+                  </div>
+                </Card>
+              ))}
             </div>
 
             {rec.markers.length > 0 && (
@@ -122,12 +140,6 @@ export default async function SharePage({
                 </ul>
               </Card>
             )}
-
-            <p className="mt-6 text-xs text-[var(--muted)]">
-              ลิงก์หมดอายุ {format(link.expiresAt, "d MMM yyyy", { locale: th })}
-              · เปิดแล้ว {link.openCount + 1}
-              {link.maxOpens ? ` / ${link.maxOpens}` : ""} ครั้ง
-            </p>
           </>
         )}
       </div>
