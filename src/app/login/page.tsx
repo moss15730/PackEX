@@ -1,0 +1,151 @@
+"use client";
+
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { PackEyeWordmark } from "@/components/brand";
+import { Button, Card } from "@/components/ui";
+
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const platformMode = searchParams.get("platform") === "1";
+
+  const [platform, setPlatform] = useState(platformMode);
+  const [tenantSlug, setTenantSlug] = useState("acme");
+  const [email, setEmail] = useState(platformMode ? "admin@packeye.app" : "admin@acme.local");
+  const [password, setPassword] = useState("password123");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          tenantSlug: platform ? undefined : tenantSlug,
+          platform,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error || "เข้าสู่ระบบไม่สำเร็จ");
+        return;
+      }
+      router.push(data.redirect);
+      router.refresh();
+    } catch {
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex justify-center">
+          <Link href="/">
+            <PackEyeWordmark />
+          </Link>
+        </div>
+
+        <Card className="p-6">
+          <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
+            {platform ? "Platform Admin" : "เข้าสู่ระบบองค์กร"}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {platform
+              ? "จัดการ tenant, แผน และสุขภาพระบบ"
+              : "ลงชื่อเข้าใช้ด้วย slug องค์กรของคุณ"}
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {!platform && (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
+                  Tenant Slug
+                </label>
+                <input
+                  type="text"
+                  value={tenantSlug}
+                  onChange={(e) => setTenantSlug(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                  placeholder="acme"
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">อีเมล</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">รหัสผ่าน</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
+                required
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-600">{error}</p>
+            )}
+
+            <Button type="submit" variant="primary" className="w-full" disabled={loading}>
+              {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
+            </Button>
+          </form>
+
+          <div className="mt-4 flex items-center justify-between text-sm">
+            <button
+              type="button"
+              onClick={() => {
+                setPlatform(!platform);
+                setEmail(!platform ? "admin@packeye.app" : "admin@acme.local");
+                setError("");
+              }}
+              className="text-[var(--accent)] hover:underline"
+            >
+              {platform ? "เข้าสู่ระบบองค์กร" : "Platform Admin"}
+            </button>
+            <Link href="/" className="text-[var(--muted)] hover:text-[var(--ink)]">
+              กลับหน้าแรก
+            </Link>
+          </div>
+        </Card>
+
+        <div className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
+          <p className="font-medium text-[var(--ink)]">Demo credentials</p>
+          <p className="mt-1">Tenant: acme / admin@acme.local / password123</p>
+          <p>Platform: admin@packeye.app / password123</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">กำลังโหลด…</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}

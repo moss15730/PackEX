@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0f1412;
+  --muted: #5c6b64;
+  --surface: #f4f6f5;
+  --surface-2: #e8ecea;
+  --surface-3: #d8dedb;
+  --border: #c5cdc8;
+  --accent: #2ee56d;
+  --accent-ink: #0a1a10;
+  --bg: #eef1ef;
+  --rec: #e11d48;
+}
+
+[data-theme="dark"] {
+  --ink: #e8f0ec;
+  --muted: #8a9a92;
+  --surface: #141a18;
+  --surface-2: #1c2421;
+  --surface-3: #26302c;
+  --border: #34403b;
+  --accent: #2ee56d;
+  --accent-ink: #0a1a10;
+  --bg: #0b0f0e;
+  --rec: #fb7185;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  background-position: center top;
+}
+
+[data-theme="dark"] body {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 40%, transparent) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--accent) 8%, transparent), transparent);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.warehouse-atmosphere {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in srgb, var(--surface-3) 50%, transparent), transparent),
+  var(--bg);
+}
+
+.rec-pulse {
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

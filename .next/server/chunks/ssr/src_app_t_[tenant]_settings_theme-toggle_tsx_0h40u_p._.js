@@ -1,0 +1,3 @@
+module.exports=[3123,a=>{"use strict";var b=a.i(87924),c=a.i(1148),d=a.i(58918);a.s(["SettingsTheme",0,function({defaultTheme:a}){let{theme:e,setTheme:f,resolved:g}=(0,c.useTheme)();return(0,b.jsxs)("div",{className:"flex flex-wrap gap-2",children:[["light","dark","system"].map(a=>(0,b.jsx)(d.Button,{variant:e===a?"primary":"outline",onClick:()=>f(a),children:"light"===a?"สว่าง":"dark"===a?"มืด":"ตามระบบ"},a)),(0,b.jsxs)("p",{className:"w-full text-xs text-[var(--muted)]",children:["องค์กรตั้งค่า: ",a," · ปัจจุบัน: ",g]})]})}])}];
+
+//# sourceMappingURL=src_app_t_%5Btenant%5D_settings_theme-toggle_tsx_0h40u_p._.js.map

@@ -1,0 +1,403 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Plan {
+  id               String         @id @default(cuid())
+  code             String         @unique // starter | business | enterprise
+  nameTh           String
+  nameEn           String
+  maxStations      Int
+  maxStorageGb     Int
+  retentionDays    Int
+  maxUsers         Int
+  allowIpCamera    Boolean        @default(false)
+  allowMultiCam    Boolean        @default(false)
+  allowShareLink   Boolean        @default(false)
+  allowIntegrations Boolean       @default(false)
+  allowAi          Boolean        @default(false)
+  allowSso         Boolean        @default(false)
+  allowCustomDomain Boolean       @default(false)
+  priceMonthly     Int            @default(0)
+  trialDays        Int            @default(14)
+  subscriptions    Subscription[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Tenant {
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  name            String
+  status          String           @default("trial") // trial | active | suspended | deleted
+  locale          String           @default("th")
+  timezone        String           @default("Asia/Bangkok")
+  customDomain    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  settings        TenantSettings?
+  subscription    Subscription?
+  users           User[]
+  stations        Station[]
+  cameras         Camera[]
+  stationAgents   StationAgent[]
+  orders          Order[]
+  recordings      Recording[]
+  shareLinks      ShareLink[]
+  claimCases      ClaimCase[]
+  auditLogs       AuditLog[]
+  alerts          Alert[]
+  integrations    Integration[]
+  onboarding      OnboardingState?
+  usageMeters     UsageMeter[]
+  invoices        Invoice[]
+  featureFlags    FeatureFlag[]
+  supportGrants   SupportAccessGrant[]
+}
+
+model TenantSettings {
+  id                    String  @id @default(cuid())
+  tenantId              String  @unique
+  tenant                Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  theme                 String  @default("system") // light | dark | system
+  overlayEnabled        Boolean @default(true)
+  snapshotRequired      Boolean @default(true)
+  minRecordingSeconds   Int     @default(15)
+  minCameras            Int     @default(1)
+  idleAutoStopMinutes   Int     @default(10)
+  videoPreset           String  @default("standard") // economy | standard | high
+  consentRequired       Boolean @default(true)
+  softDeleteDays        Int     @default(14)
+}
+
+model Subscription {
+  id             String    @id @default(cuid())
+  tenantId       String    @unique
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId         String
+  plan           Plan      @relation(fields: [planId], references: [id])
+  status         String    @default("trialing") // trialing | active | past_due | canceled
+  trialEndsAt    DateTime?
+  currentPeriodEnd DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model UsageMeter {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stationsUsed Int      @default(0)
+  storageUsedGb Float   @default(0)
+  usersUsed    Int      @default(0)
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tenantId])
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  amount      Int
+  currency    String   @default("THB")
+  status      String   @default("paid") // draft | open | paid | void
+  issuedAt    DateTime @default(now())
+  description String
+}
+
+model FeatureFlag {
+  id       String  @id @default(cuid())
+  tenantId String?
+  tenant   Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  key      String
+  enabled  Boolean @default(false)
+
+  @@unique([tenantId, key])
+}
+
+model PlatformAdmin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("super_admin") // super_admin | support
+  createdAt    DateTime @default(now())
+}
+
+model SupportAccessGrant {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reason    String
+  grantedTo String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+}
+
+model User {
+  id             String      @id @default(cuid())
+  tenantId       String
+  tenant         Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email          String
+  name           String
+  passwordHash   String
+  role           String      // tenant_admin | supervisor | packer | viewer | claim_officer
+  status         String      @default("active") // active | disabled
+  mfaEnabled     Boolean     @default(false)
+  consentAt      DateTime?
+  stationAccess  String?     // comma-separated station ids or *
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  recordings     Recording[]
+  auditLogs      AuditLog[]
+
+  @@unique([tenantId, email])
+}
+
+model Station {
+  id           String         @id @default(cuid())
+  tenantId     String
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code         String
+  name         String
+  status       String         @default("idle") // idle | recording | uploading | syncing | ready | warning | offline | camera_error | disk_full | blocked
+  location     String?
+  cameras      Camera[]
+  agent        StationAgent?
+  recordings   Recording[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([tenantId, code])
+}
+
+model Camera {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stationId    String
+  station      Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  name         String
+  type         String   @default("webcam") // webcam | ip
+  streamUrl    String?
+  status       String   @default("online") // online | offline | error
+  testedAt     DateTime?
+  active       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model StationAgent {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stationId       String    @unique
+  station         Station   @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  version         String    @default("0.1.0")
+  lastHeartbeatAt DateTime?
+  cpuPercent      Float?
+  diskFreeGb      Float?
+  queueSize       Int       @default(0)
+  timeDriftMs     Int       @default(0)
+  online          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderNo     String
+  trackingNo  String?
+  source      String      @default("manual") // manual | shopee | lazada | shopify | wms
+  status      String      @default("pending") // pending | packing | packed | claimed
+  itemSummary String?
+  createdAt   DateTime    @default(now())
+  recordings  Recording[]
+  claimCases  ClaimCase[]
+
+  @@unique([tenantId, orderNo])
+}
+
+model Recording {
+  id                 String           @id @default(cuid())
+  tenantId           String
+  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId            String
+  order              Order            @relation(fields: [orderId], references: [id])
+  stationId          String
+  station            Station          @relation(fields: [stationId], references: [id])
+  employeeId         String
+  employee           User             @relation(fields: [employeeId], references: [id])
+  status             String           @default("recording") // recording | uploading | ready | warning | canceled | archived | deleted
+  completenessScore  Int              @default(0)
+  startedAt          DateTime         @default(now())
+  endedAt            DateTime?
+  durationSec        Int?
+  cancelReason       String?
+  legalHold          Boolean          @default(false)
+  deletedAt          DateTime?
+  files              RecordingFile[]
+  snapshots          Snapshot[]
+  markers            TimelineMarker[]
+  shareLinks         ShareLink[]
+  claimPackages      ClaimPackage[]
+  aiChecks           AiCheck[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model RecordingFile {
+  id           String    @id @default(cuid())
+  recordingId  String
+  recording    Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  cameraLabel  String
+  storagePath  String
+  sizeBytes    Int       @default(0)
+  sha256       String
+  thumbnailPath String?
+  createdAt    DateTime  @default(now())
+}
+
+model Snapshot {
+  id          String    @id @default(cuid())
+  recordingId String
+  recording   Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  storagePath String
+  sha256      String
+  takenAt     DateTime  @default(now())
+}
+
+model TimelineMarker {
+  id          String    @id @default(cuid())
+  recordingId String
+  recording   Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  label       String
+  atSec       Int
+  kind        String    @default("scan") // scan | snapshot | warning
+}
+
+model ShareLink {
+  id            String             @id @default(cuid())
+  tenantId      String
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  recordingId   String
+  recording     Recording          @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  token         String             @unique
+  passwordHash  String?
+  expiresAt     DateTime
+  maxOpens      Int?
+  openCount     Int                @default(0)
+  createdAt     DateTime           @default(now())
+  accesses      ShareLinkAccess[]
+}
+
+model ShareLinkAccess {
+  id          String    @id @default(cuid())
+  shareLinkId String
+  shareLink   ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  openedAt    DateTime  @default(now())
+  ip          String?
+  watermark   String?
+}
+
+model ClaimCase {
+  id          String         @id @default(cuid())
+  tenantId    String
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId     String
+  order       Order          @relation(fields: [orderId], references: [id])
+  reason      String
+  status      String         @default("open") // open | reviewing | closed
+  createdAt   DateTime       @default(now())
+  packages    ClaimPackage[]
+}
+
+model ClaimPackage {
+  id          String    @id @default(cuid())
+  claimCaseId String
+  claimCase   ClaimCase @relation(fields: [claimCaseId], references: [id], onDelete: Cascade)
+  recordingId String
+  recording   Recording @relation(fields: [recordingId], references: [id])
+  exportPath  String?
+  createdAt   DateTime  @default(now())
+}
+
+model AiCheck {
+  id             String    @id @default(cuid())
+  recordingId    String
+  recording      Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  confidence     Float
+  summary        String
+  humanConfirmed Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String?
+  entityId   String?
+  meta       String?  // JSON string
+  createdAt  DateTime @default(now())
+}
+
+model Alert {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  severity   String   @default("warning") // info | warning | critical
+  title      String
+  message    String
+  acknowledged Boolean @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Integration {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider  String   // shopee | lazada | shopify | wms | webhook
+  enabled   Boolean  @default(false)
+  configJson String?
+  createdAt DateTime @default(now())
+}
+
+model OnboardingState {
+  id              String  @id @default(cuid())
+  tenantId        String  @unique
+  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stationCreated  Boolean @default(false)
+  cameraTested    Boolean @default(false)
+  employeesInvited Boolean @default(false)
+  localeSet       Boolean @default(false)
+  testClipDone    Boolean @default(false)
+  completed       Boolean @default(false)
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model DataRequest {
+  id        String   @id @default(cuid())
+  tenantId  String
+  type      String   // export | deletion
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
