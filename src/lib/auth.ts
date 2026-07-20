@@ -118,7 +118,7 @@ async function establishTenantSession(user: {
 }
 
 export async function loginTenantByEmail(email: string, password: string) {
-  const trimmedEmail = email.trim();
+  const trimmedEmail = email.trim().toLowerCase();
   const user = await prisma.user.findUnique({
     where: { email: trimmedEmail },
     include: { tenant: true },
@@ -144,7 +144,8 @@ export async function loginTenantByEmail(email: string, password: string) {
 }
 
 export async function loginPlatform(email: string, password: string) {
-  const admin = await prisma.platformAdmin.findUnique({ where: { email } });
+  const normalizedEmail = email.trim().toLowerCase();
+  const admin = await prisma.platformAdmin.findUnique({ where: { email: normalizedEmail } });
   if (!admin) return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };
   const ok = await verifyPassword(password, admin.passwordHash);
   if (!ok) return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getUsageAndLimits, isStorageFull, syncUsageMeter } from "@/lib/tenant-limits";
 
 export async function GET(
   req: Request,
@@ -68,24 +69,14 @@ export async function POST(
 
     const tenantId = session.tenantId;
 
-    // Hard limit: block new recordings when storage quota is full.
-    // (Plan.maxStorageGb is configured by Platform Admin)
-    const subscription = await prisma.subscription.findUnique({
-      where: { tenantId },
-      include: { plan: true },
-    });
-    const usage = await prisma.usageMeter.upsert({
-      where: { tenantId },
-      update: {},
-      create: { tenantId, stationsUsed: 0, storageUsedGb: 0, usersUsed: 0 },
-    });
-
-    const maxStorageGb = subscription?.plan?.maxStorageGb;
-    if (typeof maxStorageGb === "number" && usage.storageUsedGb >= maxStorageGb) {
+    const { limits, usage } = await getUsageAndLimits(tenantId);
+    if (!limits) {
+      return NextResponse.json({ error: "ไม่พบแพ็กเกจขององค์กร" }, { status: 400 });
+    }
+    if (isStorageFull(usage, limits)) {
       return NextResponse.json(
         {
-          error:
-            "ความจุจัดเก็บวิดีโอเต็มแล้ว — ไม่สามารถบันทึกวิดีโอใหม่ได้ กรุณาอัปเกรดแพ็กเกจ",
+          error: `ความจุวิดีโอเต็มแล้ว (${usage.storageUsedGb.toFixed(1)}/${limits.maxStorageGb} GB) — ไม่สามารถอัดวิดีโอใหม่ได้`,
         },
         { status: 400 },
       );
@@ -247,6 +238,8 @@ export async function POST(
       where: { id: recording.stationId },
       data: { status: "idle" },
     });
+
+    await syncUsageMeter(tenantId);
 
     await prisma.auditLog.create({
       data: {

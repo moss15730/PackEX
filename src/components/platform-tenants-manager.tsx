@@ -11,6 +11,7 @@ import { statusLabel } from "@/lib/utils";
 type PlanOption = {
   id: string;
   nameTh: string;
+  maxStations: number;
   maxStorageGb: number;
   maxUsers: number;
 };
@@ -23,7 +24,15 @@ export type TenantListItem = {
   createdAt: string;
   planId: string | null;
   planName: string | null;
+  planMaxStations: number | null;
+  planMaxStorageGb: number | null;
+  planMaxUsers: number | null;
+  maxStations: number | null;
   maxStorageGb: number | null;
+  maxUsers: number | null;
+  maxStationsOverride: number | null;
+  maxStorageGbOverride: number | null;
+  maxUsersOverride: number | null;
   stationCount: number;
   userCount: number;
   storageUsedGb: number;
@@ -69,6 +78,9 @@ export function PlatformTenantsManager({
   const [editName, setEditName] = useState("");
   const [editPlanId, setEditPlanId] = useState("");
   const [editStatus, setEditStatus] = useState("active");
+  const [editMaxStations, setEditMaxStations] = useState("");
+  const [editMaxStorageGb, setEditMaxStorageGb] = useState("");
+  const [editMaxUsers, setEditMaxUsers] = useState("");
 
   function resetCreate() {
     setSlug("");
@@ -87,6 +99,13 @@ export function PlatformTenantsManager({
     setEditName(t.name);
     setEditPlanId(t.planId ?? defaultPlanId);
     setEditStatus(t.status);
+    setEditMaxStations(
+      t.maxStationsOverride != null ? String(t.maxStationsOverride) : "",
+    );
+    setEditMaxStorageGb(
+      t.maxStorageGbOverride != null ? String(t.maxStorageGbOverride) : "",
+    );
+    setEditMaxUsers(t.maxUsersOverride != null ? String(t.maxUsersOverride) : "");
     setShowCreate(false);
     setError(null);
   }
@@ -144,6 +163,11 @@ export function PlatformTenantsManager({
           name: editName,
           planId: editPlanId,
           status: editStatus,
+          quota: {
+            maxStations: editMaxStations.trim() ? Number(editMaxStations) : null,
+            maxStorageGb: editMaxStorageGb.trim() ? Number(editMaxStorageGb) : null,
+            maxUsers: editMaxUsers.trim() ? Number(editMaxUsers) : null,
+          },
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -204,7 +228,7 @@ export function PlatformTenantsManager({
   async function handleDelete(t: TenantListItem) {
     const ok = await confirm({
       title: `ลบองค์กร ${t.slug}?`,
-      description: "องค์กรจะถูกทำเครื่องหมายว่าลบแล้ว — ไม่แสดงในรายการอีก",
+      description: "องค์กรและข้อมูลทั้งหมดจะถูกลบถาวร — ไม่สามารถกู้คืนได้",
       confirmLabel: "ลบ",
       cancelLabel: "ยกเลิก",
       tone: "danger",
@@ -393,10 +417,44 @@ export function PlatformTenantsManager({
                 </select>
               </div>
             </div>
+            <div className="border-t border-[var(--border)] pt-4">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                โควต้าเฉพาะองค์กร (ว่าง = ใช้ตามแผน)
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <input
+                  value={editMaxStations}
+                  onChange={(e) => setEditMaxStations(e.target.value)}
+                  placeholder={`สถานี (แผน: ${editing.planMaxStations ?? "—"})`}
+                  type="number"
+                  min={0}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                />
+                <input
+                  value={editMaxStorageGb}
+                  onChange={(e) => setEditMaxStorageGb(e.target.value)}
+                  placeholder={`พื้นที่ GB (แผน: ${editing.planMaxStorageGb ?? "—"})`}
+                  type="number"
+                  min={0}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                />
+                <input
+                  value={editMaxUsers}
+                  onChange={(e) => setEditMaxUsers(e.target.value)}
+                  placeholder={`ผู้ใช้ (แผน: ${editing.planMaxUsers ?? "—"})`}
+                  type="number"
+                  min={0}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                />
+              </div>
+            </div>
             <div className="rounded-lg bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted)]">
-              พื้นที่ใช้แล้ว {editing.storageUsedGb.toFixed(1)} GB
+              ใช้งาน: สถานี {editing.stationCount}
+              {editing.maxStations != null ? ` / ${editing.maxStations}` : ""}
+              {" · "}ผู้ใช้ {editing.userCount}
+              {editing.maxUsers != null ? ` / ${editing.maxUsers}` : ""}
+              {" · "}พื้นที่ {editing.storageUsedGb.toFixed(1)} GB
               {editing.maxStorageGb != null ? ` / ${editing.maxStorageGb} GB` : ""}
-              · สถานี {editing.stationCount} · ผู้ใช้ {editing.userCount}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={busy}>
@@ -438,7 +496,9 @@ export function PlatformTenantsManager({
                   {t.maxStorageGb != null ? ` / ${t.maxStorageGb} GB` : ""}
                 </td>
                 <td className="px-4 py-3 text-[var(--muted)]">
-                  {t.stationCount} / {t.userCount}
+                  {t.stationCount}
+                  {t.maxStations != null ? ` / ${t.maxStations}` : ""} · {t.userCount}
+                  {t.maxUsers != null ? ` / ${t.maxUsers}` : ""}
                 </td>
                 <td className="px-4 py-3 text-[var(--muted)]">
                   {format(new Date(t.createdAt), "d MMM yyyy", { locale: th })}

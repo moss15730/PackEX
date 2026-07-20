@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { Badge, Button, Card } from "@/components/ui";
 import { useNotify } from "@/components/notify";
 
+type PlanSubscription = {
+  slug: string;
+  name: string;
+  status: string;
+};
+
 type Plan = {
   id: string;
   code: string;
@@ -23,6 +29,7 @@ type Plan = {
   allowCustomDomain: boolean;
   priceMonthly: number;
   trialDays: number;
+  subscriptions?: PlanSubscription[];
 };
 
 function parseNum(v: string) {
@@ -166,7 +173,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
   async function handleDelete(p: Plan) {
     const ok = await confirm({
       title: `ลบแพ็กเกจ «${p.nameTh}»?`,
-      description: "ถ้ามีการใช้งานใน subscription อยู่ ระบบจะไม่ให้ลบ",
+      description: "ถ้ามีองค์กรใช้แผนนี้อยู่ ระบบจะไม่ให้ลบ — ไปเปลี่ยนแผนที่หน้า Tenants ก่อน",
       confirmLabel: "ลบ",
       cancelLabel: "ยกเลิก",
       tone: "danger",
@@ -407,6 +414,17 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <li>ผู้ใช้: {p.maxUsers}</li>
               <li>Retention: {p.retentionDays} วัน</li>
             </ul>
+
+            {p.subscriptions && p.subscriptions.length > 0 ? (
+              <p className="mt-3 text-xs text-[var(--muted)]">
+                องค์กรที่ใช้:{" "}
+                <span className="font-mono text-[var(--ink)]">
+                  {p.subscriptions.map((s) => s.slug).join(", ")}
+                </span>
+              </p>
+            ) : (
+              <p className="mt-3 text-xs text-[var(--muted)]">ยังไม่มีองค์กรใช้แผนนี้</p>
+            )}
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Button type="button" variant="secondary" className="flex-1 min-h-11" disabled={busy} onClick={() => loadFromPlan(p)}>

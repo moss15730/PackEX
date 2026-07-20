@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:purge-tenants": "tsx scripts/purge-tenants.ts",
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "storage:setup": "tsx scripts/setup-storage.ts"

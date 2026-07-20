@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, hashPassword, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { syncUsageMeter } from "@/lib/tenant-limits";
 
 const ASSIGNABLE_ROLES = [
   "tenant_admin",
@@ -260,6 +261,8 @@ export async function DELETE(
   }
 
   await prisma.user.delete({ where: { id: employee.id } });
+
+  await syncUsageMeter(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

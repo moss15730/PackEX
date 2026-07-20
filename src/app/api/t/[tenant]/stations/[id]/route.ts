@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { syncUsageMeter } from "@/lib/tenant-limits";
 
 const ALLOWED_STATUS = [
   "idle",
@@ -190,6 +191,8 @@ export async function DELETE(
   });
 
   await prisma.station.delete({ where: { id: station.id } });
+
+  await syncUsageMeter(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

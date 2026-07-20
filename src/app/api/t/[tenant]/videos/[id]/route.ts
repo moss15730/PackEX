@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export async function DELETE(
   _req: Request,
@@ -38,33 +39,6 @@ export async function DELETE(
 
   const wasRecording = recording.status === "recording";
 
-  // Decrease storage usage when deleting a recording (legalHold already checked above).
-  const fileSum = await prisma.recordingFile.aggregate({
-    _sum: { sizeBytes: true },
-    where: { recordingId: recording.id },
-  });
-
-  const releaseGb = (fileSum._sum.sizeBytes ?? 0) / 1_000_000_000;
-  if (releaseGb > 0) {
-    const usage = await prisma.usageMeter.findUnique({
-      where: { tenantId: session.tenantId },
-      select: { storageUsedGb: true },
-    });
-    const current = usage?.storageUsedGb ?? 0;
-    const next = Math.max(0, current - releaseGb);
-
-    await prisma.usageMeter.upsert({
-      where: { tenantId: session.tenantId },
-      update: { storageUsedGb: next },
-      create: {
-        tenantId: session.tenantId,
-        stationsUsed: 0,
-        storageUsedGb: next,
-        usersUsed: 0,
-      },
-    });
-  }
-
   await prisma.recording.update({
     where: { id: recording.id },
     data: {
@@ -85,6 +59,8 @@ export async function DELETE(
       data: { status: "idle" },
     });
   }
+
+  await syncUsageMeter(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

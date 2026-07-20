@@ -3,6 +3,7 @@ import { requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui";
 import { PlatformTenantsManager } from "@/components/platform-tenants-manager";
+import { getTenantLimits, syncUsageMeter } from "@/lib/tenant-limits";
 
 export default async function PlatformTenantsPage() {
   const session = await requirePlatformSession();
@@ -14,34 +15,63 @@ export default async function PlatformTenantsPage() {
     prisma.tenant.findMany({
       where: { status: { not: "deleted" } },
       include: {
+        settings: true,
         subscription: { include: { plan: true } },
         usageMeters: true,
-        _count: { select: { users: true, stations: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
     prisma.plan.findMany({
       orderBy: { priceMonthly: "asc" },
-      select: { id: true, nameTh: true, maxStorageGb: true, maxUsers: true },
+      select: {
+        id: true,
+        nameTh: true,
+        maxStorageGb: true,
+        maxUsers: true,
+        maxStations: true,
+      },
     }),
   ]);
 
-  const tenantItems = tenants.map((t) => {
-    const usage = t.usageMeters[0];
-    return {
-      id: t.id,
-      slug: t.slug,
-      name: t.name,
-      status: t.status,
-      createdAt: t.createdAt.toISOString(),
-      planId: t.subscription?.planId ?? null,
-      planName: t.subscription?.plan.nameTh ?? null,
-      maxStorageGb: t.subscription?.plan.maxStorageGb ?? null,
-      stationCount: t._count.stations,
-      userCount: t._count.users,
-      storageUsedGb: usage?.storageUsedGb ?? 0,
-    };
-  });
+  await Promise.all(tenants.map((t) => syncUsageMeter(t.id)));
+
+  const usageByTenant = new Map(
+    (
+      await prisma.usageMeter.findMany({
+        where: { tenantId: { in: tenants.map((t) => t.id) } },
+      })
+    ).map((m) => [m.tenantId, m]),
+  );
+
+  const tenantItems = await Promise.all(
+    tenants.map(async (t) => {
+      const usage = usageByTenant.get(t.id);
+      const limits = await getTenantLimits(t.id);
+      const plan = t.subscription?.plan;
+
+      return {
+        id: t.id,
+        slug: t.slug,
+        name: t.name,
+        status: t.status,
+        createdAt: t.createdAt.toISOString(),
+        planId: t.subscription?.planId ?? null,
+        planName: plan?.nameTh ?? null,
+        planMaxStations: plan?.maxStations ?? null,
+        planMaxStorageGb: plan?.maxStorageGb ?? null,
+        planMaxUsers: plan?.maxUsers ?? null,
+        maxStations: limits?.maxStations ?? plan?.maxStations ?? null,
+        maxStorageGb: limits?.maxStorageGb ?? plan?.maxStorageGb ?? null,
+        maxUsers: limits?.maxUsers ?? plan?.maxUsers ?? null,
+        maxStationsOverride: limits?.maxStationsOverride ?? null,
+        maxStorageGbOverride: limits?.maxStorageGbOverride ?? null,
+        maxUsersOverride: limits?.maxUsersOverride ?? null,
+        stationCount: usage?.stationsUsed ?? 0,
+        userCount: usage?.usersUsed ?? 0,
+        storageUsedGb: usage?.storageUsedGb ?? 0,
+      };
+    }),
+  );
 
   return (
     <div>

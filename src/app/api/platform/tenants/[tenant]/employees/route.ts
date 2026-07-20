@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { hashPassword, requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import {
+  getUsageAndLimits,
+  isUserLimitReached,
+  syncUsageMeter,
+} from "@/lib/tenant-limits";
 
 function normalizeEmployeeCode(code: string) {
   return code.trim().toUpperCase();
@@ -102,10 +107,17 @@ export async function POST(
     return NextResponse.json({ error: stationAccess.error }, { status: 400 });
   }
 
-  const maxUsers = tenantObj.subscription.plan.maxUsers;
-  const userCount = await prisma.user.count({ where: { tenantId: tenantObj.id } });
-  if (maxUsers && userCount >= maxUsers) {
-    return NextResponse.json({ error: "ถึงจำนวนผู้ใช้สูงสุดของแพ็กเกจแล้ว" }, { status: 400 });
+  const { limits, usage } = await getUsageAndLimits(tenantObj.id);
+  if (!limits) {
+    return NextResponse.json({ error: "tenant ไม่มี subscription/plan" }, { status: 400 });
+  }
+  if (isUserLimitReached(usage, limits)) {
+    return NextResponse.json(
+      {
+        error: `ถึงจำนวนผู้ใช้สูงสุดแล้ว (${usage.usersUsed}/${limits.maxUsers})`,
+      },
+      { status: 400 },
+    );
   }
 
   const passwordHash = await hashPassword(password);
@@ -150,19 +162,10 @@ export async function POST(
       },
     });
 
-    await tx.usageMeter.upsert({
-      where: { tenantId: tenantObj.id },
-      update: { usersUsed: { increment: 1 } },
-      create: {
-        tenantId: tenantObj.id,
-        stationsUsed: 0,
-        storageUsedGb: 0,
-        usersUsed: 1,
-      },
-    });
-
     return created;
   });
+
+  await syncUsageMeter(tenantObj.id);
 
   return NextResponse.json({ ok: true, employee }, { status: 201 });
 }

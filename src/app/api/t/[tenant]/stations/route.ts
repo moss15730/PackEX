@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import {
+  getUsageAndLimits,
+  isStationLimitReached,
+  syncUsageMeter,
+} from "@/lib/tenant-limits";
 
 export async function GET(
   _req: Request,
@@ -72,6 +77,19 @@ export async function POST(
     return NextResponse.json({ error: "รหัสสถานีนี้มีอยู่แล้ว" }, { status: 409 });
   }
 
+  const { limits, usage } = await getUsageAndLimits(session.tenantId);
+  if (!limits) {
+    return NextResponse.json({ error: "ไม่พบแพ็กเกจขององค์กร" }, { status: 400 });
+  }
+  if (isStationLimitReached(usage, limits)) {
+    return NextResponse.json(
+      {
+        error: `ถึงจำนวนสถานีสูงสุดแล้ว (${usage.stationsUsed}/${limits.maxStations})`,
+      },
+      { status: 400 },
+    );
+  }
+
   const station = await prisma.station.create({
     data: {
       tenantId: session.tenantId,
@@ -81,6 +99,8 @@ export async function POST(
       status: "idle",
     },
   });
+
+  await syncUsageMeter(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

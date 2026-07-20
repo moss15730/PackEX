@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { uploadRecordingFile } from "@/lib/storage";
+import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -100,21 +101,8 @@ export async function POST(
       },
     });
 
-    // Update storage usage (legacy multipart upload).
     if (kind === "video" && !uploaded.storageError) {
-      const gb = (uploaded.sizeBytes || 0) / 1_000_000_000;
-      if (gb > 0) {
-        await prisma.usageMeter.upsert({
-          where: { tenantId: session.tenantId },
-          update: { storageUsedGb: { increment: gb } },
-          create: {
-            tenantId: session.tenantId,
-            stationsUsed: 0,
-            storageUsedGb: gb,
-            usersUsed: 0,
-          },
-        });
-      }
+      await syncUsageMeter(session.tenantId);
     }
 
     await prisma.auditLog.create({

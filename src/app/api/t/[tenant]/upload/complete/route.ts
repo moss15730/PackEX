@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createSignedUrl, supabaseRefFromStorage } from "@/lib/storage";
+import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export const runtime = "nodejs";
 
@@ -80,21 +81,8 @@ export async function POST(
       },
     });
 
-    // Update storage usage (video files only).
     if (kind === "video") {
-      const gb = (Number.isFinite(sizeBytes) ? sizeBytes : 0) / 1_000_000_000;
-      if (gb > 0) {
-        await prisma.usageMeter.upsert({
-          where: { tenantId: session.tenantId },
-          update: { storageUsedGb: { increment: gb } },
-          create: {
-            tenantId: session.tenantId,
-            stationsUsed: 0,
-            storageUsedGb: gb,
-            usersUsed: 0,
-          },
-        });
-      }
+      await syncUsageMeter(session.tenantId);
     }
 
     await prisma.auditLog.create({

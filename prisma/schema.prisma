@@ -75,6 +75,9 @@ model TenantSettings {
   videoPreset           String  @default("standard") // economy | standard | high
   consentRequired       Boolean @default(true)
   softDeleteDays        Int     @default(14)
+  maxStationsOverride   Int?
+  maxStorageGbOverride  Int?
+  maxUsersOverride      Int?
 }
 
 model Subscription {

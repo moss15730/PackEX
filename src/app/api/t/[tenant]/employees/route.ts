@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { can, hashPassword, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import {
+  getUsageAndLimits,
+  isUserLimitReached,
+  syncUsageMeter,
+} from "@/lib/tenant-limits";
 
 const ASSIGNABLE_ROLES = [
   "tenant_admin",
@@ -149,17 +154,17 @@ export async function POST(
     return NextResponse.json({ error: "อีเมลนี้ถูกใช้งานแล้ว" }, { status: 409 });
   }
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: session.tenantId },
-    select: {
-      _count: { select: { users: true } },
-      subscription: { select: { plan: { select: { maxUsers: true } } } },
-    },
-  });
-
-  const maxUsers = tenant?.subscription?.plan.maxUsers;
-  if (maxUsers && tenant && tenant._count.users >= maxUsers) {
-    return NextResponse.json({ error: "ถึงจำนวนผู้ใช้สูงสุดของแพ็กเกจแล้ว" }, { status: 400 });
+  const { limits, usage } = await getUsageAndLimits(session.tenantId);
+  if (!limits) {
+    return NextResponse.json({ error: "ไม่พบแพ็กเกจขององค์กร" }, { status: 400 });
+  }
+  if (isUserLimitReached(usage, limits)) {
+    return NextResponse.json(
+      {
+        error: `ถึงจำนวนผู้ใช้สูงสุดแล้ว (${usage.usersUsed}/${limits.maxUsers})`,
+      },
+      { status: 400 },
+    );
   }
 
   const passwordHash = await hashPassword(password);
@@ -186,6 +191,8 @@ export async function POST(
       stationAccess: true,
     },
   });
+
+  await syncUsageMeter(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

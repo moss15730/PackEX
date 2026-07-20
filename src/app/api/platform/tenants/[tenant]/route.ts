@@ -40,6 +40,11 @@ export async function PATCH(
     name?: string;
     status?: string;
     planId?: string;
+    quota?: {
+      maxStations?: number | null;
+      maxStorageGb?: number | null;
+      maxUsers?: number | null;
+    };
   };
 
   const data: { name?: string; status?: string } = {};
@@ -60,12 +65,31 @@ export async function PATCH(
   }
 
   const planId = body.planId?.trim();
-  if (planId) {
-    const plan = await prisma.plan.findUnique({ where: { id: planId } });
-    if (!plan) {
-      return NextResponse.json({ error: "ไม่พบแผนราคา" }, { status: 404 });
+    if (planId) {
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      if (!plan) {
+        return NextResponse.json({ error: "ไม่พบแผนราคา" }, { status: 404 });
+      }
     }
-  }
+
+  const quota = body.quota;
+  const quotaData =
+    quota !== undefined
+      ? {
+          maxStationsOverride:
+            quota.maxStations === null || quota.maxStations === undefined
+              ? null
+              : Math.max(0, Math.trunc(Number(quota.maxStations))),
+          maxStorageGbOverride:
+            quota.maxStorageGb === null || quota.maxStorageGb === undefined
+              ? null
+              : Math.max(0, Math.trunc(Number(quota.maxStorageGb))),
+          maxUsersOverride:
+            quota.maxUsers === null || quota.maxUsers === undefined
+              ? null
+              : Math.max(0, Math.trunc(Number(quota.maxUsers))),
+        }
+      : null;
 
   const updated = await prisma.$transaction(async (tx) => {
     const result = await tx.tenant.update({
@@ -90,6 +114,14 @@ export async function PATCH(
       });
     }
 
+    if (quotaData) {
+      await tx.tenantSettings.upsert({
+        where: { tenantId: id },
+        update: quotaData,
+        create: { tenantId: id, ...quotaData },
+      });
+    }
+
     await tx.auditLog.create({
       data: {
         tenantId: id,
@@ -100,6 +132,7 @@ export async function PATCH(
           name: data.name,
           status: data.status,
           planId: planId || undefined,
+          quota: quotaData ?? undefined,
         }),
       },
     });
@@ -133,22 +166,24 @@ export async function DELETE(
   }
 
   const id = tenant.id;
+  const slug = tenant.slug;
 
   await prisma.$transaction(async (tx) => {
-    await tx.tenant.update({
-      where: { id },
-      data: { status: "deleted" },
-    });
-
     await tx.auditLog.create({
       data: {
-        tenantId: id,
         action: "platform.tenant.delete",
         entityType: "tenant",
         entityId: id,
-        meta: JSON.stringify({ slug: tenant.slug }),
+        meta: JSON.stringify({
+          slug,
+          hardDelete: true,
+          platformAdminId: session.id,
+          platformAdminEmail: session.email,
+        }),
       },
     });
+
+    await tx.tenant.delete({ where: { id } });
   });
 
   return NextResponse.json({ ok: true });

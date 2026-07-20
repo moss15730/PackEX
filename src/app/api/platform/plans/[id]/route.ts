@@ -79,10 +79,17 @@ export async function DELETE(
 
   const { id } = await params;
   try {
-    const used = await prisma.subscription.count({ where: { planId: id } });
-    if (used > 0) {
+    const subscriptions = await prisma.subscription.findMany({
+      where: { planId: id },
+      select: { tenant: { select: { slug: true, name: true } } },
+    });
+    if (subscriptions.length > 0) {
+      const tenants = subscriptions.map((s) => s.tenant.slug).join(", ");
       return NextResponse.json(
-        { error: `ลบไม่สำเร็จ — มี subscription ใช้งานแผนนี้อยู่ ${used} รายการ` },
+        {
+          error: `ลบไม่สำเร็จ — มีองค์กรใช้แผนนี้อยู่ ${subscriptions.length} รายการ: ${tenants}`,
+          tenants: subscriptions.map((s) => s.tenant),
+        },
         { status: 400 },
       );
     }
