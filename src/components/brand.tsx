@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-export function PackEyeMark({ className, size = 36 }: { className?: string; size?: number }) {
+export function PackExMark({ className, size = 36 }: { className?: string; size?: number }) {
   return (
     <svg
       width={size}
@@ -30,13 +30,13 @@ export function PackEyeMark({ className, size = 36 }: { className?: string; size
   );
 }
 
-export function PackEyeWordmark({ className }: { className?: string }) {
+export function PackExWordmark({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <PackEyeMark size={32} />
+      <PackExMark size={32} />
       <div className="leading-tight">
         <div className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-[var(--ink)]">
-          PackEye
+          PackEX
         </div>
         <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
           Packing Video Systems

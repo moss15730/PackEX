@@ -16,7 +16,7 @@ export default async function PlatformOverviewPage() {
     <div>
       <PageHeader
         title="Platform Overview"
-        description="ภาพรวม tenant และสุขภาพระบบ PackEye"
+        description="ภาพรวม tenant และสุขภาพระบบ PackEX"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { Card } from "@/components/ui";
 
 export default function TermsPage() {
@@ -7,7 +7,7 @@ export default function TermsPage() {
     <div className="min-h-screen px-4 py-12">
       <div className="mx-auto max-w-2xl">
         <Link href="/">
-          <PackEyeWordmark className="mb-8" />
+          <PackExWordmark className="mb-8" />
         </Link>
 
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)]">
@@ -18,7 +18,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-semibold text-[var(--ink)]">ภาษาไทย</h2>
             <p className="mt-2">
-              การใช้บริการ PackEye หมายความว่าคุณยอมรับข้อกำหนดนี้และนโยบายความเป็นส่วนตัว
+              การใช้บริการ PackEX หมายความว่าคุณยอมรับข้อกำหนดนี้และนโยบายความเป็นส่วนตัว
               บริการมีให้ตามสภาพ (&quot;as-is&quot;) สำหรับการบันทึกวิดีโอหลักฐานการแพ็ค
             </p>
             <p className="mt-2">
@@ -30,7 +30,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-semibold text-[var(--ink)]">English</h2>
             <p className="mt-2">
-              By using PackEye you agree to these terms and our Privacy Policy. The service
+              By using PackEX you agree to these terms and our Privacy Policy. The service
               is provided &quot;as-is&quot; for packing video evidence purposes.
             </p>
             <p className="mt-2">

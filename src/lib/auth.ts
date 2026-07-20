@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
 const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "packeye-dev-secret-change-in-production",
+  process.env.AUTH_SECRET || "PackEX-dev-secret-change-in-production",
 );
 
 export type SessionUser = {
@@ -55,7 +55,7 @@ export async function createSessionToken(user: SessionUser) {
 
 export async function readSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get("packeye_session")?.value;
+  const token = cookieStore.get("PackEX_session")?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret);
@@ -67,7 +67,7 @@ export async function readSession(): Promise<SessionUser | null> {
 
 export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();
-  cookieStore.set("packeye_session", token, {
+  cookieStore.set("PackEX_session", token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -78,7 +78,7 @@ export async function setSessionCookie(token: string) {
 
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
-  cookieStore.delete("packeye_session");
+  cookieStore.delete("PackEX_session");
 }
 
 export async function loginTenant(email: string, password: string, tenantSlug: string) {

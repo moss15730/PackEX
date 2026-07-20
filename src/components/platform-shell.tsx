@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Moon, Sun, LogOut } from "lucide-react";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui";
 import { cn, roleLabel } from "@/lib/utils";
@@ -43,7 +43,7 @@ export function PlatformShell({
       <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
         <div className="border-b border-[var(--border)] p-4">
           <Link href="/platform">
-            <PackEyeWordmark />
+            <PackExWordmark />
           </Link>
           <p className="mt-2 text-xs uppercase tracking-wide text-[var(--muted)]">Platform Console</p>
         </div>

@@ -17,11 +17,11 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "PackEye — ระบบวิดีโอหลักฐานการแพ็ค",
-    template: "%s | PackEye",
+    default: "PackEX — ระบบวิดีโอหลักฐานการแพ็ค",
+    template: "%s | PackEX",
   },
   description:
-    "PackEye ระบบบันทึกวิดีโอการแพ็คสินค้าแบบ multi-tenant สำหรับคลังสินค้าและ fulfillment",
+    "PackEX ระบบบันทึกวิดีโอการแพ็คสินค้าแบบ multi-tenant สำหรับคลังสินค้าและ fulfillment",
 };
 
 export default function RootLayout({

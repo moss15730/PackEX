@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { Button } from "@/components/ui";
 
 export default function HomePage() {
@@ -14,7 +14,7 @@ export default function HomePage() {
         }}
       />
       <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
-        <PackEyeWordmark />
+        <PackExWordmark />
         <div className="flex items-center gap-2">
           <Link href="/login">
             <Button variant="ghost">เข้าสู่ระบบ</Button>
@@ -24,7 +24,7 @@ export default function HomePage() {
 
       <main className="relative z-10 mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center px-6 pb-24 pt-8 text-center md:px-10">
         <div className="mb-10 scale-[1.35] md:scale-[1.6]">
-          <PackEyeWordmark className="flex-col items-center gap-4 [&>div]:text-center" />
+          <PackExWordmark className="flex-col items-center gap-4 [&>div]:text-center" />
         </div>
 
         <h1 className="max-w-2xl font-[family-name:var(--font-display)] text-3xl font-semibold leading-tight tracking-tight text-[var(--ink)] md:text-5xl">

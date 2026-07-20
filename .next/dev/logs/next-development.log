@@ -1,1 +1,9 @@
 {"timestamp":"00:00:01.828","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:13:34.237","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
+{"timestamp":"00:15:27.287","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
+{"timestamp":"00:15:27.287","source":"Server","level":"LOG","message":"  Reload env: .env"}
+{"timestamp":"00:18:48.908","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:23:58.634","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: UNKNOWN: unknown error, open 'D:\\MOSS\\PackEX\\.next\\dev\\types\\routes.d.ts'"}
+{"timestamp":"00:23:58.709","source":"Server","level":"LOG","message":"✓ Compiled in 156ms"}
+{"timestamp":"00:23:58.738","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/theme-provider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:24:00.103","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

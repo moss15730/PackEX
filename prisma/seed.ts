@@ -94,8 +94,8 @@ async function main() {
 
   await prisma.platformAdmin.create({
     data: {
-      email: "admin@packeye.app",
-      name: "PackEye Super Admin",
+      email: "admin@PackEX.app",
+      name: "PackEX Super Admin",
       passwordHash,
       role: "super_admin",
     },
@@ -507,7 +507,7 @@ async function main() {
   });
 
   console.log("Seed complete");
-  console.log("Platform: admin@packeye.app / password123");
+  console.log("Platform: admin@PackEX.app / password123");
   console.log("Tenant ACME: admin@acme.local / password123");
   console.log("Packer: packer@acme.local / password123");
   console.log("Tenant slug:", tenant.slug, "| Beta:", tenantB.slug);

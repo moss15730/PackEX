@@ -1,11 +1,11 @@
-# PackEye Station Agent
+# PackEX Station Agent
 
-Station Agent เป็นแอปที่ติดตั้งบนเครื่องคอมพิวเตอร์ที่สถานีแพ็ค ทำหน้าที่อัดวิดีโอหลายมุมกล้อง ซิงก์ไฟล์ขึ้น cloud และส่ง heartbeat กลับ PackEye
+Station Agent เป็นแอปที่ติดตั้งบนเครื่องคอมพิวเตอร์ที่สถานีแพ็ค ทำหน้าที่อัดวิดีโอหลายมุมกล้อง ซิงก์ไฟล์ขึ้น cloud และส่ง heartbeat กลับ PackEX
 
 ## สถาปัตยกรรม
 
 ```
-[กล้อง Webcam/IP] → [Station Agent] → [Local Queue] → [PackEye API / Storage]
+[กล้อง Webcam/IP] → [Station Agent] → [Local Queue] → [PackEX API / Storage]
                               ↓
                         Heartbeat (ทุก ~30s)
 ```

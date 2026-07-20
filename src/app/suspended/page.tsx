@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { Button, Card } from "@/components/ui";
 
 export default function SuspendedPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
-        <PackEyeWordmark className="mb-8 justify-center" />
+        <PackExWordmark className="mb-8 justify-center" />
 
         <Card>
           <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-rose-600">
@@ -22,7 +22,7 @@ export default function SuspendedPage() {
                 กลับหน้าเข้าสู่ระบบ
               </Button>
             </Link>
-            <a href="mailto:billing@packeye.app">
+            <a href="mailto:billing@PackEX.app">
               <Button variant="outline" className="w-full">
                 ติดต่อ Billing
               </Button>

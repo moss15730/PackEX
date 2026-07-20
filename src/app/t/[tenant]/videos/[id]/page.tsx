@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireTenantSession, can } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getDriveViewLink, isDriveConfigured } from "@/lib/drive";
 import { PageHeader, Card, Badge, Button } from "@/components/ui";
 import { statusLabel, formatBytes } from "@/lib/utils";
 import { format } from "date-fns";
@@ -34,6 +35,14 @@ export default async function VideoDetailPage({
 
   const shareLink = recording.shareLinks[0];
   const canShare = can(session.role, "video.share");
+  const driveReady = isDriveConfigured();
+
+  const filesWithLinks = await Promise.all(
+    recording.files.map(async (file) => ({
+      ...file,
+      viewLink: await getDriveViewLink(file.storagePath),
+    })),
+  );
 
   return (
     <div>
@@ -55,16 +64,31 @@ export default async function VideoDetailPage({
           ครบถ้วน {recording.completenessScore}%
         </Badge>
         {recording.legalHold && <Badge tone="danger">Legal Hold</Badge>}
+        <Badge tone={driveReady ? "success" : "warning"}>
+          {driveReady ? "Google Drive พร้อม" : "Drive ยังไม่ตั้งค่า"}
+        </Badge>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {recording.files.map((file) => (
+        {filesWithLinks.map((file) => (
           <Card key={file.id} className="p-0 overflow-hidden">
             <div className="flex aspect-video items-center justify-center bg-[var(--surface-2)]">
-              <div className="text-center">
+              <div className="text-center px-4">
                 <div className="text-4xl">▶</div>
                 <p className="mt-2 text-sm text-[var(--muted)]">{file.cameraLabel}</p>
                 <p className="text-xs text-[var(--muted)]">{formatBytes(file.sizeBytes)}</p>
+                {file.viewLink ? (
+                  <a
+                    href={file.viewLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-sm font-medium text-[var(--accent)] underline"
+                  >
+                    เปิดใน Google Drive
+                  </a>
+                ) : (
+                  <p className="mt-3 text-xs text-[var(--muted)] break-all">{file.storagePath}</p>
+                )}
               </div>
             </div>
           </Card>

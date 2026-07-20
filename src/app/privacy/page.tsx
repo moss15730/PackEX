@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { Card } from "@/components/ui";
 
 export default function PrivacyPage() {
@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen px-4 py-12">
       <div className="mx-auto max-w-2xl">
         <Link href="/">
-          <PackEyeWordmark className="mb-8" />
+          <PackExWordmark className="mb-8" />
         </Link>
 
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)]">
@@ -18,26 +18,26 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-semibold text-[var(--ink)]">ภาษาไทย</h2>
             <p className="mt-2">
-              PackEye เก็บรวบรวมข้อมูลองค์กร ผู้ใช้งาน วิดีโอการแพ็ค และ metadata
+              PackEX เก็บรวบรวมข้อมูลองค์กร ผู้ใช้งาน วิดีโอการแพ็ค และ metadata
               เพื่อให้บริการหลักฐานการแพ็คสินค้า ข้อมูลถูกแยกตาม tenant (multi-tenant isolation)
               และเก็บตามระยะเวลาที่กำหนดในแพ็กเกจ
             </p>
             <p className="mt-2">
               ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) คุณมีสิทธิขอเข้าถึง แก้ไข
-              ส่งออก หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ support@packeye.app
+              ส่งออก หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ support@PackEX.app
             </p>
           </section>
 
           <section>
             <h2 className="font-semibold text-[var(--ink)]">English</h2>
             <p className="mt-2">
-              PackEye processes organizational data, user accounts, packing videos, and
+              PackEX processes organizational data, user accounts, packing videos, and
               related metadata to provide video evidence services. Data is isolated per tenant
               and retained per subscription plan limits.
             </p>
             <p className="mt-2">
               Under Thailand&apos;s PDPA, you may request access, correction, export, or
-              deletion of personal data via your tenant administrator or support@packeye.app.
+              deletion of personal data via your tenant administrator or support@PackEX.app.
             </p>
           </section>
         </Card>

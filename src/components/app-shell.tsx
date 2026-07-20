@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Moon, Sun, LogOut } from "lucide-react";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui";
 import { cn, roleLabel } from "@/lib/utils";
@@ -50,7 +50,7 @@ export function AppShell({
       <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
         <div className="border-b border-[var(--border)] p-4">
           <Link href={`${base}/dashboard`}>
-            <PackEyeWordmark />
+            <PackExWordmark />
           </Link>
           <p className="mt-2 truncate text-xs text-[var(--muted)]">{tenantSlug}</p>
         </div>
