@@ -7,3 +7,8 @@
 {"timestamp":"00:23:58.709","source":"Server","level":"LOG","message":"✓ Compiled in 156ms"}
 {"timestamp":"00:23:58.738","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/theme-provider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
 {"timestamp":"00:24:00.103","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:24:28.561","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/theme-provider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:24:28.737","source":"Server","level":"LOG","message":"✓ Compiled in 60ms"}
+{"timestamp":"00:24:29.450","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:37:09.453","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
+{"timestamp":"00:37:10.173","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

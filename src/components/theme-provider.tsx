@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [resolved, setResolved] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("PackEX-theme") as Theme | null;
+    const stored = localStorage.getItem("packex-theme") as Theme | null;
     if (stored) setTheme(stored);
   }, []);
 
@@ -25,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const next = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
       setResolved(next);
       document.documentElement.dataset.theme = next;
-      localStorage.setItem("PackEX-theme", theme);
+      localStorage.setItem("packex-theme", theme);
     };
     apply();
     mq.addEventListener("change", apply);

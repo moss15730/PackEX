@@ -32,6 +32,14 @@ npx tsx prisma/seed.ts
 
 ## 3) Vercel
 
+โปรเจกต์ชื่อ `packex`  
+Production URL ปัจจุบัน: https://packex-mosss-projects-44a2e3d4.vercel.app
+
+> **หมายเหตุ `packex.vercel.app`:** โดเมนนี้ถูกจองโดยบัญชี Vercel อื่นอยู่แล้ว  
+> (`domain_taken` / aliased to another account) — บัญชีนี้เพิ่มไม่ได้  
+> วิธีแก้: เข้าบัญชีที่เคยสร้างโปรเจกต์ชื่อ `packex` แล้วลบ/เปลี่ยนชื่อโปรเจกต์นั้น  
+> จากนั้นรัน `npx vercel alias set <deployment> packex.vercel.app`
+
 ```bash
 npx vercel link
 npx vercel env add DATABASE_URL
@@ -44,6 +52,12 @@ npx vercel --prod
 ```
 
 หรือตั้งค่า env ใน Vercel Dashboard → Project → Settings → Environment Variables
+
+## Supabase
+
+- ชื่อโปรเจกต์ (display): **packex**
+- Project ID (เปลี่ยนไม่ได้): `sybzcdsbkjwrfiycmjep`
+- URL: `https://sybzcdsbkjwrfiycmjep.supabase.co`
 
 ## หมายเหตุ
 

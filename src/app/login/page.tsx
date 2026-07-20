@@ -13,7 +13,7 @@ function LoginForm() {
 
   const [platform, setPlatform] = useState(platformMode);
   const [tenantSlug, setTenantSlug] = useState("acme");
-  const [email, setEmail] = useState(platformMode ? "admin@PackEX.app" : "admin@acme.local");
+  const [email, setEmail] = useState(platformMode ? "admin@packex.app" : "admin@acme.local");
   const [password, setPassword] = useState("password123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -119,7 +119,7 @@ function LoginForm() {
               type="button"
               onClick={() => {
                 setPlatform(!platform);
-                setEmail(!platform ? "admin@PackEX.app" : "admin@acme.local");
+                setEmail(!platform ? "admin@packex.app" : "admin@acme.local");
                 setError("");
               }}
               className="text-[var(--accent)] hover:underline"
@@ -135,7 +135,7 @@ function LoginForm() {
         <div className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
           <p className="font-medium text-[var(--ink)]">Demo credentials</p>
           <p className="mt-1">Tenant: acme / admin@acme.local / password123</p>
-          <p>Platform: admin@PackEX.app / password123</p>
+          <p>Platform: admin@packex.app / password123</p>
         </div>
       </div>
     </div>

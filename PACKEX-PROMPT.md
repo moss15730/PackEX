@@ -28,8 +28,8 @@ PackEX เป็นระบบบันทึกวิดีโอตอนบ�
 - PackEX เป็นแพลตฟอร์มกลางที่ผู้ขายระบบเป็นเจ้าของ
 - ลูกค้าแต่ละราย = 1 Tenant (บริษัท/โกดัง) แยกข้อมูล 100%
 - เข้าใช้ผ่าน subdomain หรือ path แยก tenant เช่น:
-  - acme.PackEX.app
-  - app.PackEX.com/t/acme
+  - acme.packex.app
+  - app.packex.com/t/acme
 - รองรับ custom domain ในแพ็กเกจ Enterprise
 
 ผู้ดูแล 2 ระดับ:

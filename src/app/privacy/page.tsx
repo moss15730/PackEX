@@ -24,7 +24,7 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-2">
               ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) คุณมีสิทธิขอเข้าถึง แก้ไข
-              ส่งออก หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ support@PackEX.app
+              ส่งออก หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ support@packex.app
             </p>
           </section>
 
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-2">
               Under Thailand&apos;s PDPA, you may request access, correction, export, or
-              deletion of personal data via your tenant administrator or support@PackEX.app.
+              deletion of personal data via your tenant administrator or support@packex.app.
             </p>
           </section>
         </Card>

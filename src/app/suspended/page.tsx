@@ -22,7 +22,7 @@ export default function SuspendedPage() {
                 กลับหน้าเข้าสู่ระบบ
               </Button>
             </Link>
-            <a href="mailto:billing@PackEX.app">
+            <a href="mailto:billing@packex.app">
               <Button variant="outline" className="w-full">
                 ติดต่อ Billing
               </Button>

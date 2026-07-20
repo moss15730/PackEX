@@ -23,7 +23,7 @@ npm run dev
 |--------|--------|-------|----------|
 | Tenant Admin | `acme` | `admin@acme.local` | `password123` |
 | Packer | `acme` | `packer@acme.local` | `password123` |
-| Platform Super Admin | — | `admin@PackEX.app` | `password123` |
+| Platform Super Admin | — | `admin@packex.app` | `password123` |
 
 Share link ตัวอย่าง: `/share/demo-share-token`
 
@@ -33,7 +33,8 @@ Share link ตัวอย่าง: `/share/demo-share-token`
 - Prisma + **Supabase PostgreSQL**
 - JWT session cookie + RBAC
 - Video files → **Google Drive** (interim; see `DEPLOY.md`)
-- Hosting → **Vercel** — https://PackEX.vercel.app
+- Hosting → **Vercel** — https://packex-mosss-projects-44a2e3d4.vercel.app
+  - หมายเหตุ: `packex.vercel.app` ถูกบัญชี Vercel อื่นจองไว้แล้ว (ดู DEPLOY.md)
 - Station Agent concept: `agents/README.md`
 
 ## โครงสร้างหลัก

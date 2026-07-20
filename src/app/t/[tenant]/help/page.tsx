@@ -35,7 +35,7 @@ export default function HelpPage() {
 
       <Card className="mt-6">
         <p className="text-sm text-[var(--muted)]">
-          ติดต่อ support: support@packeye.app · เอกสารเต็มจะพร้อมในเวอร์ชันถัดไป
+          ติดต่อ support: support@packex.app · เอกสารเต็มจะพร้อมในเวอร์ชันถัดไป
         </p>
       </Card>
     </div>

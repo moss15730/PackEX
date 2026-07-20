@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { PackEyeWordmark } from "@/components/brand";
+import { PackExWordmark } from "@/components/brand";
 import { Badge, Card } from "@/components/ui";
 import { formatBytes, statusLabel } from "@/lib/utils";
 import { format } from "date-fns";
@@ -47,7 +47,7 @@ export default async function SharePage({
   return (
     <div className="min-h-screen bg-[var(--bg)] px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <PackEyeWordmark className="mb-8" />
+        <PackExWordmark className="mb-8" />
 
         {expired ? (
           <Card className="text-center">
