@@ -1,27 +1,61 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Moon, Sun, LogOut } from "lucide-react";
+import { ChevronDown, Moon, Sun, LogOut } from "lucide-react";
 import { PackExWordmark } from "@/components/brand";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui";
 import { cn, roleLabel } from "@/lib/utils";
 
-const NAV = [
+const NAV_TOP = [
   { href: "dashboard", label: "แดชบอร์ด" },
   { href: "station", label: "เลือกสถานี" },
-  { href: "stations", label: "จัดการสถานี" },
   { href: "videos", label: "วิดีโอ" },
   { href: "claims", label: "เคลม" },
-  { href: "employees", label: "พนักงาน" },
   { href: "audit", label: "Audit" },
   { href: "alerts", label: "แจ้งเตือน" },
   { href: "reports", label: "รายงาน" },
-  { href: "settings", label: "ตั้งค่า" },
-  { href: "billing", label: "แพ็กเกจ" },
-  { href: "help", label: "ช่วยเหลือ" },
 ] as const;
+
+const SETTINGS_SUB = [
+  { href: "settings/organization", label: "ข้อมูลองค์กร" },
+  { href: "settings/stations", label: "จัดการสถานี" },
+  { href: "settings/claim-reasons", label: "เหตุผลเคลม" },
+  { href: "settings/employees", label: "พนักงาน" },
+  { href: "settings/billing", label: "แพ็กเกจและการใช้งาน" },
+  { href: "settings/theme", label: "ธีม" },
+] as const;
+
+const NAV_BOTTOM = [{ href: "help", label: "ช่วยเหลือ" }] as const;
+
+function NavLink({
+  href,
+  label,
+  active,
+  nested,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  nested?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "mb-0.5 block rounded-lg py-2 text-sm transition",
+        nested ? "px-3 pl-8" : "px-3",
+        active
+          ? "bg-[var(--accent)]/15 font-medium text-[var(--ink)]"
+          : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
+      )}
+    >
+      {label}
+    </Link>
+  );
+}
 
 export function AppShell({
   tenantSlug,
@@ -38,11 +72,25 @@ export function AppShell({
   const router = useRouter();
   const { resolved, setTheme } = useTheme();
   const base = `/t/${tenantSlug}`;
+  const settingsActive = pathname.startsWith(`${base}/settings`);
+  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
+
+  useEffect(() => {
+    if (settingsActive) setSettingsOpen(true);
+  }, [settingsActive]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
+  }
+
+  function isActive(href: string) {
+    const full = `${base}/${href}`;
+    if (href === "station") {
+      return pathname === full || pathname.startsWith(`${full}/`);
+    }
+    return pathname === full || pathname.startsWith(`${full}/`);
   }
 
   return (
@@ -56,24 +104,59 @@ export function AppShell({
         </div>
 
         <nav className="flex-1 overflow-y-auto p-2">
-          {NAV.map((item) => {
-            const href = `${base}/${item.href}`;
-            const active = pathname === href || pathname.startsWith(`${href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={href}
+          {NAV_TOP.map((item) => (
+            <NavLink
+              key={item.href}
+              href={`${base}/${item.href}`}
+              label={item.label}
+              active={isActive(item.href)}
+            />
+          ))}
+
+          <div className="mb-0.5">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((o) => !o)}
+              className={cn(
+                "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition",
+                settingsActive
+                  ? "bg-[var(--accent)]/10 font-medium text-[var(--ink)]"
+                  : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
+              )}
+              aria-expanded={settingsOpen}
+            >
+              <span>ตั้งค่า</span>
+              <ChevronDown
+                size={16}
                 className={cn(
-                  "mb-0.5 block rounded-lg px-3 py-2 text-sm transition",
-                  active
-                    ? "bg-[var(--accent)]/15 font-medium text-[var(--ink)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
+                  "shrink-0 transition-transform",
+                  settingsOpen ? "rotate-0" : "-rotate-90",
                 )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+              />
+            </button>
+            {settingsOpen && (
+              <div className="mt-0.5">
+                {SETTINGS_SUB.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    href={`${base}/${item.href}`}
+                    label={item.label}
+                    active={pathname === `${base}/${item.href}`}
+                    nested
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {NAV_BOTTOM.map((item) => (
+            <NavLink
+              key={item.href}
+              href={`${base}/${item.href}`}
+              label={item.label}
+              active={isActive(item.href)}
+            />
+          ))}
         </nav>
 
         <div className="border-t border-[var(--border)] p-3">

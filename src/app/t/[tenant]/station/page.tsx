@@ -29,7 +29,7 @@ export default async function StationPickerPage() {
           <p className="text-sm text-[var(--muted)]">
             ไม่มีสถานีพร้อมใช้งาน —{" "}
             <Link
-              href={`/t/${session.tenantSlug}/stations`}
+              href={`/t/${session.tenantSlug}/settings/stations`}
               className="text-[var(--accent)] hover:underline"
             >
               ดูรายการสถานี

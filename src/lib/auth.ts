@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   "stations.manage": ["tenant_admin", "supervisor"],
   "billing.view": ["tenant_admin"],
   "claims.manage": ["tenant_admin", "supervisor", "claim_officer"],
+  "claim_reasons.manage": ["tenant_admin", "supervisor"],
   "audit.view": ["tenant_admin", "supervisor"],
 } as const;
 

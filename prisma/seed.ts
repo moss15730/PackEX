@@ -9,6 +9,7 @@ async function main() {
   await prisma.shareLink.deleteMany();
   await prisma.claimPackage.deleteMany();
   await prisma.claimCase.deleteMany();
+  await prisma.claimReason.deleteMany();
   await prisma.aiCheck.deleteMany();
   await prisma.timelineMarker.deleteMany();
   await prisma.snapshot.deleteMany();
@@ -142,6 +143,26 @@ async function main() {
       },
     },
   });
+
+  const claimReasons = await Promise.all(
+    [
+      "สินค้าหายจากกล่อง",
+      "ส่งผิดชิ้น / ผิดรุ่น",
+      "สินค้าเสียหาย",
+      "จำนวนไม่ครบ",
+      "แพ็คไม่ตรงออเดอร์",
+      "อื่นๆ",
+    ].map((label, i) =>
+      prisma.claimReason.create({
+        data: {
+          tenantId: tenant.id,
+          label,
+          active: true,
+          sortOrder: i + 1,
+        },
+      }),
+    ),
+  );
 
   const admin = await prisma.user.create({
     data: {
@@ -373,7 +394,8 @@ async function main() {
     data: {
       tenantId: tenant.id,
       orderId: order2.id,
-      reason: "สินค้าหายจากกล่อง",
+      reason: claimReasons[0].label,
+      reasonId: claimReasons[0].id,
       status: "reviewing",
       packages: {
         create: {

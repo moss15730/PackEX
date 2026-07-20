@@ -67,9 +67,20 @@ export default async function VideoDetailPage({
         title={recording.order.orderNo}
         description={`${recording.station.code} · ${format(recording.startedAt, "d MMM yyyy HH:mm", { locale: th })}`}
         actions={
-          <Link href={`/t/${session.tenantSlug}/videos`}>
-            <Button variant="outline">กลับ</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {can(session.role, "claims.manage") &&
+              recording.status !== "deleted" &&
+              recording.status !== "canceled" && (
+                <Link
+                  href={`/t/${session.tenantSlug}/claims?orderNo=${encodeURIComponent(recording.order.orderNo)}&recordingId=${recording.id}`}
+                >
+                  <Button variant="secondary">สร้างเคสเคลม</Button>
+                </Link>
+              )}
+            <Link href={`/t/${session.tenantSlug}/videos`}>
+              <Button variant="outline">กลับ</Button>
+            </Link>
+          </div>
         }
       />
 

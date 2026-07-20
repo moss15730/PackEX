@@ -51,6 +51,7 @@ model Tenant {
   recordings      Recording[]
   shareLinks      ShareLink[]
   claimCases      ClaimCase[]
+  claimReasons    ClaimReason[]
   auditLogs       AuditLog[]
   alerts          Alert[]
   integrations    Integration[]
@@ -316,9 +317,26 @@ model ClaimCase {
   orderId     String
   order       Order          @relation(fields: [orderId], references: [id])
   reason      String
+  reasonId    String?
+  claimReason ClaimReason?   @relation(fields: [reasonId], references: [id], onDelete: SetNull)
   status      String         @default("open") // open | reviewing | closed
   createdAt   DateTime       @default(now())
   packages    ClaimPackage[]
+}
+
+model ClaimReason {
+  id        String      @id @default(cuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  label     String
+  active    Boolean     @default(true)
+  sortOrder Int         @default(0)
+  cases     ClaimCase[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([tenantId, label])
+  @@index([tenantId, sortOrder])
 }
 
 model ClaimPackage {

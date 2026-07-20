@@ -4,10 +4,10 @@ import { prisma } from "@/lib/db";
 import { PageHeader, Card, Button } from "@/components/ui";
 
 const STEPS = [
-  { key: "stationCreated", label: "สร้างสถานีแพ็ค", href: "stations" },
-  { key: "cameraTested", label: "ทดสอบกล้อง", href: "stations" },
-  { key: "employeesInvited", label: "เชิญพนักงาน", href: "employees" },
-  { key: "localeSet", label: "ตั้งค่าภาษา/โซนเวลา", href: "settings" },
+  { key: "stationCreated", label: "สร้างสถานีแพ็ค", href: "settings/stations" },
+  { key: "cameraTested", label: "ทดสอบกล้อง", href: "settings/stations" },
+  { key: "employeesInvited", label: "เชิญพนักงาน", href: "settings/employees" },
+  { key: "localeSet", label: "ตั้งค่าภาษา/โซนเวลา", href: "settings/organization" },
   { key: "testClipDone", label: "อัดคลิปทดสอบ", href: "station" },
 ] as const;
 
