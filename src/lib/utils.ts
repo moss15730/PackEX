@@ -34,6 +34,9 @@ export function statusLabel(status: string) {
     claimed: "มีเคลม",
     pending: "รอดำเนินการ",
     packing: "กำลังแพ็ค",
+    deleted: "ลบแล้ว",
+    canceled: "ยกเลิก",
+    archived: "เก็บถาวร",
   };
   return map[status] ?? status;
 }

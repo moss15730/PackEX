@@ -4,6 +4,7 @@ import { requireTenantSession, can } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isStorageConfigured, resolvePlaybackUrl } from "@/lib/storage";
 import { PageHeader, Card, Badge, Button } from "@/components/ui";
+import { VideoActions } from "@/components/video-actions";
 import { statusLabel, formatBytes } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -19,7 +20,11 @@ export default async function VideoDetailPage({
   const { id } = await params;
 
   const recording = await prisma.recording.findFirst({
-    where: { id, tenantId: session.tenantId },
+    where: {
+      id,
+      tenantId: session.tenantId,
+      status: { not: "deleted" },
+    },
     include: {
       order: true,
       station: true,
@@ -35,6 +40,7 @@ export default async function VideoDetailPage({
 
   const shareLink = recording.shareLinks[0];
   const canShare = can(session.role, "video.share");
+  const canDelete = can(session.role, "video.delete");
   const storageReady = isStorageConfigured();
 
   const filesWithLinks = await Promise.all(
@@ -129,6 +135,25 @@ export default async function VideoDetailPage({
         )}
       </div>
 
+      <VideoActions
+        tenantSlug={session.tenantSlug!}
+        recordingId={recording.id}
+        recordingStatus={recording.status}
+        canDelete={canDelete}
+        canShare={canShare}
+        initialShare={
+          shareLink
+            ? {
+                token: shareLink.token,
+                path: `/share/${shareLink.token}`,
+                expiresAt: shareLink.expiresAt.toISOString(),
+                openCount: shareLink.openCount,
+                maxOpens: shareLink.maxOpens,
+              }
+            : null
+        }
+      />
+
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 font-semibold text-[var(--ink)]">การตรวจสอบ Hash</h2>
@@ -139,26 +164,6 @@ export default async function VideoDetailPage({
               </li>
             ))}
           </ul>
-        </Card>
-
-        <Card>
-          <h2 className="mb-3 font-semibold text-[var(--ink)]">แชร์ลิงก์</h2>
-          {shareLink && canShare ? (
-            <div className="text-sm">
-              <p className="text-[var(--muted)]">
-                หมดอายุ {format(shareLink.expiresAt, "d MMM yyyy", { locale: th })}
-              </p>
-              <code className="mt-2 block rounded bg-[var(--surface-2)] px-2 py-1 text-xs">
-                /share/{shareLink.token}
-              </code>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                เปิดแล้ว {shareLink.openCount}
-                {shareLink.maxOpens ? ` / ${shareLink.maxOpens}` : ""} ครั้ง
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-[var(--muted)]">ยังไม่มีลิงก์แชร์</p>
-          )}
         </Card>
 
         <Card>

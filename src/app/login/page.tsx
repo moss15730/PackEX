@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PackExWordmark } from "@/components/brand";
 import { Button, Card } from "@/components/ui";
+import { useNotify } from "@/components/notify";
 
 function LoginForm() {
   const router = useRouter();
+  const { alert, toast } = useNotify();
   const searchParams = useSearchParams();
   const platformMode = searchParams.get("platform") === "1";
 
@@ -15,12 +17,10 @@ function LoginForm() {
   const [tenantSlug, setTenantSlug] = useState("acme");
   const [email, setEmail] = useState(platformMode ? "admin@packex.app" : "admin@acme.local");
   const [password, setPassword] = useState("password123");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -35,13 +35,22 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        setError(data.error || "เข้าสู่ระบบไม่สำเร็จ");
+        await alert({
+          title: "เข้าสู่ระบบไม่สำเร็จ",
+          description: data.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+          tone: "danger",
+        });
         return;
       }
+      toast({ title: "เข้าสู่ระบบแล้ว", tone: "success" });
       router.push(data.redirect);
       router.refresh();
     } catch {
-      setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
+      await alert({
+        title: "เกิดข้อผิดพลาด",
+        description: "กรุณาลองใหม่อีกครั้ง",
+        tone: "danger",
+      });
     } finally {
       setLoading(false);
     }
@@ -105,10 +114,6 @@ function LoginForm() {
               />
             </div>
 
-            {error && (
-              <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-600">{error}</p>
-            )}
-
             <Button type="submit" variant="primary" className="w-full" disabled={loading}>
               {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
             </Button>
@@ -120,7 +125,6 @@ function LoginForm() {
               onClick={() => {
                 setPlatform(!platform);
                 setEmail(!platform ? "admin@packex.app" : "admin@acme.local");
-                setError("");
               }}
               className="text-[var(--accent)] hover:underline"
             >

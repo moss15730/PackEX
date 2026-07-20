@@ -1,21 +1,25 @@
-import { requireTenantSession } from "@/lib/auth";
+import Link from "next/link";
+import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card } from "@/components/ui";
+import { PageHeader, Card, Button } from "@/components/ui";
 import { SettingsTheme } from "./theme-toggle";
 
 export default async function SettingsPage() {
   const session = await requireTenantSession();
   if (!session?.tenantId) return null;
 
-  const [tenant, settings] = await Promise.all([
+  const [tenant, settings, stationCount] = await Promise.all([
     prisma.tenant.findUnique({
       where: { id: session.tenantId },
       select: { name: true, slug: true, locale: true, timezone: true, status: true },
     }),
     prisma.tenantSettings.findUnique({ where: { tenantId: session.tenantId } }),
+    prisma.station.count({ where: { tenantId: session.tenantId } }),
   ]);
 
   if (!tenant || !settings) return null;
+
+  const canManageStations = can(session.role, "stations.manage");
 
   return (
     <div>
@@ -42,6 +46,28 @@ export default async function SettingsPage() {
               <dd>{tenant.timezone}</dd>
             </div>
           </dl>
+        </Card>
+
+        <Card>
+          <h2 className="mb-4 font-semibold text-[var(--ink)]">จัดการสถานี</h2>
+          <p className="mb-3 text-sm text-[var(--muted)]">
+            มีสถานีทั้งหมด {stationCount} แห่ง — เพิ่ม แก้ไข หรือลบสถานีแพ็ค
+          </p>
+          {canManageStations ? (
+            <Link href={`/t/${session.tenantSlug}/stations`}>
+              <Button type="button">ไปจัดการสถานี</Button>
+            </Link>
+          ) : (
+            <p className="text-sm text-[var(--muted)]">
+              บัญชีนี้ไม่มีสิทธิ์จัดการสถานี —{" "}
+              <Link
+                href={`/t/${session.tenantSlug}/stations`}
+                className="text-[var(--accent)] hover:underline"
+              >
+                ดูรายการสถานี
+              </Link>
+            </p>
+          )}
         </Card>
 
         <Card>

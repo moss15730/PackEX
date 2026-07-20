@@ -2,6 +2,39 @@ import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ tenant: string }> },
+) {
+  const { tenant: tenantSlug } = await params;
+  const session = await requireTenantSession();
+
+  if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
+    return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  const stationId = new URL(req.url).searchParams.get("stationId");
+  if (!stationId) {
+    return NextResponse.json({ error: "กรุณาระบุสถานี" }, { status: 400 });
+  }
+
+  const station = await prisma.station.findFirst({
+    where: {
+      id: stationId,
+      tenantId: session.tenantId,
+      status: { notIn: ["offline", "blocked", "disk_full"] },
+    },
+  });
+
+  if (!station) {
+    return NextResponse.json({ error: "ไม่พบสถานีหรือสถานีไม่พร้อมใช้งาน" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    station: { id: station.id, code: station.code, name: station.name },
+  });
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ tenant: string }> },
@@ -14,11 +47,12 @@ export async function POST(
   }
 
   const body = await req.json();
-  const { action, orderNo, recordingId, clientUploaded } = body as {
+  const { action, orderNo, recordingId, clientUploaded, stationId } = body as {
     action?: "start" | "stop";
     orderNo?: string;
     recordingId?: string;
     clientUploaded?: boolean;
+    stationId?: string;
   };
 
   if (action === "start") {
@@ -28,17 +62,23 @@ export async function POST(
     if (!orderNo) {
       return NextResponse.json({ error: "กรุณาระบุเลขออเดอร์" }, { status: 400 });
     }
+    if (!stationId) {
+      return NextResponse.json({ error: "กรุณาเลือกสถานีก่อนเริ่มอัด" }, { status: 400 });
+    }
 
     const tenantId = session.tenantId;
 
     const station = await prisma.station.findFirst({
-      where: { tenantId, status: { notIn: ["offline", "blocked", "disk_full"] } },
+      where: {
+        id: stationId,
+        tenantId,
+        status: { notIn: ["offline", "blocked", "disk_full"] },
+      },
       include: { cameras: { where: { active: true } } },
-      orderBy: { code: "asc" },
     });
 
     if (!station) {
-      return NextResponse.json({ error: "ไม่มีสถานีพร้อมใช้งาน" }, { status: 400 });
+      return NextResponse.json({ error: "ไม่พบสถานีหรือสถานีไม่พร้อมใช้งาน" }, { status: 400 });
     }
 
     const order = await prisma.order.upsert({

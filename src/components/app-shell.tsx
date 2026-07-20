@@ -10,8 +10,8 @@ import { cn, roleLabel } from "@/lib/utils";
 
 const NAV = [
   { href: "dashboard", label: "แดชบอร์ด" },
-  { href: "station", label: "Station Console" },
-  { href: "stations", label: "สถานี" },
+  { href: "station", label: "เลือกสถานี" },
+  { href: "stations", label: "จัดการสถานี" },
   { href: "videos", label: "วิดีโอ" },
   { href: "claims", label: "เคลม" },
   { href: "employees", label: "พนักงาน" },

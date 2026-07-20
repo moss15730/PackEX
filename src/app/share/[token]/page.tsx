@@ -30,6 +30,10 @@ export default async function SharePage({
 
   if (!link) notFound();
 
+  if (link.recording.status === "deleted" || link.recording.deletedAt) {
+    notFound();
+  }
+
   const expired = link.expiresAt < new Date();
   const maxReached = link.maxOpens != null && link.openCount >= link.maxOpens;
 

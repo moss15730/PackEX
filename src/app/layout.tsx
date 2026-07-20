@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Space_Grotesk } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NotifyProvider } from "@/components/notify";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
@@ -36,7 +37,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <NotifyProvider>{children}</NotifyProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
