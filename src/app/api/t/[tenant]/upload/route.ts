@@ -6,6 +6,18 @@ import { uploadToGoogleDrive } from "@/lib/drive";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function sanitizeFilename(name: string) {
+  return name.replace(/[^\w.\-ก-๙]+/gi, "_").replace(/_+/g, "_").slice(0, 120) || "camera";
+}
+
+function extFromMime(mime: string, kind: string) {
+  if (kind === "snapshot") return "jpg";
+  if (mime.includes("mp4")) return "mp4";
+  if (mime.includes("webm")) return "webm";
+  if (mime.includes("quicktime")) return "mov";
+  return "webm";
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ tenant: string }> },
@@ -27,7 +39,8 @@ export async function POST(
   const cameraLabel = String(form.get("cameraLabel") || "camera");
   const kind = String(form.get("kind") || "video"); // video | snapshot
 
-  if (!(file instanceof File) || !recordingId) {
+  // Node FormData may yield Blob (not File) — accept both
+  if (!(file instanceof Blob) || !recordingId) {
     return NextResponse.json({ error: "ต้องมี file และ recordingId" }, { status: 400 });
   }
 
@@ -39,9 +52,14 @@ export async function POST(
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const ext = kind === "snapshot" ? "jpg" : "mp4";
-  const mimeType = file.type || (kind === "snapshot" ? "image/jpeg" : "video/mp4");
-  const filename = `${cameraLabel.replace(/\s+/g, "_")}.${ext}`;
+  if (buffer.length < 100) {
+    return NextResponse.json({ error: "ไฟล์วิดีโอว่างหรือสั้นเกินไป" }, { status: 400 });
+  }
+
+  const mimeType = file.type || (kind === "snapshot" ? "image/jpeg" : "video/webm");
+  const ext = extFromMime(mimeType, kind);
+  const filename = `${sanitizeFilename(cameraLabel)}.${ext}`;
+  const localMirror = `local:${session.tenantId}/${recordingId}/${filename}`;
 
   const uploaded = await uploadToGoogleDrive({
     tenantId: session.tenantId,
@@ -59,7 +77,13 @@ export async function POST(
         sha256: uploaded.sha256,
       },
     });
-    return NextResponse.json({ ok: true, snapshot, driveFileId: uploaded.fileId });
+    return NextResponse.json({
+      ok: true,
+      snapshot,
+      driveFileId: uploaded.fileId,
+      storagePath: uploaded.storagePath,
+      previewUrl: uploaded.previewUrl,
+    });
   }
 
   const recordingFile = await prisma.recordingFile.create({
@@ -69,6 +93,10 @@ export async function POST(
       storagePath: uploaded.storagePath,
       sizeBytes: uploaded.sizeBytes,
       sha256: uploaded.sha256,
+      // Local mirror path for in-app playback (always written by uploadToGoogleDrive)
+      thumbnailPath: uploaded.storagePath.startsWith("local:")
+        ? uploaded.storagePath
+        : localMirror,
     },
   });
 
@@ -83,6 +111,8 @@ export async function POST(
         storagePath: uploaded.storagePath,
         driveFileId: uploaded.fileId,
         sizeBytes: uploaded.sizeBytes,
+        previewUrl: uploaded.previewUrl,
+        webViewLink: uploaded.webViewLink,
       }),
     },
   });
@@ -92,5 +122,8 @@ export async function POST(
     file: recordingFile,
     driveFileId: uploaded.fileId,
     webViewLink: uploaded.webViewLink,
+    previewUrl: uploaded.previewUrl,
+    storagePath: uploaded.storagePath,
+    driveError: uploaded.driveError ?? null,
   });
 }

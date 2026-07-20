@@ -1,28 +1,21 @@
-{"timestamp":"00:00:01.828","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:13:34.237","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"00:15:27.287","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"00:15:27.287","source":"Server","level":"LOG","message":"  Reload env: .env"}
-{"timestamp":"00:18:48.908","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:23:58.634","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: UNKNOWN: unknown error, open 'D:\\MOSS\\PackEX\\.next\\dev\\types\\routes.d.ts'"}
-{"timestamp":"00:23:58.709","source":"Server","level":"LOG","message":"✓ Compiled in 156ms"}
-{"timestamp":"00:23:58.738","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/theme-provider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
-{"timestamp":"00:24:00.103","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:24:28.561","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/theme-provider.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
-{"timestamp":"00:24:28.737","source":"Server","level":"LOG","message":"✓ Compiled in 60ms"}
-{"timestamp":"00:24:29.450","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:37:09.453","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"00:37:10.173","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:22:25.349","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:22:38.466","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:24:09.792","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:24:10.046","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:25:30.864","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:25:31.137","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:25:36.029","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:25:36.270","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:25:40.071","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:25:40.336","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:26:03.456","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:26:03.776","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"01:26:20.354","source":"Server","level":"LOG","message":"  Reload env: .env.local"}
-{"timestamp":"01:26:21.036","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:01.575","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:02.015","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:16.772","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:19.408","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:20.189","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:01:25.414","source":"Server","level":"LOG","message":"○ Compiling /api/t/[tenant]/upload ..."}
+{"timestamp":"00:01:32.764","source":"Server","level":"ERROR","message":"⨯ Error: Service Accounts do not have storage quota. Leverage shared drives (https://developers.google.com/workspace/drive/api/guides/about-shareddrives), or use OAuth delegation (http://support.google.com/a/answer/7281227) instead."}
+{"timestamp":"00:02:01.850","source":"Server","level":"LOG","message":"○ Compiling /t/[tenant]/videos/[id] ..."}
+{"timestamp":"00:04:27.554","source":"Server","level":"LOG","message":"✓ Compiled in 1014ms"}
+{"timestamp":"00:04:29.489","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:04:52.554","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:05:11.453","source":"Server","level":"LOG","message":"✓ Compiled in 118ms"}
+{"timestamp":"00:05:24.632","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:05:31.981","source":"Server","level":"LOG","message":"✓ Compiled in 72ms"}
+{"timestamp":"00:05:32.611","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:06:24.941","source":"Server","level":"LOG","message":"✓ Compiled in 42ms"}
+{"timestamp":"00:06:25.409","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:06:29.469","source":"Server","level":"LOG","message":"✓ Compiled in 65ms"}
+{"timestamp":"00:06:29.719","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:07:03.782","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:07:33.211","source":"Server","level":"ERROR","message":"[drive] upload failed, keeping local copy only \"Service Accounts do not have storage quota. Leverage shared drives (https://developers.google.com/workspace/drive/api/guides/about-shareddrives), or use OAuth delegation (http://support.google.com/a/answer/7281227) instead.\""}

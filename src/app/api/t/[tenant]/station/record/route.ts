@@ -14,10 +14,11 @@ export async function POST(
   }
 
   const body = await req.json();
-  const { action, orderNo, recordingId } = body as {
+  const { action, orderNo, recordingId, clientUploaded } = body as {
     action?: "start" | "stop";
     orderNo?: string;
     recordingId?: string;
+    clientUploaded?: boolean;
   };
 
   if (action === "start") {
@@ -110,7 +111,7 @@ export async function POST(
     });
 
     const durationSec = Math.max(
-      15,
+      1,
       Math.floor((Date.now() - recording.startedAt.getTime()) / 1000),
     );
 
@@ -118,12 +119,23 @@ export async function POST(
     const minCams = settings?.minCameras ?? 1;
     const snapshotRequired = settings?.snapshotRequired ?? true;
 
-    const activeCameras = recording.station.cameras.length;
+    const uploadedFiles = await prisma.recordingFile.count({
+      where: { recordingId: recording.id },
+    });
+    const uploadedSnapshots = await prisma.snapshot.count({
+      where: { recordingId: recording.id },
+    });
+    const usedDeviceCamera = Boolean(clientUploaded) || uploadedFiles > 0;
+
+    const activeCameras = usedDeviceCamera
+      ? Math.max(uploadedFiles, 1)
+      : recording.station.cameras.length;
     let score = 100;
     if (durationSec < minSec) score -= 25;
     if (activeCameras < minCams) score -= 30;
-    if (snapshotRequired) score -= 0;
-    score = Math.max(40, Math.min(100, score - Math.floor(Math.random() * 10)));
+    if (snapshotRequired && uploadedSnapshots === 0 && !usedDeviceCamera) score -= 0;
+    if (usedDeviceCamera && uploadedFiles === 0) score -= 40;
+    score = Math.max(40, Math.min(100, score - (usedDeviceCamera ? 0 : Math.floor(Math.random() * 10))));
 
     const updated = await prisma.recording.update({
       where: { id: recording.id },
@@ -132,30 +144,34 @@ export async function POST(
         endedAt: new Date(),
         durationSec,
         completenessScore: score,
-        files: {
-          create: recording.station.cameras.map((cam, i) => ({
-            cameraLabel: cam.name,
-            storagePath: `/${tenantId}/recordings/${recording.id}/${cam.id}.mp4`,
-            sizeBytes: 20_000_000 + i * 5_000_000,
-            sha256: `${recording.id}${i}`.padEnd(64, "0").slice(0, 64),
-          })),
-        },
+        ...(usedDeviceCamera
+          ? {}
+          : {
+              files: {
+                create: recording.station.cameras.map((cam, i) => ({
+                  cameraLabel: cam.name,
+                  storagePath: `/${tenantId}/recordings/${recording.id}/${cam.id}.mp4`,
+                  sizeBytes: 20_000_000 + i * 5_000_000,
+                  sha256: `${recording.id}${i}`.padEnd(64, "0").slice(0, 64),
+                })),
+              },
+              ...(snapshotRequired
+                ? {
+                    snapshots: {
+                      create: {
+                        storagePath: `/${tenantId}/snapshots/${recording.id}/preclose.jpg`,
+                        sha256: `${recording.id}s`.padEnd(64, "0").slice(0, 64),
+                      },
+                    },
+                  }
+                : {}),
+            }),
         markers: {
           create: [
             { label: "สแกนเริ่ม", atSec: 0, kind: "scan" },
             { label: "สแกนจบ", atSec: durationSec, kind: "scan" },
           ],
         },
-        ...(snapshotRequired
-          ? {
-              snapshots: {
-                create: {
-                  storagePath: `/${tenantId}/snapshots/${recording.id}/preclose.jpg`,
-                  sha256: `${recording.id}s`.padEnd(64, "0").slice(0, 64),
-                },
-              },
-            }
-          : {}),
       },
     });
 

@@ -77,17 +77,36 @@ export default async function SharePage({
             </p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {rec.files.map((file) => (
-                <Card key={file.id} className="overflow-hidden p-0">
-                  <div className="flex aspect-video items-center justify-center bg-[var(--surface-2)]">
-                    <div className="text-center">
-                      <div className="text-3xl">▶</div>
-                      <p className="mt-2 text-sm">{file.cameraLabel}</p>
+              {rec.files.map((file) => {
+                const driveId = file.storagePath.startsWith("gdrive:")
+                  ? file.storagePath.slice("gdrive:".length)
+                  : null;
+                return (
+                  <Card key={file.id} className="overflow-hidden p-0">
+                    <div className="aspect-video bg-black">
+                      {driveId ? (
+                        <iframe
+                          title={file.cameraLabel}
+                          src={`https://drive.google.com/file/d/${driveId}/preview`}
+                          className="h-full w-full border-0"
+                          allow="autoplay"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-center text-sm text-white/70">
+                          {file.cameraLabel}
+                          <br />
+                          {formatBytes(file.sizeBytes)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 text-sm">
+                      <p className="font-medium">{file.cameraLabel}</p>
                       <p className="text-xs text-[var(--muted)]">{formatBytes(file.sizeBytes)}</p>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
 
             {rec.markers.length > 0 && (

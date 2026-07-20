@@ -1,3 +1,15 @@
 {
-  "/_not-found/page": "app/_not-found/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/t/[tenant]/media/[fileId]/route": "app/api/t/[tenant]/media/[fileId]/route.js",
+  "/api/t/[tenant]/station/record/route": "app/api/t/[tenant]/station/record/route.js",
+  "/api/t/[tenant]/upload/route": "app/api/t/[tenant]/upload/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/t/[tenant]/claims/page": "app/t/[tenant]/claims/page.js",
+  "/t/[tenant]/dashboard/page": "app/t/[tenant]/dashboard/page.js",
+  "/t/[tenant]/station/page": "app/t/[tenant]/station/page.js",
+  "/t/[tenant]/stations/page": "app/t/[tenant]/stations/page.js",
+  "/t/[tenant]/videos/[id]/page": "app/t/[tenant]/videos/[id]/page.js",
+  "/t/[tenant]/videos/page": "app/t/[tenant]/videos/page.js"
 }

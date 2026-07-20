@@ -43,5 +43,8 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 
+# recorded media (local mirror / offline storage)
+/storage
+
 .vercel
 .env*
