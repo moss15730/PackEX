@@ -6,6 +6,7 @@
   "/api/t/[tenant]/claims/[id]/route": "app/api/t/[tenant]/claims/[id]/route.js",
   "/api/t/[tenant]/station/record/route": "app/api/t/[tenant]/station/record/route.js",
   "/api/t/[tenant]/stations/[id]/route": "app/api/t/[tenant]/stations/[id]/route.js",
+  "/api/t/[tenant]/stations/route": "app/api/t/[tenant]/stations/route.js",
   "/api/t/[tenant]/upload/complete/route": "app/api/t/[tenant]/upload/complete/route.js",
   "/api/t/[tenant]/upload/sign/route": "app/api/t/[tenant]/upload/sign/route.js",
   "/api/t/[tenant]/videos/[id]/route": "app/api/t/[tenant]/videos/[id]/route.js",
