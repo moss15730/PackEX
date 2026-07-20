@@ -139,7 +139,17 @@ export function buildObjectPath(opts: {
   recordingId: string;
   filename: string;
 }) {
-  return `${opts.tenantId}/${opts.recordingId}/${opts.filename}`;
+  return `${opts.tenantId}/${opts.recordingId}/${sanitizeStorageFilename(opts.filename)}`;
+}
+
+/** Supabase Storage keys must be ASCII — strip Thai/unicode from object filenames. */
+export function sanitizeStorageFilename(name: string) {
+  const trimmed = name.trim() || "camera";
+  const parts = trimmed.split(".");
+  const ext = parts.length > 1 ? parts.pop()!.toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const base = parts.join(".").replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  const safeBase = base.slice(0, 80) || "camera";
+  return ext ? `${safeBase}.${ext}` : safeBase;
 }
 
 /** Create a short-lived signed URL so the browser can upload directly (bypasses Vercel 4.5MB body limit). */

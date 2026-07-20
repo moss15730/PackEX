@@ -324,7 +324,6 @@ export default function StationConsolePage() {
         recordingId: recId,
         cameraLabel: camLabel,
         contentType,
-        filename: `${camLabel.replace(/[^\w.\-ก-๙]+/gi, "_")}.${ext}`,
       }),
     });
     const signData = await signRes.json().catch(() => ({}));
@@ -334,7 +333,8 @@ export default function StationConsolePage() {
 
     const form = new FormData();
     form.append("cacheControl", "3600");
-    form.append("", blob, `${camLabel}.${ext}`);
+    const uploadName = String(signData.filename || `camera.${ext}`);
+    form.append("", blob, uploadName);
     const putRes = await fetch(signData.signedUrl as string, {
       method: "PUT",
       headers: {

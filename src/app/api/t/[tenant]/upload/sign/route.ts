@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { createSignedUpload } from "@/lib/storage";
+import { createSignedUpload, sanitizeStorageFilename } from "@/lib/storage";
 
 export const runtime = "nodejs";
-
-function sanitizeFilename(name: string) {
-  return name.replace(/[^\w.\-ก-๙]+/gi, "_").replace(/_+/g, "_").slice(0, 120) || "camera";
-}
 
 function extFromMime(mime: string) {
   if (mime.includes("mp4")) return "mp4";
@@ -56,9 +52,9 @@ export async function POST(
     }
 
     const ext = extFromMime(contentType);
-    const filename =
-      body.filename?.trim() ||
-      `${sanitizeFilename(cameraLabel)}.${ext}`;
+    const rawName = body.filename?.trim() || `${cameraLabel}.${ext}`;
+    const withExt = rawName.includes(".") ? rawName : `${rawName}.${ext}`;
+    const filename = sanitizeStorageFilename(withExt);
 
     const signed = await createSignedUpload({
       tenantId: session.tenantId,

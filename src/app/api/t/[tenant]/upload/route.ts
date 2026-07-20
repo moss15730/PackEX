@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { uploadRecordingFile } from "@/lib/storage";
+import { sanitizeStorageFilename, uploadRecordingFile } from "@/lib/storage";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-function sanitizeFilename(name: string) {
-  return name.replace(/[^\w.\-ก-๙]+/gi, "_").replace(/_+/g, "_").slice(0, 120) || "camera";
-}
 
 function extFromMime(mime: string, kind: string) {
   if (kind === "snapshot") return "jpg";
@@ -60,7 +56,7 @@ export async function POST(
 
     const mimeType = file.type || (kind === "snapshot" ? "image/jpeg" : "video/webm");
     const ext = extFromMime(mimeType, kind);
-    const filename = `${sanitizeFilename(cameraLabel)}.${ext}`;
+    const filename = sanitizeStorageFilename(`${cameraLabel}.${ext}`);
     const localMirror = `local:${session.tenantId}/${recordingId}/${filename}`;
 
     const uploaded = await uploadRecordingFile({
