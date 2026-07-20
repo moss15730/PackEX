@@ -460,78 +460,96 @@ export default function StationConsolePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6 flex items-center justify-between gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div>
           <Link
             href={`/t/${tenant}/station`}
-            className="text-sm text-[var(--accent)] hover:underline"
+            className="text-xs text-[var(--accent)] hover:underline"
           >
             ← เปลี่ยนสถานี
           </Link>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-[var(--ink)]">
-            Station Console
-          </h1>
-          <p className="mt-1 text-[var(--muted)]">
-            {station.code} — {station.name} · สแกนออเดอร์ → เลือกกล้อง → อัดวิดีโอ
-          </p>
-        </div>
-        {recording && (
-          <Badge tone="rec" className="px-4 py-2 text-base font-bold uppercase">
-            <span className="rec-pulse mr-2 inline-block h-2.5 w-2.5 rounded-full bg-white" />
-            REC
-          </Badge>
-        )}
-      </div>
-
-      <div className="mb-6 flex gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 text-sm">
-        <HealthItem label="กล้อง" status={health.camera} />
-        <HealthItem label="ดิสก์" status={health.disk} />
-        <HealthItem label="ซิงก์" status={health.sync} />
-      </div>
-
-      <div className="rounded-2xl border-2 border-[var(--border)] bg-[var(--surface)] p-6 md:p-8">
-        <label className="mb-2 block text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
-          สแกนบาร์โค้ด / เลขออเดอร์
-        </label>
-        <input
-          ref={inputRef}
-          type="text"
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleScan(barcode);
-            }
-          }}
-          disabled={recording || completeness !== null}
-          placeholder="ORD-XXXXX หรือสแกนบาร์โค้ด"
-          className="w-full rounded-xl border-2 border-[var(--border)] bg-[var(--surface-2)] px-4 py-5 font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] disabled:opacity-50 md:text-3xl"
-          autoComplete="off"
-        />
-
-        {orderNo && (
-          <div className="mt-6 rounded-xl bg-[var(--surface-2)] p-4">
-            <div className="text-xs uppercase tracking-wide text-[var(--muted)]">ออเดอร์ที่ยืนยัน</div>
-            <div className="mt-1 font-[family-name:var(--font-display)] text-4xl font-bold text-[var(--ink)] md:text-5xl">
-              {orderNo}
-            </div>
+          <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <h1 className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--ink)] sm:text-xl">
+              Station Console
+            </h1>
+            <span className="text-sm text-[var(--muted)]">
+              {station.code} · {station.name}
+            </span>
           </div>
-        )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden items-center gap-1.5 sm:flex">
+            <HealthPill label="กล้อง" status={health.camera} />
+            <HealthPill label="ดิสก์" status={health.disk} />
+            <HealthPill label="ซิงก์" status={health.sync} />
+          </div>
+          {recording && (
+            <Badge tone="rec" className="px-3 py-1 text-sm font-bold uppercase">
+              <span className="rec-pulse mr-1.5 inline-block h-2 w-2 rounded-full bg-white" />
+              REC
+            </Badge>
+          )}
+        </div>
+      </div>
 
-        {orderNo && (
-          <div className="mt-6 space-y-3">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="min-w-[200px] flex-1">
-                <label className="mb-2 block text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
-                  เลือกกล้อง
-                </label>
+      <div className="grid min-h-0 flex-1 gap-3 overflow-hidden max-lg:grid-rows-[auto_minmax(0,1fr)] lg:grid-cols-[minmax(0,380px)_1fr]">
+        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            สแกนบาร์โค้ด / เลขออเดอร์
+          </label>
+          <input
+            ref={inputRef}
+            type="text"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleScan(barcode);
+              }
+            }}
+            disabled={recording || completeness !== null}
+            placeholder="สแกนบาร์โค้ด / เลขออเดอร์"
+            className="w-full rounded-lg border-2 border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] disabled:opacity-50 sm:text-2xl"
+            autoComplete="off"
+          />
+
+          {orderNo && (
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <div className="rounded-lg bg-[var(--surface-2)] px-3 py-2">
+                <div className="text-[10px] uppercase tracking-wide text-[var(--muted)]">ออเดอร์</div>
+                <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-[var(--ink)] sm:text-3xl">
+                  {orderNo}
+                </div>
+              </div>
+              {completeness !== null && (
+                <div
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-center",
+                    completeness >= 80 ? "bg-emerald-500/15" : "bg-amber-500/15",
+                  )}
+                >
+                  <div className="text-[10px] uppercase text-[var(--muted)]">ครบถ้วน</div>
+                  <div className="font-[family-name:var(--font-display)] text-2xl font-bold">
+                    {completeness}%
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {orderNo && (
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                เลือกกล้อง
+              </label>
+              <div className="flex gap-2">
                 <select
                   value={selectedCameraId}
                   onChange={(e) => void onCameraChange(e.target.value)}
                   disabled={recording || cameras.length === 0}
-                  className="w-full rounded-xl border-2 border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-base text-[var(--ink)] outline-none focus:border-[var(--accent)] disabled:opacity-50"
+                  className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2 py-2 text-sm outline-none focus:border-[var(--accent)] disabled:opacity-50"
                 >
                   {cameras.length === 0 && <option value="">กำลังค้นหากล้อง...</option>}
                   {cameras.map((cam) => (
@@ -540,24 +558,88 @@ export default function StationConsolePage() {
                     </option>
                   ))}
                 </select>
+                <Button
+                  variant="secondary"
+                  className="shrink-0 px-3 py-2 text-sm"
+                  onClick={() => void startPreview(selectedCameraId || undefined)}
+                  disabled={recording || loading}
+                >
+                  รีเฟรช
+                </Button>
               </div>
-              <Button
-                variant="secondary"
-                className="min-h-12 px-4"
-                onClick={() => void startPreview(selectedCameraId || undefined)}
-                disabled={recording || loading}
-              >
-                เปิดกล้องใหม่
-              </Button>
             </div>
+          )}
 
-            <div className="relative overflow-hidden rounded-xl border-2 border-[var(--border)] bg-black">
+          {error && (
+            <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-600">{error}</p>
+          )}
+
+          <div className="mt-auto flex flex-col gap-2 pt-1">
+            {recording ? (
+              <Button
+                variant="danger"
+                className="min-h-11 w-full text-base font-bold uppercase"
+                onClick={stopRecording}
+                disabled={loading}
+              >
+                {loading ? "กำลังบันทึก..." : "หยุดอัด"}
+              </Button>
+            ) : completeness !== null ? (
+              <>
+                <p className="text-center text-xs text-[var(--muted)]">
+                  บันทึกแล้ว {orderVideoCount} วิดีโอ
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    className="min-h-11 flex-1"
+                    onClick={recordAnotherVideo}
+                    disabled={loading}
+                  >
+                    อัดเพิ่ม
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="min-h-11 flex-1 font-semibold"
+                    onClick={resetStation}
+                    disabled={loading}
+                  >
+                    เสร็จสิ้น
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  className="min-h-11 flex-1 font-semibold"
+                  onClick={startRecording}
+                  disabled={loading || !orderNo || !previewReady}
+                >
+                  เริ่มอัดวิดีโอ
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="min-h-11 px-4"
+                  onClick={resetStation}
+                  disabled={loading || !orderNo}
+                >
+                  ล้าง
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-3">
+          {orderNo ? (
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg bg-black">
               <video
                 ref={videoRef}
                 playsInline
                 muted
                 autoPlay
-                className="aspect-video w-full object-cover"
+                className="h-full w-full object-contain"
               />
               {!previewReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-sm text-white/80">
@@ -565,87 +647,10 @@ export default function StationConsolePage() {
                 </div>
               )}
             </div>
-            <p className="text-sm text-[var(--muted)]">
-              ใช้กล้องของคอมหรือมือถือเครื่องนี้ — อนุญาตเมื่อเบราว์เซอร์ถามสิทธิ์
-            </p>
-          </div>
-        )}
-
-        {completeness !== null && (
-          <div
-            className={cn(
-              "mt-6 rounded-xl p-4 text-center",
-              completeness >= 80 ? "bg-emerald-500/15" : "bg-amber-500/15",
-            )}
-          >
-            <div className="text-sm text-[var(--muted)]">คะแนนความครบถ้วน</div>
-            <div className="font-[family-name:var(--font-display)] text-5xl font-bold text-[var(--ink)]">
-              {completeness}%
-            </div>
-          </div>
-        )}
-
-        {orderNo && orderVideoCount > 0 && completeness === null && (
-          <p className="mt-4 text-center text-sm text-[var(--muted)]">
-            ออเดอร์นี้มีวิดีโอแล้ว {orderVideoCount} รายการ — สามารถอัดเพิ่มได้
-          </p>
-        )}
-
-        {error && (
-          <p className="mt-4 rounded-lg bg-rose-500/10 px-4 py-3 text-base text-rose-600">{error}</p>
-        )}
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          {recording ? (
-            <Button
-              variant="danger"
-              className="min-h-16 w-full px-6 text-xl font-bold uppercase"
-              onClick={stopRecording}
-              disabled={loading}
-            >
-              {loading ? "กำลังบันทึก..." : "หยุดอัด"}
-            </Button>
-          ) : completeness !== null ? (
-            <>
-              <p className="w-full text-center text-sm text-[var(--muted)]">
-                บันทึกวิดีโอแล้ว {orderVideoCount} รายการ — อัดเพิ่มหรือเสร็จสิ้นออเดอร์นี้
-              </p>
-              <Button
-                variant="secondary"
-                className="min-h-14 flex-1 px-6 text-lg"
-                onClick={recordAnotherVideo}
-                disabled={loading}
-              >
-                อัดวิดีโอเพิ่ม
-              </Button>
-              <Button
-                variant="primary"
-                className="min-h-14 flex-1 px-6 text-lg font-semibold"
-                onClick={resetStation}
-                disabled={loading}
-              >
-                เสร็จสิ้น
-              </Button>
-            </>
           ) : (
-            <>
-              <Button
-                variant="primary"
-                className="min-h-14 flex-1 px-6 text-lg font-semibold"
-                onClick={startRecording}
-                disabled={loading || !orderNo || !previewReady}
-              >
-                เริ่มอัดวิดีโอ
-              </Button>
-              <Button
-                variant="secondary"
-                className="min-h-14 px-6 text-lg"
-                onClick={resetStation}
-                disabled={loading}
-              >
-                ล้าง
-              </Button>
-            </>
+            <div className="flex h-full min-h-[120px] flex-1 items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] bg-[var(--surface-2)] p-4 text-center text-sm text-[var(--muted)]">
+              สแกนออเดอร์เพื่อเปิดกล้องและอัดวิดีโอ
+            </div>
           )}
         </div>
       </div>
@@ -653,19 +658,16 @@ export default function StationConsolePage() {
   );
 }
 
-function HealthItem({ label, status }: { label: string; status: "ok" | "warn" | "error" }) {
+function HealthPill({ label, status }: { label: string; status: "ok" | "warn" | "error" }) {
   const colors = {
     ok: "bg-emerald-500",
     warn: "bg-amber-500",
     error: "bg-rose-500",
   };
   return (
-    <div className="flex flex-1 items-center gap-2 rounded-lg bg-[var(--surface-2)] px-3 py-2">
-      <span className={cn("h-2.5 w-2.5 rounded-full", colors[status])} />
-      <span className="font-medium text-[var(--ink)]">{label}</span>
-      <span className="ml-auto text-[var(--muted)]">
-        {status === "ok" ? "ปกติ" : status === "warn" ? "ตรวจสอบ" : "ผิดปกติ"}
-      </span>
-    </div>
+    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-xs">
+      <span className={cn("h-1.5 w-1.5 rounded-full", colors[status])} />
+      {label}
+    </span>
   );
 }

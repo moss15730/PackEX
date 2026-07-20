@@ -83,15 +83,31 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[var(--ink)]">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight text-[var(--ink)] sm:text-2xl">
           {title}
         </h1>
         {description ? <p className="mt-1 text-sm text-[var(--muted)]">{description}</p> : null}
       </div>
-      {actions}
+      {actions ? <div className="flex w-full flex-wrap gap-2 sm:w-auto">{actions}</div> : null}
     </div>
+  );
+}
+
+export function TableScroll({
+  children,
+  className,
+  minWidthClassName = "min-w-[640px]",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  minWidthClassName?: string;
+}) {
+  return (
+    <Card className={cn("overflow-x-auto p-0", className)}>
+      <div className={cn("w-full", minWidthClassName)}>{children}</div>
+    </Card>
   );
 }
 

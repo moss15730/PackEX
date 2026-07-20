@@ -13,7 +13,7 @@ export default function HomePage() {
           backgroundSize: "64px 64px",
         }}
       />
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
+      <header className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 md:px-10">
         <PackExWordmark />
         <div className="flex items-center gap-2">
           <Link href="/login">
@@ -22,7 +22,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center px-6 pb-24 pt-8 text-center md:px-10">
+      <main className="relative z-10 mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center px-4 pb-20 pt-6 text-center sm:px-6 md:px-10 md:pb-24 md:pt-8">
         <div className="mb-10 scale-[1.35] md:scale-[1.6]">
           <PackExWordmark className="flex-col items-center gap-4 [&>div]:text-center" />
         </div>

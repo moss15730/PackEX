@@ -23,7 +23,7 @@ export default async function PlatformDataRequestsPage() {
       />
 
       <Card className="overflow-x-auto p-0">
-        <table className="w-full text-sm">
+        <table className="min-w-[640px] w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
               <th className="px-4 py-3 font-medium">Tenant</th>

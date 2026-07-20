@@ -20,7 +20,7 @@ export default async function PlatformTenantsPage() {
       <PageHeader title="Tenants" description="องค์กรทั้งหมดบนแพลตฟอร์ม" />
 
       <Card className="overflow-x-auto p-0">
-        <table className="w-full text-sm">
+        <table className="min-w-[720px] w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
               <th className="px-4 py-3 font-medium">Slug</th>

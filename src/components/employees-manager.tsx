@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, TableScroll } from "@/components/ui";
 import { useNotify } from "@/components/notify";
 import { roleLabel } from "@/lib/utils";
 
@@ -252,7 +252,7 @@ export function EmployeesManager({
         <p className="text-sm text-[var(--muted)]">
           เพิ่ม แก้ไข ลบพนักงาน และตั้งรหัสให้เข้าใช้ระบบด้วยอีเมล
         </p>
-        <Button type="button" onClick={openCreate} disabled={busy || showCreate}>
+        <Button type="button" className="w-full sm:w-auto" onClick={openCreate} disabled={busy || showCreate}>
           เพิ่มพนักงาน
         </Button>
       </div>
@@ -285,7 +285,51 @@ export function EmployeesManager({
         />
       )}
 
-      <Card className="overflow-x-auto p-0">
+      <div className="space-y-3 md:hidden">
+        {employees.map((employee) => (
+          <Card key={employee.id} className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-mono text-xs text-[var(--muted)]">{employee.employeeCode}</p>
+                <p className="font-medium text-[var(--ink)]">{employee.name}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">{employee.email}</p>
+              </div>
+              <Badge tone={employee.status === "active" ? "success" : "danger"}>
+                {employee.status === "active" ? "ใช้งาน" : "ปิดใช้"}
+              </Badge>
+            </div>
+            <p className="text-sm text-[var(--muted)]">
+              {roleLabel(employee.role)} · {stationAccessLabel(employee.stationAccess, stations)}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                disabled={busy}
+                onClick={() => openEdit(employee)}
+              >
+                แก้ไข
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1 text-red-600"
+                disabled={busy || employee.id === currentUserId}
+                onClick={() => void handleDelete(employee)}
+              >
+                ลบ
+              </Button>
+            </div>
+          </Card>
+        ))}
+        {employees.length === 0 && (
+          <p className="py-6 text-center text-sm text-[var(--muted)]">ยังไม่มีพนักงาน</p>
+        )}
+      </div>
+
+      <div className="hidden md:block">
+      <TableScroll minWidthClassName="min-w-[900px]">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
@@ -342,7 +386,8 @@ export function EmployeesManager({
         {employees.length === 0 && (
           <p className="p-6 text-center text-sm text-[var(--muted)]">ยังไม่มีพนักงาน</p>
         )}
-      </Card>
+      </TableScroll>
+      </div>
     </div>
   );
 }

@@ -85,3 +85,78 @@ export async function PATCH(
     legalHoldReleased: releaseLegalHold,
   });
 }
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ tenant: string; id: string }> },
+) {
+  const { tenant: tenantSlug, id } = await params;
+  const session = await requireTenantSession();
+
+  if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
+    return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  if (!can(session.role, "claims.manage")) {
+    return NextResponse.json({ error: "ไม่มีสิทธิ์จัดการเคสเคลม" }, { status: 403 });
+  }
+
+  const claim = await prisma.claimCase.findFirst({
+    where: { id, tenantId: session.tenantId },
+    include: {
+      packages: true,
+      order: true,
+    },
+  });
+
+  if (!claim) {
+    return NextResponse.json({ error: "ไม่พบเคสเคลม" }, { status: 404 });
+  }
+
+  const recordingIds = claim.packages.map((p) => p.recordingId);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.claimCase.delete({ where: { id: claim.id } });
+
+    if (recordingIds.length > 0) {
+      const stillHeld = await tx.claimPackage.findMany({
+        where: { recordingId: { in: recordingIds } },
+        select: { recordingId: true },
+      });
+      const stillHeldSet = new Set(stillHeld.map((p) => p.recordingId));
+      const releaseIds = recordingIds.filter((recId) => !stillHeldSet.has(recId));
+      if (releaseIds.length > 0) {
+        await tx.recording.updateMany({
+          where: { id: { in: releaseIds } },
+          data: { legalHold: false },
+        });
+      }
+    }
+
+    const remainingClaims = await tx.claimCase.count({
+      where: { orderId: claim.orderId },
+    });
+    if (remainingClaims === 0) {
+      await tx.order.update({
+        where: { id: claim.orderId },
+        data: { status: "packed" },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        tenantId: session.tenantId!,
+        userId: session.id,
+        action: "claim.delete",
+        entityType: "claim_case",
+        entityId: claim.id,
+        meta: JSON.stringify({
+          orderNo: claim.order.orderNo,
+          recordingIds,
+        }),
+      },
+    });
+  });
+
+  return NextResponse.json({ ok: true });
+}

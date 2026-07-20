@@ -146,6 +146,49 @@ export function ClaimsManager({
     await updateStatus(claim, "open", false);
   }
 
+  async function handleDelete(claim: ClaimListItem) {
+    const ok = await confirm({
+      title: `ลบเคส ${claim.orderNo}?`,
+      description: claim.hasLegalHold
+        ? "เคสจะถูกลบถาวร และยกเลิก Legal Hold ของวิดีโอหลักฐาน (ถ้าไม่ถูกอ้างอิงในเคสอื่น)"
+        : "เคสจะถูกลบถาวร — ไม่สามารถกู้คืนได้",
+      confirmLabel: "ลบเคส",
+      cancelLabel: "ยกเลิก",
+      tone: "danger",
+    });
+    if (!ok) return;
+
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/t/${tenantSlug}/claims/${claim.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        await alert({
+          title: "ลบเคสไม่สำเร็จ",
+          description: data.error || "เกิดข้อผิดพลาด กรุณาลองใหม่",
+          tone: "danger",
+        });
+        return;
+      }
+      toast({
+        title: "ลบเคสเคลมแล้ว",
+        description: claim.orderNo,
+        tone: "success",
+      });
+      router.refresh();
+    } catch {
+      await alert({
+        title: "ลบเคสไม่สำเร็จ",
+        description: "เกิดข้อผิดพลาด กรุณาลองใหม่",
+        tone: "danger",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function openCreate() {
     setShowCreate(true);
     setReasonId(reasonOptions[0]?.id || "");
@@ -490,6 +533,15 @@ export function ClaimsManager({
                     เปิดอีกครั้ง
                   </Button>
                 )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-sm text-rose-600 hover:text-rose-700"
+                  disabled={busy}
+                  onClick={() => void handleDelete(claim)}
+                >
+                  ลบเคส
+                </Button>
               </div>
             )}
           </Card>
