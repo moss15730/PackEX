@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { loginPlatform, loginTenant } from "@/lib/auth";
+import { loginPlatform, loginTenantByEmail } from "@/lib/auth";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { email, password, tenantSlug, platform } = body as {
+  const { email, password, platform } = body as {
     email?: string;
     password?: string;
-    tenantSlug?: string;
     platform?: boolean;
   };
 
@@ -22,16 +21,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, redirect: "/platform" });
   }
 
-  if (!tenantSlug) {
-    return NextResponse.json({ ok: false, error: "กรุณาระบุ tenant slug" }, { status: 400 });
-  }
-
-  const result = await loginTenant(email, password, tenantSlug);
+  const result = await loginTenantByEmail(email, password);
   if ("error" in result) {
-    if (result.error?.includes("ระงับ")) {
-      return NextResponse.json({ ok: false, error: result.error, redirect: "/suspended" }, { status: 403 });
+    const message = result.error ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+    if (message.includes("ระงับ")) {
+      return NextResponse.json({ ok: false, error: message, redirect: "/suspended" }, { status: 403 });
     }
-    return NextResponse.json({ ok: false, error: result.error }, { status: 401 });
+    return NextResponse.json({ ok: false, error: message }, { status: 401 });
   }
 
   return NextResponse.json({

@@ -113,41 +113,43 @@ export function AppShell({
             />
           ))}
 
-          <div className="mb-0.5">
-            <button
-              type="button"
-              onClick={() => setSettingsOpen((o) => !o)}
-              className={cn(
-                "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition",
-                settingsActive
-                  ? "bg-[var(--accent)]/10 font-medium text-[var(--ink)]"
-                  : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
-              )}
-              aria-expanded={settingsOpen}
-            >
-              <span>ตั้งค่า</span>
-              <ChevronDown
-                size={16}
+          {userRole === "tenant_admin" && (
+            <div className="mb-0.5">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen((o) => !o)}
                 className={cn(
-                  "shrink-0 transition-transform",
-                  settingsOpen ? "rotate-0" : "-rotate-90",
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition",
+                  settingsActive
+                    ? "bg-[var(--accent)]/10 font-medium text-[var(--ink)]"
+                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
                 )}
-              />
-            </button>
-            {settingsOpen && (
-              <div className="mt-0.5">
-                {SETTINGS_SUB.map((item) => (
-                  <NavLink
-                    key={item.href}
-                    href={`${base}/${item.href}`}
-                    label={item.label}
-                    active={pathname === `${base}/${item.href}`}
-                    nested
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+                aria-expanded={settingsOpen}
+              >
+                <span>ตั้งค่า</span>
+                <ChevronDown
+                  size={16}
+                  className={cn(
+                    "shrink-0 transition-transform",
+                    settingsOpen ? "rotate-0" : "-rotate-90",
+                  )}
+                />
+              </button>
+              {settingsOpen && (
+                <div className="mt-0.5">
+                  {SETTINGS_SUB.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      href={`${base}/${item.href}`}
+                      label={item.label}
+                      active={pathname === `${base}/${item.href}`}
+                      nested
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {NAV_BOTTOM.map((item) => (
             <NavLink

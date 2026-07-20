@@ -14,7 +14,6 @@ function LoginForm() {
   const platformMode = searchParams.get("platform") === "1";
 
   const [platform, setPlatform] = useState(platformMode);
-  const [tenantSlug, setTenantSlug] = useState("acme");
   const [email, setEmail] = useState(platformMode ? "admin@packex.app" : "admin@acme.local");
   const [password, setPassword] = useState("password123");
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,6 @@ function LoginForm() {
         body: JSON.stringify({
           email,
           password,
-          tenantSlug: platform ? undefined : tenantSlug,
           platform,
         }),
       });
@@ -67,31 +65,15 @@ function LoginForm() {
 
         <Card className="p-6">
           <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-            {platform ? "Platform Admin" : "เข้าสู่ระบบองค์กร"}
+            {platform ? "Platform Admin" : "เข้าสู่ระบบ"}
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
             {platform
               ? "จัดการ tenant, แผน และสุขภาพระบบ"
-              : "ลงชื่อเข้าใช้ด้วย slug องค์กรของคุณ"}
+              : "ลงชื่อเข้าใช้ด้วยอีเมลและรหัสผ่าน"}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {!platform && (
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-                  Tenant Slug
-                </label>
-                <input
-                  type="text"
-                  value={tenantSlug}
-                  onChange={(e) => setTenantSlug(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--ink)] outline-none focus:border-[var(--accent)]"
-                  placeholder="acme"
-                  required
-                />
-              </div>
-            )}
-
             <div>
               <label className="mb-1 block text-sm font-medium text-[var(--ink)]">อีเมล</label>
               <input
@@ -138,7 +120,7 @@ function LoginForm() {
 
         <div className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
           <p className="font-medium text-[var(--ink)]">Demo credentials</p>
-          <p className="mt-1">Tenant: acme / admin@acme.local / password123</p>
+          <p className="mt-1">Org: admin@acme.local / password123</p>
           <p>Platform: admin@packex.app / password123</p>
         </div>
       </div>

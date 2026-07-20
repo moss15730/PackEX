@@ -82,26 +82,16 @@ export async function clearSessionCookie() {
   cookieStore.delete("packex_session");
 }
 
-export async function loginTenant(email: string, password: string, tenantSlug: string) {
-  const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
-  if (!tenant || tenant.status === "deleted") return { error: "ไม่พบองค์กร" as const };
-  if (tenant.status === "suspended") return { error: "บัญชีถูกระงับ กรุณาชำระเงินเพื่อเปิดใช้ต่อ" as const };
-
-  const user = await prisma.user.findUnique({
-    where: { tenantId_email: { tenantId: tenant.id, email } },
-  });
-  if (!user || user.status !== "active") return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };
-
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) {
-    await prisma.auditLog.create({
-      data: {
-        tenantId: tenant.id,
-        action: "login.failed",
-        meta: JSON.stringify({ email }),
-      },
-    });
-    return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };
+async function establishTenantSession(user: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  tenantId: string;
+  tenant: { id: string; slug: string; status: string };
+}) {
+  if (user.tenant.status === "suspended") {
+    return { error: "บัญชีถูกระงับ กรุณาชำระเงินเพื่อเปิดใช้ต่อ" as const };
   }
 
   const session: SessionUser = {
@@ -110,21 +100,47 @@ export async function loginTenant(email: string, password: string, tenantSlug: s
     name: user.name,
     role: user.role,
     kind: "tenant",
-    tenantId: tenant.id,
-    tenantSlug: tenant.slug,
+    tenantId: user.tenant.id,
+    tenantSlug: user.tenant.slug,
   };
 
   const token = await createSessionToken(session);
   await setSessionCookie(token);
   await prisma.auditLog.create({
     data: {
-      tenantId: tenant.id,
+      tenantId: user.tenant.id,
       userId: user.id,
       action: "login.success",
     },
   });
 
-  return { user: session, tenant };
+  return { user: session, tenant: user.tenant };
+}
+
+export async function loginTenantByEmail(email: string, password: string) {
+  const trimmedEmail = email.trim();
+  const user = await prisma.user.findUnique({
+    where: { email: trimmedEmail },
+    include: { tenant: true },
+  });
+
+  if (!user || user.status !== "active" || user.tenant.status === "deleted") {
+    return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };
+  }
+
+  const ok = await verifyPassword(password, user.passwordHash);
+  if (!ok) {
+    await prisma.auditLog.create({
+      data: {
+        tenantId: user.tenantId,
+        action: "login.failed",
+        meta: JSON.stringify({ email: trimmedEmail }),
+      },
+    });
+    return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" as const };
+  }
+
+  return establishTenantSession(user);
 }
 
 export async function loginPlatform(email: string, password: string) {

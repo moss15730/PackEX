@@ -168,6 +168,7 @@ async function main() {
     data: {
       tenantId: tenant.id,
       email: "admin@acme.local",
+      employeeCode: "EMP-001",
       name: "สมชาย แอดมิน",
       passwordHash,
       role: "tenant_admin",
@@ -180,6 +181,7 @@ async function main() {
     data: {
       tenantId: tenant.id,
       email: "supervisor@acme.local",
+      employeeCode: "EMP-002",
       name: "วิภา สุเปอร์ไวเซอร์",
       passwordHash,
       role: "supervisor",
@@ -192,6 +194,7 @@ async function main() {
     data: {
       tenantId: tenant.id,
       email: "packer@acme.local",
+      employeeCode: "EMP-003",
       name: "ณัฐ พนักงานแพ็ค",
       passwordHash,
       role: "packer",
@@ -204,6 +207,7 @@ async function main() {
     data: {
       tenantId: tenant.id,
       email: "claim@acme.local",
+      employeeCode: "EMP-004",
       name: "พิมพ์ เคลม",
       passwordHash,
       role: "claim_officer",
@@ -519,6 +523,7 @@ async function main() {
       users: {
         create: {
           email: "admin@beta.local",
+          employeeCode: "EMP-001",
           name: "Beta Admin",
           passwordHash,
           role: "tenant_admin",
