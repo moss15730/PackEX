@@ -97,7 +97,17 @@ export async function POST(
       name,
       location,
       status: "idle",
+      agent: {
+        create: {
+          tenantId: session.tenantId,
+          version: "web",
+          lastHeartbeatAt: new Date(),
+          online: true,
+          queueSize: 0,
+        },
+      },
     },
+    include: { agent: true },
   });
 
   await syncUsageMeter(session.tenantId);

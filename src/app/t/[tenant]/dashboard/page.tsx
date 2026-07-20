@@ -27,7 +27,13 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const stationsOnline = stations.filter((s) => s.agent?.online).length;
+  const OFFLINE = new Set(["offline", "blocked", "disk_full", "camera_error"]);
+  const stationsOnline = stations.filter((s) => {
+    if (OFFLINE.has(s.status)) return false;
+    // มี Agent → ใช้ออนไลน์จาก heartbeat; ไม่มี Agent (สถานีเว็บ) → นับจากสถานะสถานี
+    if (s.agent) return s.agent.online;
+    return true;
+  }).length;
   const uploadQueue = agents.reduce((sum, a) => sum + a.queueSize, 0);
   const storageGb = usage?.storageUsedGb ?? 0;
 
