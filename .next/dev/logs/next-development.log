@@ -545,3 +545,60 @@
 {"timestamp":"01:11:55.396","source":"Server","level":"LOG","message":"✓ Compiled in 2s"}
 {"timestamp":"01:11:56.481","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
 {"timestamp":"01:17:32.354","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"01:54:21.892","source":"Server","level":"LOG","message":"✓ Compiled in 333ms"}
+{"timestamp":"01:54:24.090","source":"Server","level":"LOG","message":"✓ Compiled in 188ms"}
+{"timestamp":"01:54:33.061","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"01:54:48.935","source":"Server","level":"LOG","message":"✓ Compiled in 13.3s"}
+{"timestamp":"01:55:06.746","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:01:21.741","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: UNKNOWN: unknown error, open 'D:\\MOSS\\PackEX\\.next\\dev\\types\\routes.d.ts'"}
+{"timestamp":"02:01:30.588","source":"Server","level":"LOG","message":"✓ Compiled in 145ms"}
+{"timestamp":"02:01:43.858","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: UNKNOWN: unknown error, open 'D:\\MOSS\\PackEX\\.next\\dev\\types\\routes.d.ts'"}
+{"timestamp":"02:02:03.518","source":"Server","level":"LOG","message":"✓ Compiled in 140ms"}
+{"timestamp":"02:02:53.128","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:03:01.906","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:03:25.898","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:07:04.711","source":"Server","level":"LOG","message":"✓ Compiled in 193ms"}
+{"timestamp":"02:08:37.878","source":"Server","level":"LOG","message":"✓ Compiled in 96ms"}
+{"timestamp":"02:08:41.052","source":"Server","level":"LOG","message":"✓ Compiled in 105ms"}
+{"timestamp":"02:08:52.607","source":"Server","level":"LOG","message":"✓ Compiled in 155ms"}
+{"timestamp":"02:09:37.531","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:19:02.271","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: You cannot use different slug names for the same dynamic path ('tenant' !== 'id')."}
+{"timestamp":"02:19:02.330","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.351","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection:\" Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.367","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection: \" Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.416","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.434","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.471","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.491","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.520","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.541","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.565","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.590","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.621","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.647","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.687","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.702","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.716","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.730","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.743","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:02.755","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:19:55.427","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: You cannot use different slug names for the same dynamic path ('tenant' !== 'id')."}
+{"timestamp":"02:19:56.160","source":"Server","level":"LOG","message":"✓ Compiled in 357ms"}
+{"timestamp":"02:20:28.847","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:20:28.868","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:20:32.419","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:20:32.431","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:21:48.517","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: You cannot use different slug names for the same dynamic path ('tenant' !== 'id')."}
+{"timestamp":"02:21:48.627","source":"Server","level":"ERROR","message":"Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:21:48.650","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection:\" Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:21:48.668","source":"Server","level":"ERROR","message":"⨯ \"unhandledRejection: \" Error: You cannot use different slug names for the same dynamic path ('id' !== 'tenant')."}
+{"timestamp":"02:21:49.106","source":"Server","level":"WARN","message":"⚠ \"Failed to reload dynamic routes:\" Error: UNKNOWN: unknown error, open 'D:\\MOSS\\PackEX\\.next\\dev\\types\\routes.d.ts'"}
+{"timestamp":"02:21:53.987","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:22:22.462","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:23:41.881","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:27:41.294","source":"Server","level":"LOG","message":"prisma:error \"\\nInvalid `tx.auditLog.create()` invocation in\\nD:\\\\MOSS\\\\PackEX\\\\.next\\\\dev\\\\server\\\\chunks\\\\[root-of-the-server]__1vttrg2._.js:469:27\\n\\n  466         stationAccess: \\\"*\\\"\\n  467     }\\n  468 });\\n→ 469 await tx.auditLog.create(\\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`\""}
+{"timestamp":"02:27:41.568","source":"Server","level":"ERROR","message":"⨯ PrismaClientKnownRequestError: \nInvalid `tx.auditLog.create()` invocation in\nD:\\MOSS\\PackEX\\.next\\dev\\server\\chunks\\[root-of-the-server]__1vttrg2._.js:469:27\n\n  466         stationAccess: \"*\"\n  467     }\n  468 });\n→ 469 await tx.auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+{"timestamp":"02:27:57.026","source":"Server","level":"LOG","message":"prisma:error \"\\nInvalid `tx.auditLog.create()` invocation in\\nD:\\\\MOSS\\\\PackEX\\\\.next\\\\dev\\\\server\\\\chunks\\\\[root-of-the-server]__1vttrg2._.js:469:27\\n\\n  466         stationAccess: \\\"*\\\"\\n  467     }\\n  468 });\\n→ 469 await tx.auditLog.create(\\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`\""}
+{"timestamp":"02:27:57.227","source":"Server","level":"ERROR","message":"⨯ PrismaClientKnownRequestError: \nInvalid `tx.auditLog.create()` invocation in\nD:\\MOSS\\PackEX\\.next\\dev\\server\\chunks\\[root-of-the-server]__1vttrg2._.js:469:27\n\n  466         stationAccess: \"*\"\n  467     }\n  468 });\n→ 469 await tx.auditLog.create(\nForeign key constraint violated on the constraint: `AuditLog_userId_fkey`"}
+{"timestamp":"02:37:10.797","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"02:38:29.252","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

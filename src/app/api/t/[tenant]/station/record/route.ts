@@ -68,6 +68,29 @@ export async function POST(
 
     const tenantId = session.tenantId;
 
+    // Hard limit: block new recordings when storage quota is full.
+    // (Plan.maxStorageGb is configured by Platform Admin)
+    const subscription = await prisma.subscription.findUnique({
+      where: { tenantId },
+      include: { plan: true },
+    });
+    const usage = await prisma.usageMeter.upsert({
+      where: { tenantId },
+      update: {},
+      create: { tenantId, stationsUsed: 0, storageUsedGb: 0, usersUsed: 0 },
+    });
+
+    const maxStorageGb = subscription?.plan?.maxStorageGb;
+    if (typeof maxStorageGb === "number" && usage.storageUsedGb >= maxStorageGb) {
+      return NextResponse.json(
+        {
+          error:
+            "ความจุจัดเก็บวิดีโอเต็มแล้ว — ไม่สามารถบันทึกวิดีโอใหม่ได้ กรุณาอัปเกรดแพ็กเกจ",
+        },
+        { status: 400 },
+      );
+    }
+
     const station = await prisma.station.findFirst({
       where: {
         id: stationId,

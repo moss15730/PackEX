@@ -1,58 +1,57 @@
+import { redirect } from "next/navigation";
+import { requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card, Badge } from "@/components/ui";
-import { statusLabel } from "@/lib/utils";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
+import { PageHeader } from "@/components/ui";
+import { PlatformTenantsManager } from "@/components/platform-tenants-manager";
 
 export default async function PlatformTenantsPage() {
-  const tenants = await prisma.tenant.findMany({
-    where: { status: { not: "deleted" } },
-    include: {
-      subscription: { include: { plan: true } },
-      usageMeters: true,
-      _count: { select: { users: true, stations: true } },
-    },
-    orderBy: { createdAt: "desc" },
+  const session = await requirePlatformSession();
+  if (!session) redirect("/login?platform=1");
+
+  const canManage = session.role === "super_admin";
+
+  const [tenants, plans] = await Promise.all([
+    prisma.tenant.findMany({
+      where: { status: { not: "deleted" } },
+      include: {
+        subscription: { include: { plan: true } },
+        usageMeters: true,
+        _count: { select: { users: true, stations: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.plan.findMany({
+      orderBy: { priceMonthly: "asc" },
+      select: { id: true, nameTh: true, maxStorageGb: true, maxUsers: true },
+    }),
+  ]);
+
+  const tenantItems = tenants.map((t) => {
+    const usage = t.usageMeters[0];
+    return {
+      id: t.id,
+      slug: t.slug,
+      name: t.name,
+      status: t.status,
+      createdAt: t.createdAt.toISOString(),
+      planId: t.subscription?.planId ?? null,
+      planName: t.subscription?.plan.nameTh ?? null,
+      maxStorageGb: t.subscription?.plan.maxStorageGb ?? null,
+      stationCount: t._count.stations,
+      userCount: t._count.users,
+      storageUsedGb: usage?.storageUsedGb ?? 0,
+    };
   });
 
   return (
     <div>
       <PageHeader title="Tenants" description="องค์กรทั้งหมดบนแพลตฟอร์ม" />
 
-      <Card className="overflow-x-auto p-0">
-        <table className="min-w-[720px] w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">Slug</th>
-              <th className="px-4 py-3 font-medium">ชื่อ</th>
-              <th className="px-4 py-3 font-medium">สถานะ</th>
-              <th className="px-4 py-3 font-medium">แผน</th>
-              <th className="px-4 py-3 font-medium">สถานี/ผู้ใช้</th>
-              <th className="px-4 py-3 font-medium">สร้างเมื่อ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tenants.map((t) => (
-              <tr key={t.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="px-4 py-3 font-mono">{t.slug}</td>
-                <td className="px-4 py-3">{t.name}</td>
-                <td className="px-4 py-3">
-                  <Badge tone={t.status === "active" ? "success" : t.status === "suspended" ? "danger" : "neutral"}>
-                    {statusLabel(t.status)}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">{t.subscription?.plan.nameTh ?? "—"}</td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {t._count.stations} / {t._count.users}
-                </td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {format(t.createdAt, "d MMM yyyy", { locale: th })}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      {canManage ? (
+        <PlatformTenantsManager tenants={tenantItems} plans={plans} />
+      ) : (
+        <p className="text-sm text-[var(--muted)]">ไม่มีสิทธิ์จัดการองค์กร</p>
+      )}
     </div>
   );
 }

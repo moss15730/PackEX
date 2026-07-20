@@ -80,6 +80,23 @@ export async function POST(
       },
     });
 
+    // Update storage usage (video files only).
+    if (kind === "video") {
+      const gb = (Number.isFinite(sizeBytes) ? sizeBytes : 0) / 1_000_000_000;
+      if (gb > 0) {
+        await prisma.usageMeter.upsert({
+          where: { tenantId: session.tenantId },
+          update: { storageUsedGb: { increment: gb } },
+          create: {
+            tenantId: session.tenantId,
+            stationsUsed: 0,
+            storageUsedGb: gb,
+            usersUsed: 0,
+          },
+        });
+      }
+    }
+
     await prisma.auditLog.create({
       data: {
         tenantId: session.tenantId,
