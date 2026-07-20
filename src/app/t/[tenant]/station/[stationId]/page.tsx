@@ -51,6 +51,7 @@ export default function StationConsolePage() {
   const [recording, setRecording] = useState(false);
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const [completeness, setCompleteness] = useState<number | null>(null);
+  const [orderVideoCount, setOrderVideoCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
@@ -216,6 +217,7 @@ export default function StationConsolePage() {
     setBarcode("");
     setError("");
     setCompleteness(null);
+    setOrderVideoCount(0);
   }, []);
 
   async function onCameraChange(deviceId: string) {
@@ -395,6 +397,7 @@ export default function StationConsolePage() {
       }
       setRecording(false);
       setCompleteness(data.completenessScore);
+      setOrderVideoCount((count) => count + 1);
       setRecordingId(null);
       setHealth((h) => ({
         ...h,
@@ -412,6 +415,14 @@ export default function StationConsolePage() {
     }
   }
 
+  function recordAnotherVideo() {
+    if (recording) return;
+    setCompleteness(null);
+    setError("");
+    setRecordingId(null);
+    void startPreview(selectedCameraId || undefined);
+  }
+
   function resetStation() {
     if (recording) return;
     stopStream();
@@ -420,6 +431,7 @@ export default function StationConsolePage() {
     setRecording(false);
     setRecordingId(null);
     setCompleteness(null);
+    setOrderVideoCount(0);
     setError("");
     setHealth((h) => ({ ...h, camera: "warn" }));
     inputRef.current?.focus();
@@ -493,7 +505,7 @@ export default function StationConsolePage() {
               handleScan(barcode);
             }
           }}
-          disabled={recording}
+          disabled={recording || completeness !== null}
           placeholder="ORD-XXXXX หรือสแกนบาร์โค้ด"
           className="w-full rounded-xl border-2 border-[var(--border)] bg-[var(--surface-2)] px-4 py-5 font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] disabled:opacity-50 md:text-3xl"
           autoComplete="off"
@@ -573,12 +585,49 @@ export default function StationConsolePage() {
           </div>
         )}
 
+        {orderNo && orderVideoCount > 0 && completeness === null && (
+          <p className="mt-4 text-center text-sm text-[var(--muted)]">
+            ออเดอร์นี้มีวิดีโอแล้ว {orderVideoCount} รายการ — สามารถอัดเพิ่มได้
+          </p>
+        )}
+
         {error && (
           <p className="mt-4 rounded-lg bg-rose-500/10 px-4 py-3 text-base text-rose-600">{error}</p>
         )}
 
         <div className="mt-8 flex flex-wrap gap-3">
-          {!recording ? (
+          {recording ? (
+            <Button
+              variant="danger"
+              className="min-h-16 w-full px-6 text-xl font-bold uppercase"
+              onClick={stopRecording}
+              disabled={loading}
+            >
+              {loading ? "กำลังบันทึก..." : "หยุดอัด"}
+            </Button>
+          ) : completeness !== null ? (
+            <>
+              <p className="w-full text-center text-sm text-[var(--muted)]">
+                บันทึกวิดีโอแล้ว {orderVideoCount} รายการ — อัดเพิ่มหรือเสร็จสิ้นออเดอร์นี้
+              </p>
+              <Button
+                variant="secondary"
+                className="min-h-14 flex-1 px-6 text-lg"
+                onClick={recordAnotherVideo}
+                disabled={loading}
+              >
+                อัดวิดีโอเพิ่ม
+              </Button>
+              <Button
+                variant="primary"
+                className="min-h-14 flex-1 px-6 text-lg font-semibold"
+                onClick={resetStation}
+                disabled={loading}
+              >
+                เสร็จสิ้น
+              </Button>
+            </>
+          ) : (
             <>
               <Button
                 variant="primary"
@@ -597,15 +646,6 @@ export default function StationConsolePage() {
                 ล้าง
               </Button>
             </>
-          ) : (
-            <Button
-              variant="danger"
-              className="min-h-16 w-full px-6 text-xl font-bold uppercase"
-              onClick={stopRecording}
-              disabled={loading}
-            >
-              {loading ? "กำลังบันทึก..." : "หยุดอัด"}
-            </Button>
           )}
         </div>
       </div>

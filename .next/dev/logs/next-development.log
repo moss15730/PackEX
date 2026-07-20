@@ -1,2 +1,32 @@
 {"timestamp":"00:00:03.197","source":"Server","level":"LOG","message":""}
 {"timestamp":"00:00:25.339","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:14:14.384","source":"Server","level":"LOG","message":"✓ Compiled in 279ms"}
+{"timestamp":"00:14:51.151","source":"Server","level":"LOG","message":"✓ Compiled in 118ms"}
+{"timestamp":"00:18:51.679","source":"Server","level":"LOG","message":"✓ Compiled in 110ms"}
+{"timestamp":"00:18:52.752","source":"Server","level":"LOG","message":"✓ Compiled in 0ms"}
+{"timestamp":"00:18:53.743","source":"Server","level":"LOG","message":"✓ Compiled in 91ms"}
+{"timestamp":"00:18:56.105","source":"Server","level":"LOG","message":"✓ Compiled in 70ms"}
+{"timestamp":"00:18:58.644","source":"Server","level":"LOG","message":"✓ Compiled in 84ms"}
+{"timestamp":"00:19:06.535","source":"Server","level":"LOG","message":"✓ Compiled in 75ms"}
+{"timestamp":"00:19:09.701","source":"Server","level":"LOG","message":"✓ Compiled in 74ms"}
+{"timestamp":"00:19:11.741","source":"Server","level":"LOG","message":"✓ Compiled in 147ms"}
+{"timestamp":"00:19:25.530","source":"Server","level":"LOG","message":"✓ Compiled in 214ms"}
+{"timestamp":"00:19:25.842","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:25.848","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:26.079","source":"Browser","level":"ERROR","message":"uncaughtError: Error: ./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed\n\n"}
+{"timestamp":"00:19:26.087","source":"Server","level":"ERROR","message":"[browser] \"Uncaught Error: ./src/app/t/[tenant]/videos/page.tsx:81:7\\nExpected corresponding JSX closing tag for <div>\\n  79 |         items={items}\\n  80 |       />\\n> 81 |     </motionless>\\n     |       ^^^^^^^^^^\\n  82 |   );\\n  83 | }\\n  84 |\\n\\nParsing ecmascript source code failed\\n\\n\\n    at <unknown> (Error: ./src/app/t/[tenant]/videos/page.tsx:81:7)\\n    at <unknown> (Error: (./src/app/t/[tenant]/videos/page.tsx:81:7)\""}
+{"timestamp":"00:19:26.088","source":"Browser","level":"ERROR","message":"Uncaught Error: ./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed\n\n\n    at <unknown> (Error: ./src/app/t/[tenant]/videos/page.tsx:81:7)\n    at <unknown> (Error: (./src/app/t/[tenant]/videos/page.tsx:81:7)"}
+{"timestamp":"00:19:26.746","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:26.746","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:28.746","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:28.746","source":"Browser","level":"ERROR","message":"./src/app/t/[tenant]/videos/page.tsx:81:7\nExpected corresponding JSX closing tag for <div>\n  79 |         items={items}\n  80 |       />\n> 81 |     </motionless>\n     |       ^^^^^^^^^^\n  82 |   );\n  83 | }\n  84 |\n\nParsing ecmascript source code failed"}
+{"timestamp":"00:19:54.961","source":"Server","level":"LOG","message":"✓ Compiled in 136ms"}
+{"timestamp":"00:19:56.922","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:20:43.167","source":"Server","level":"LOG","message":"✓ Compiled in 147ms"}
+{"timestamp":"00:24:35.165","source":"Server","level":"LOG","message":"✓ Compiled in 67ms"}
+{"timestamp":"00:24:40.969","source":"Server","level":"LOG","message":"✓ Compiled in 73ms"}
+{"timestamp":"00:24:49.010","source":"Server","level":"LOG","message":"✓ Compiled in 96ms"}
+{"timestamp":"00:24:54.780","source":"Server","level":"LOG","message":"✓ Compiled in 137ms"}
+{"timestamp":"00:24:59.847","source":"Server","level":"LOG","message":"✓ Compiled in 75ms"}
+{"timestamp":"00:25:04.933","source":"Server","level":"LOG","message":"✓ Compiled in 73ms"}
+{"timestamp":"00:25:09.673","source":"Server","level":"LOG","message":"✓ Compiled in 70ms"}

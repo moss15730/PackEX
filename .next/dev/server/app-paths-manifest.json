@@ -1,5 +1,7 @@
 {
   "/api/t/[tenant]/station/record/route": "app/api/t/[tenant]/station/record/route.js",
+  "/api/t/[tenant]/upload/complete/route": "app/api/t/[tenant]/upload/complete/route.js",
+  "/api/t/[tenant]/upload/sign/route": "app/api/t/[tenant]/upload/sign/route.js",
   "/t/[tenant]/claims/page": "app/t/[tenant]/claims/page.js",
   "/t/[tenant]/dashboard/page": "app/t/[tenant]/dashboard/page.js",
   "/t/[tenant]/settings/billing/page": "app/t/[tenant]/settings/billing/page.js",
@@ -7,5 +9,6 @@
   "/t/[tenant]/settings/theme/page": "app/t/[tenant]/settings/theme/page.js",
   "/t/[tenant]/station/[stationId]/page": "app/t/[tenant]/station/[stationId]/page.js",
   "/t/[tenant]/station/page": "app/t/[tenant]/station/page.js",
+  "/t/[tenant]/videos/[id]/page": "app/t/[tenant]/videos/[id]/page.js",
   "/t/[tenant]/videos/page": "app/t/[tenant]/videos/page.js"
 }

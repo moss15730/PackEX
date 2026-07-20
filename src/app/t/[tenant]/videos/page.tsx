@@ -33,8 +33,42 @@ export default async function VideosPage({
       employee: true,
     },
     orderBy: { startedAt: "desc" },
-    take: 50,
+    take: 200,
   });
+
+  const grouped = new Map<string, typeof recordings>();
+  for (const rec of recordings) {
+    const list = grouped.get(rec.orderId) ?? [];
+    list.push(rec);
+    grouped.set(rec.orderId, list);
+  }
+
+  const items = [...grouped.values()]
+    .map((recs) => {
+      const sorted = [...recs].sort(
+        (a, b) => b.startedAt.getTime() - a.startedAt.getTime(),
+      );
+      const latest = sorted[0];
+      const avgScore = Math.round(
+        sorted.reduce((sum, rec) => sum + rec.completenessScore, 0) / sorted.length,
+      );
+      const worstStatus = sorted.some((rec) => rec.status === "warning")
+        ? "warning"
+        : latest.status;
+
+      return {
+        id: latest.id,
+        orderNo: latest.order.orderNo,
+        stationCode: latest.station.code,
+        status: worstStatus,
+        completenessScore: avgScore,
+        startedAt: latest.startedAt.toISOString(),
+        employeeName: latest.employee.name,
+        videoCount: sorted.length,
+      };
+    })
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+    .slice(0, 50);
 
   return (
     <div>
@@ -42,15 +76,7 @@ export default async function VideosPage({
       <VideosList
         tenantSlug={session.tenantSlug!}
         initialQ={q || ""}
-        items={recordings.map((rec) => ({
-          id: rec.id,
-          orderNo: rec.order.orderNo,
-          stationCode: rec.station.code,
-          status: rec.status,
-          completenessScore: rec.completenessScore,
-          startedAt: rec.startedAt.toISOString(),
-          employeeName: rec.employee.name,
-        }))}
+        items={items}
       />
     </div>
   );

@@ -15,6 +15,7 @@ export type VideoListItem = {
   completenessScore: number;
   startedAt: string;
   employeeName: string;
+  videoCount: number;
 };
 
 export function VideosList({
@@ -98,7 +99,12 @@ export function VideosList({
                 className="cursor-pointer border-b border-[var(--border)] last:border-0 transition hover:bg-[var(--surface-2)]"
               >
                 <td className="px-4 py-3 font-medium text-[var(--accent)]">
-                  {rec.orderNo}
+                  <span>{rec.orderNo}</span>
+                  {rec.videoCount > 1 && (
+                    <Badge tone="neutral" className="ml-2 align-middle">
+                      {rec.videoCount} วิดีโอ
+                    </Badge>
+                  )}
                 </td>
                 <td className="px-4 py-3">{rec.stationCode}</td>
                 <td className="px-4 py-3">

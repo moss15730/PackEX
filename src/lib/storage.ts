@@ -103,7 +103,7 @@ async function saveLocalCopy(opts: {
 
 export async function ensureRecordingsBucket(client?: SupabaseClient) {
   const supabase = client ?? getSupabaseAdmin();
-  if (!supabase) throw new Error("Supabase Storage ยังไม่ถูกตั้งค่า");
+  if (!supabase) throw new Error("Storage ยังไม่ถูกตั้งค่า");
 
   const bucket = getStorageBucket();
   // Free plan global max is 50MB; Pro can raise Storage Settings → Global file size
@@ -151,7 +151,7 @@ export async function createSignedUpload(opts: {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
     throw new Error(
-      "ยังไม่ได้ตั้งค่า Supabase Storage (ต้องมี NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY บน Vercel)",
+      "ยังไม่ได้ตั้งค่า Storage (ต้องมี NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY บน Vercel)",
     );
   }
 
@@ -199,7 +199,7 @@ export async function uploadRecordingFile(opts: {
         publicUrl: null,
         previewUrl: null,
         storageError:
-          "ยังไม่ได้ตั้งค่า Supabase Storage และเซิร์ฟเวอร์นี้เขียนไฟล์ลงดิสก์ไม่ได้ (ตั้ง NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY บน Vercel)",
+          "ยังไม่ได้ตั้งค่า Storage และเซิร์ฟเวอร์นี้เขียนไฟล์ลงดิสก์ไม่ได้ (ตั้ง NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY บน Vercel)",
       };
     }
     return {
@@ -210,7 +210,7 @@ export async function uploadRecordingFile(opts: {
       publicUrl: null,
       previewUrl: null,
       storageError:
-        "ยังไม่ได้ตั้งค่า Supabase Storage (ต้องมี NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)",
+        "ยังไม่ได้ตั้งค่า Storage (ต้องมี NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)",
     };
   }
 
@@ -240,7 +240,7 @@ export async function uploadRecordingFile(opts: {
     const message =
       err && typeof err === "object" && "message" in err
         ? String((err as { message: string }).message)
-        : "อัปโหลด Supabase Storage ไม่สำเร็จ";
+        : "อัปโหลด Storage ไม่สำเร็จ";
     console.error("[storage] supabase upload failed", message);
 
     let hint = message;
