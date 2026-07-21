@@ -115,6 +115,7 @@ async function main() {
           overlayEnabled: true,
           snapshotRequired: true,
           minRecordingSeconds: 15,
+          tenantAdminPassword: "password123",
         },
       },
       subscription: {
@@ -518,7 +519,7 @@ async function main() {
         },
       },
       usageMeters: { create: { stationsUsed: 1, storageUsedGb: 12, usersUsed: 1 } },
-      settings: { create: {} },
+      settings: { create: { tenantAdminPassword: "password123" } },
       onboarding: { create: { stationCreated: true } },
       users: {
         create: {

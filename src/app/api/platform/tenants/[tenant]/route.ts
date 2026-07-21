@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requirePlatformSession } from "@/lib/auth";
+import { hashPassword, requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const ALLOWED_STATUS = ["trial", "active", "suspended"] as const;
@@ -44,6 +44,10 @@ export async function PATCH(
       maxStations?: number | null;
       maxStorageGb?: number | null;
       maxUsers?: number | null;
+    };
+    tenantAdmin?: {
+      email?: string;
+      password?: string;
     };
   };
 
@@ -91,6 +95,59 @@ export async function PATCH(
         }
       : null;
 
+  const tenantAdmin = body.tenantAdmin;
+  let tenantAdminUserId: string | null = null;
+  let tenantAdminEmail: string | undefined;
+  let tenantAdminPasswordHash: string | undefined;
+  let tenantAdminPasswordPlain: string | undefined;
+
+  if (tenantAdmin && (tenantAdmin.email !== undefined || tenantAdmin.password)) {
+    const adminUser = await prisma.user.findFirst({
+      where: { tenantId: id, role: "tenant_admin", status: "active" },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!adminUser) {
+      return NextResponse.json({ error: "ไม่พบ Tenant Admin" }, { status: 404 });
+    }
+
+    tenantAdminUserId = adminUser.id;
+
+    if (tenantAdmin.email !== undefined) {
+      const email = tenantAdmin.email.trim().toLowerCase();
+      if (!email) {
+        return NextResponse.json({ error: "อีเมลว่างไม่ได้" }, { status: 400 });
+      }
+      if (email !== adminUser.email) {
+        const clash = await prisma.user.findUnique({ where: { email } });
+        if (clash) {
+          return NextResponse.json({ error: "อีเมลนี้ถูกใช้งานแล้ว" }, { status: 409 });
+        }
+      }
+      tenantAdminEmail = email;
+    }
+
+    if (tenantAdmin.password) {
+      if (tenantAdmin.password.length < 8) {
+        return NextResponse.json(
+          { error: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร" },
+          { status: 400 },
+        );
+      }
+      tenantAdminPasswordHash = await hashPassword(tenantAdmin.password);
+      tenantAdminPasswordPlain = tenantAdmin.password;
+    }
+  }
+
+  const hasTenantUpdate = Object.keys(data).length > 0;
+  const hasPlanUpdate = Boolean(planId);
+  const hasQuotaUpdate = Boolean(quotaData);
+  const hasAdminUpdate = Boolean(tenantAdminEmail || tenantAdminPasswordHash);
+
+  if (!hasTenantUpdate && !hasPlanUpdate && !hasQuotaUpdate && !hasAdminUpdate) {
+    return NextResponse.json({ error: "ไม่มีข้อมูลที่จะอัปเดต" }, { status: 400 });
+  }
+
   const updated = await prisma.$transaction(async (tx) => {
     const result = await tx.tenant.update({
       where: { id },
@@ -122,6 +179,24 @@ export async function PATCH(
       });
     }
 
+    if (tenantAdminUserId && (tenantAdminEmail || tenantAdminPasswordHash)) {
+      await tx.user.update({
+        where: { id: tenantAdminUserId },
+        data: {
+          ...(tenantAdminEmail ? { email: tenantAdminEmail } : {}),
+          ...(tenantAdminPasswordHash ? { passwordHash: tenantAdminPasswordHash } : {}),
+        },
+      });
+
+      if (tenantAdminPasswordPlain) {
+        await tx.tenantSettings.upsert({
+          where: { tenantId: id },
+          update: { tenantAdminPassword: tenantAdminPasswordPlain },
+          create: { tenantId: id, tenantAdminPassword: tenantAdminPasswordPlain },
+        });
+      }
+    }
+
     await tx.auditLog.create({
       data: {
         tenantId: id,
@@ -133,6 +208,8 @@ export async function PATCH(
           status: data.status,
           planId: planId || undefined,
           quota: quotaData ?? undefined,
+          tenantAdminEmail: tenantAdminEmail || undefined,
+          tenantAdminPasswordChanged: Boolean(tenantAdminPasswordHash),
         }),
       },
     });

@@ -114,6 +114,7 @@ export async function POST(req: Request) {
     await tx.tenantSettings.create({
       data: {
         tenantId: created.id,
+        tenantAdminPassword: password,
       },
     });
 

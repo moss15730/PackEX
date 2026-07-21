@@ -18,6 +18,12 @@ export default async function PlatformTenantsPage() {
         settings: true,
         subscription: { include: { plan: true } },
         usageMeters: true,
+        users: {
+          where: { role: "tenant_admin", status: "active" },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+          select: { id: true, email: true, name: true, employeeCode: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -48,6 +54,7 @@ export default async function PlatformTenantsPage() {
       const usage = usageByTenant.get(t.id);
       const limits = await getTenantLimits(t.id);
       const plan = t.subscription?.plan;
+      const admin = t.users[0] ?? null;
 
       return {
         id: t.id,
@@ -69,6 +76,11 @@ export default async function PlatformTenantsPage() {
         stationCount: usage?.stationsUsed ?? 0,
         userCount: usage?.usersUsed ?? 0,
         storageUsedGb: usage?.storageUsedGb ?? 0,
+        adminUserId: admin?.id ?? null,
+        adminEmail: admin?.email ?? null,
+        adminName: admin?.name ?? null,
+        adminEmployeeCode: admin?.employeeCode ?? null,
+        adminPassword: t.settings?.tenantAdminPassword ?? null,
       };
     }),
   );

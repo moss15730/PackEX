@@ -36,6 +36,11 @@ export type TenantListItem = {
   stationCount: number;
   userCount: number;
   storageUsedGb: number;
+  adminUserId: string | null;
+  adminEmail: string | null;
+  adminName: string | null;
+  adminEmployeeCode: string | null;
+  adminPassword: string | null;
 };
 
 function statusTone(status: string): "success" | "danger" | "neutral" | "warning" {
@@ -81,6 +86,9 @@ export function PlatformTenantsManager({
   const [editMaxStations, setEditMaxStations] = useState("");
   const [editMaxStorageGb, setEditMaxStorageGb] = useState("");
   const [editMaxUsers, setEditMaxUsers] = useState("");
+  const [editAdminEmail, setEditAdminEmail] = useState("");
+  const [editAdminPassword, setEditAdminPassword] = useState("");
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   function resetCreate() {
     setSlug("");
@@ -106,12 +114,18 @@ export function PlatformTenantsManager({
       t.maxStorageGbOverride != null ? String(t.maxStorageGbOverride) : "",
     );
     setEditMaxUsers(t.maxUsersOverride != null ? String(t.maxUsersOverride) : "");
+    setEditAdminEmail(t.adminEmail ?? "");
+    setEditAdminPassword(t.adminPassword ?? "");
+    setShowEditPassword(false);
     setShowCreate(false);
     setError(null);
   }
 
   function cancelEdit() {
     setEditingId(null);
+    setEditAdminEmail("");
+    setEditAdminPassword("");
+    setShowEditPassword(false);
     setError(null);
   }
 
@@ -168,6 +182,15 @@ export function PlatformTenantsManager({
             maxStorageGb: editMaxStorageGb.trim() ? Number(editMaxStorageGb) : null,
             maxUsers: editMaxUsers.trim() ? Number(editMaxUsers) : null,
           },
+          tenantAdmin: editing?.adminUserId
+            ? {
+                email: editAdminEmail,
+                ...(editAdminPassword &&
+                editAdminPassword !== (editing.adminPassword ?? "")
+                  ? { password: editAdminPassword }
+                  : {}),
+              }
+            : undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -416,6 +439,64 @@ export function PlatformTenantsManager({
                   ))}
                 </select>
               </div>
+            </div>
+            <div className="border-t border-[var(--border)] pt-4">
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                Tenant Admin
+              </p>
+              {editing.adminUserId ? (
+                <>
+                  {editing.adminName ? (
+                    <p className="mb-3 text-sm text-[var(--muted)]">
+                      {editing.adminName}
+                      {editing.adminEmployeeCode ? ` · ${editing.adminEmployeeCode}` : ""}
+                    </p>
+                  ) : null}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
+                        อีเมล
+                      </label>
+                      <input
+                        value={editAdminEmail}
+                        onChange={(e) => setEditAdminEmail(e.target.value)}
+                        type="email"
+                        className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
+                        รหัสผ่าน
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          value={editAdminPassword}
+                          onChange={(e) => setEditAdminPassword(e.target.value)}
+                          type={showEditPassword ? "text" : "password"}
+                          placeholder={
+                            editing.adminPassword ? undefined : "ยังไม่มีการบันทึกรหัสผ่าน"
+                          }
+                          className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="shrink-0 px-3"
+                          onClick={() => setShowEditPassword((v) => !v)}
+                        >
+                          {showEditPassword ? "ซ่อน" : "แสดง"}
+                        </Button>
+                      </div>
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        กรอกรหัสผ่านใหม่เพื่อเปลี่ยน · องค์กรเก่าที่สร้างก่อนหน้านี้อาจยังไม่มีรหัสผ่านบันทึกไว้
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-[var(--muted)]">ไม่พบ Tenant Admin ในองค์กรนี้</p>
+              )}
             </div>
             <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-4">
               <p className="mb-1 text-sm font-semibold text-[var(--ink)]">
