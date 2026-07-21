@@ -237,7 +237,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 placeholder="starter | business | enterprise"
                 required
               />
@@ -249,7 +249,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={priceMonthly}
                 onChange={(e) => setPriceMonthly(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
               />
             </div>
@@ -260,7 +260,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={nameTh}
                 onChange={(e) => setNameTh(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 placeholder="Starter"
                 required
               />
@@ -272,7 +272,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={nameEn}
                 onChange={(e) => setNameEn(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 placeholder="Starter"
                 required
               />
@@ -287,7 +287,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={maxStations}
                 onChange={(e) => setMaxStations(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
                 required
               />
@@ -299,7 +299,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={maxStorageGb}
                 onChange={(e) => setMaxStorageGb(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
                 required
               />
@@ -311,7 +311,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={maxUsers}
                 onChange={(e) => setMaxUsers(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
                 required
               />
@@ -326,7 +326,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={retentionDays}
                 onChange={(e) => setRetentionDays(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
                 required
               />
@@ -338,7 +338,7 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
               <input
                 value={trialDays}
                 onChange={(e) => setTrialDays(e.target.value)}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 inputMode="numeric"
               />
             </div>

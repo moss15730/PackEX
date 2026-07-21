@@ -4,17 +4,17 @@ import { Card } from "@/components/ui";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen px-4 py-12">
-      <div className="mx-auto max-w-2xl">
+    <div className="warehouse-atmosphere relative min-h-screen px-4 py-12">
+      <div className="relative z-10 mx-auto max-w-2xl">
         <Link href="/">
           <PackExWordmark className="mb-8" />
         </Link>
 
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--ink)]">
+        <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-[var(--ink)]">
           ข้อกำหนดการใช้งาน / Terms of Service
         </h1>
 
-        <Card className="mt-6 space-y-4 text-sm text-[var(--muted)]">
+        <Card className="mt-6 space-y-4 p-6 text-sm leading-relaxed text-[var(--muted)]">
           <section>
             <h2 className="font-semibold text-[var(--ink)]">ภาษาไทย</h2>
             <p className="mt-2">

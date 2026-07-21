@@ -4,15 +4,15 @@ import { Button, Card } from "@/components/ui";
 
 export default function SuspendedPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md text-center">
+    <div className="warehouse-atmosphere relative flex min-h-screen items-center justify-center px-4">
+      <div className="relative z-10 w-full max-w-md text-center">
         <PackExWordmark className="mb-8 justify-center" />
 
-        <Card>
+        <Card className="p-7">
           <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-rose-600">
             บัญชีถูกระงับ
           </h1>
-          <p className="mt-3 text-sm text-[var(--muted)]">
+          <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
             องค์กรของคุณถูกระงับการใช้งานชั่วคราว มักเกิดจากการค้างชำระหรือเกินขีดจำกัดแพ็กเกจ
             กรุณาชำระเงินหรือติดต่อผู้ดูแล billing เพื่อเปิดใช้ต่อ
           </p>

@@ -211,7 +211,7 @@ export function ClaimReasonsManager({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="เช่น สินค้าหายจากกล่อง"
               required
-              className="min-w-[220px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              className="min-w-[220px] flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
             />
             <Button type="submit" disabled={busy}>
               บันทึก
@@ -230,7 +230,7 @@ export function ClaimReasonsManager({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               required
-              className="min-w-[220px] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              className="min-w-[220px] flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
             />
             <Button type="submit" disabled={busy}>
               บันทึกการแก้ไข

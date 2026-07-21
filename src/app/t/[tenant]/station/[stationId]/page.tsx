@@ -67,11 +67,23 @@ export default function StationConsolePage() {
     let cancelled = false;
     async function loadStation() {
       try {
-        const res = await fetch(`/api/t/${tenant}/station/record?stationId=${stationId}`);
-        const data = await res.json().catch(() => ({}));
+        const res = await fetch(
+          `/api/t/${tenant}/station/record?stationId=${encodeURIComponent(stationId)}`,
+        );
+        const data = await res.json().catch(() => ({} as { error?: string }));
         if (cancelled) return;
         if (!res.ok) {
-          setStationError(data.error || "ไม่พบสถานี");
+          setStationError(
+            typeof data.error === "string" && data.error
+              ? data.error
+              : res.status === 404
+                ? "ไม่พบสถานีหรือสถานีไม่พร้อมใช้งาน"
+                : "โหลดสถานีไม่สำเร็จ",
+          );
+          return;
+        }
+        if (!data.station) {
+          setStationError("ไม่พบสถานี");
           return;
         }
         setStation(data.station);
@@ -473,11 +485,11 @@ export default function StationConsolePage() {
 
   if (stationError) {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
+      <div className="mx-auto max-w-lg rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 text-center shadow-[var(--shadow)]">
         <p className="text-rose-600">{stationError}</p>
         <Link
           href={`/t/${tenant}/station`}
-          className="mt-4 inline-block text-sm text-[var(--accent)] hover:underline"
+          className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
         >
           กลับไปเลือกสถานี
         </Link>
@@ -494,17 +506,17 @@ export default function StationConsolePage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div>
           <Link
             href={`/t/${tenant}/station`}
-            className="text-xs text-[var(--accent)] hover:underline"
+            className="text-xs font-medium text-[var(--accent)] hover:underline"
           >
             ← เปลี่ยนสถานี
           </Link>
           <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <h1 className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--ink)] sm:text-xl">
+            <h1 className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-[var(--ink)] sm:text-xl">
               Station Console
             </h1>
             <span className="text-sm text-[var(--muted)]">
@@ -528,8 +540,8 @@ export default function StationConsolePage() {
       </div>
 
       <div className="grid min-h-0 flex-1 gap-3 overflow-hidden max-lg:grid-rows-[auto_minmax(0,1fr)] lg:grid-cols-[minmax(0,380px)_1fr]">
-        <div className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 sm:p-4">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        <div className="flex min-h-0 flex-col gap-2.5 overflow-y-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)] sm:p-4">
+          <label className="mb-0.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
             สแกนบาร์โค้ด / เลขออเดอร์
           </label>
           <input
@@ -545,14 +557,16 @@ export default function StationConsolePage() {
             }}
             disabled={recording || completeness !== null}
             placeholder="สแกนบาร์โค้ด / เลขออเดอร์"
-            className="w-full rounded-lg border-2 border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] disabled:opacity-50 sm:text-2xl"
+            className="w-full rounded-[var(--radius-sm)] border-2 border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_25%,transparent)] disabled:opacity-50 sm:text-2xl"
             autoComplete="off"
           />
 
           {orderNo && (
             <div className="grid grid-cols-[1fr_auto] gap-2">
-              <div className="rounded-lg bg-[var(--surface-2)] px-3 py-2">
-                <div className="text-[10px] uppercase tracking-wide text-[var(--muted)]">ออเดอร์</div>
+              <div className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3 py-2.5 ring-1 ring-inset ring-[var(--border)]">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                  ออเดอร์
+                </div>
                 <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-[var(--ink)] sm:text-3xl">
                   {orderNo}
                 </div>
@@ -560,11 +574,15 @@ export default function StationConsolePage() {
               {completeness !== null && (
                 <div
                   className={cn(
-                    "rounded-lg px-3 py-2 text-center",
-                    completeness >= 80 ? "bg-emerald-500/15" : "bg-amber-500/15",
+                    "rounded-[var(--radius-sm)] px-3 py-2.5 text-center ring-1 ring-inset",
+                    completeness >= 80
+                      ? "bg-emerald-500/15 ring-emerald-500/25"
+                      : "bg-amber-500/15 ring-amber-500/25",
                   )}
                 >
-                  <div className="text-[10px] uppercase text-[var(--muted)]">ครบถ้วน</div>
+                  <div className="text-[10px] font-semibold uppercase text-[var(--muted)]">
+                    ครบถ้วน
+                  </div>
                   <div className="font-[family-name:var(--font-display)] text-2xl font-bold">
                     {completeness}%
                   </div>
@@ -575,7 +593,7 @@ export default function StationConsolePage() {
 
           {orderNo && (
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
                 เลือกกล้อง
               </label>
               <div className="flex gap-2">
@@ -583,7 +601,7 @@ export default function StationConsolePage() {
                   value={selectedCameraId}
                   onChange={(e) => void onCameraChange(e.target.value)}
                   disabled={recording || cameras.length === 0}
-                  className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2 py-2 text-sm outline-none focus:border-[var(--accent)] disabled:opacity-50"
+                  className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2 py-2 text-sm outline-none focus:border-[var(--accent)] disabled:opacity-50"
                 >
                   {cameras.length === 0 && <option value="">กำลังค้นหากล้อง...</option>}
                   {cameras.map((cam) => (
@@ -605,7 +623,9 @@ export default function StationConsolePage() {
           )}
 
           {error && (
-            <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-600">{error}</p>
+            <p className="rounded-[var(--radius-sm)] bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
+              {error}
+            </p>
           )}
 
           <div className="mt-auto flex flex-col gap-2 pt-1">
@@ -665,9 +685,9 @@ export default function StationConsolePage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 sm:p-3">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[var(--shadow)] sm:p-3">
           {orderNo ? (
-            <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg bg-black">
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[var(--radius-sm)] bg-black">
               <video
                 ref={videoRef}
                 playsInline
@@ -682,7 +702,7 @@ export default function StationConsolePage() {
               )}
             </div>
           ) : (
-            <div className="flex h-full min-h-[120px] flex-1 items-center justify-center rounded-lg border-2 border-dashed border-[var(--border)] bg-[var(--surface-2)] p-4 text-center text-sm text-[var(--muted)]">
+            <div className="flex h-full min-h-[120px] flex-1 items-center justify-center rounded-[var(--radius-sm)] border-2 border-dashed border-[var(--border)] bg-[var(--surface-2)] p-4 text-center text-sm text-[var(--muted)]">
               สแกนออเดอร์เพื่อเปิดกล้องและอัดวิดีโอ
             </div>
           )}
@@ -699,7 +719,7 @@ function HealthPill({ label, status }: { label: string; status: "ok" | "warn" | 
     error: "bg-rose-500",
   };
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-0.5 text-xs">
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-[11px] font-medium">
       <span className={cn("h-1.5 w-1.5 rounded-full", colors[status])} />
       {label}
     </span>

@@ -127,8 +127,8 @@ function DialogShell({
         aria-modal="true"
         aria-labelledby={labelledBy}
         className={cn(
-          "relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[var(--border)]",
-          "bg-[var(--surface)] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.45)]",
+          "relative z-10 w-full max-w-md overflow-hidden rounded-[var(--radius)] border border-[var(--border)]",
+          "bg-[var(--surface)] shadow-[var(--shadow-lg)]",
           "animate-[dialog-in_180ms_ease-out]",
         )}
       >
@@ -328,8 +328,8 @@ export function NotifyProvider({ children }: { children: ReactNode }) {
                 <div
                   key={item.id}
                   className={cn(
-                    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-[var(--border)]",
-                    "bg-[var(--surface)] p-3.5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.4)]",
+                    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-[var(--radius)] border border-[var(--border)]",
+                    "bg-[var(--surface)] p-3.5 shadow-[var(--shadow-lg)]",
                     "animate-[toast-in_200ms_ease-out]",
                   )}
                   role="status"

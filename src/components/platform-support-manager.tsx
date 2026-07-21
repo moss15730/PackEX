@@ -64,21 +64,21 @@ export function PlatformSupportManager({ grants: initial }: { grants: Grant[] })
             onChange={(e) => setTenantSlug(e.target.value)}
             placeholder="tenant slug"
             required
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
           />
           <input
             value={grantedTo}
             onChange={(e) => setGrantedTo(e.target.value)}
             placeholder="อีเมล support"
             required
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
           />
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="เหตุผล"
             required
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)] sm:col-span-2"
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] sm:col-span-2"
           />
           <input
             type="number"
@@ -86,7 +86,7 @@ export function PlatformSupportManager({ grants: initial }: { grants: Grant[] })
             value={expiresInHours}
             onChange={(e) => setExpiresInHours(e.target.value)}
             placeholder="ชั่วโมง"
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
           />
           <Button type="submit" variant="primary" disabled={busy}>
             {busy ? "กำลังสร้าง…" : "สร้าง Grant"}

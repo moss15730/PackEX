@@ -3,22 +3,37 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, Moon, Sun, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Camera,
+  Film,
+  FileWarning,
+  ClipboardList,
+  Bell,
+  BarChart3,
+  Settings,
+  HelpCircle,
+  ChevronDown,
+  Moon,
+  Sun,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
 import { PackExWordmark } from "@/components/brand";
 import { MobileShellLayout } from "@/components/mobile-shell-layout";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui";
 import { cn, roleLabel } from "@/lib/utils";
 
-const NAV_TOP = [
-  { href: "dashboard", label: "แดชบอร์ด" },
-  { href: "station", label: "เลือกสถานี" },
-  { href: "videos", label: "วิดีโอ" },
-  { href: "claims", label: "เคลม" },
-  { href: "audit", label: "Audit" },
-  { href: "alerts", label: "แจ้งเตือน" },
-  { href: "reports", label: "รายงาน" },
-] as const;
+const NAV_TOP: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "dashboard", label: "แดชบอร์ด", icon: LayoutDashboard },
+  { href: "station", label: "เลือกสถานี", icon: Camera },
+  { href: "videos", label: "วิดีโอ", icon: Film },
+  { href: "claims", label: "เคลม", icon: FileWarning },
+  { href: "audit", label: "Audit", icon: ClipboardList },
+  { href: "alerts", label: "แจ้งเตือน", icon: Bell },
+  { href: "reports", label: "รายงาน", icon: BarChart3 },
+];
 
 const SETTINGS_SUB = [
   { href: "settings/organization", label: "ข้อมูลองค์กร" },
@@ -29,7 +44,9 @@ const SETTINGS_SUB = [
   { href: "settings/theme", label: "ธีม" },
 ] as const;
 
-const NAV_BOTTOM = [{ href: "help", label: "ช่วยเหลือ" }] as const;
+const NAV_BOTTOM: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "help", label: "ช่วยเหลือ", icon: HelpCircle },
+];
 
 const PAGE_TITLES: Record<string, string> = {
   dashboard: "แดชบอร์ด",
@@ -49,24 +66,27 @@ function NavLink({
   label,
   active,
   nested,
+  icon: Icon,
 }: {
   href: string;
   label: string;
   active: boolean;
   nested?: boolean;
+  icon?: LucideIcon;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "mb-0.5 block rounded-lg py-2.5 text-sm transition",
-        nested ? "px-3 pl-8" : "px-3",
+        "mb-0.5 flex items-center gap-2.5 rounded-[var(--radius-sm)] py-2.5 text-sm transition duration-150",
+        nested ? "px-3 pl-9" : "px-3",
         active
-          ? "bg-[var(--accent)]/15 font-medium text-[var(--ink)]"
+          ? "nav-item-active"
           : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
       )}
     >
-      {label}
+      {Icon ? <Icon size={17} strokeWidth={active ? 2.25 : 1.9} className="shrink-0 opacity-90" /> : null}
+      <span>{label}</span>
     </Link>
   );
 }
@@ -101,9 +121,6 @@ export function AppShell({
 
   function isActive(href: string) {
     const full = `${base}/${href}`;
-    if (href === "station") {
-      return pathname === full || pathname.startsWith(`${full}/`);
-    }
     return pathname === full || pathname.startsWith(`${full}/`);
   }
 
@@ -117,7 +134,7 @@ export function AppShell({
 
   const sidebarFooter = (
     <>
-      <div className="mb-2 truncate text-sm font-medium text-[var(--ink)]">{userName}</div>
+      <div className="mb-0.5 truncate text-sm font-semibold text-[var(--ink)]">{userName}</div>
       <div className="mb-3 text-xs text-[var(--muted)]">{roleLabel(userRole)}</div>
       <div className="flex gap-1">
         <Button
@@ -148,34 +165,43 @@ export function AppShell({
           <Link href={`${base}/dashboard`}>
             <PackExWordmark />
           </Link>
-          <p className="mt-2 truncate text-xs text-[var(--muted)]">{tenantSlug}</p>
+          <p className="mt-2 truncate rounded-md bg-[var(--surface-2)] px-2 py-1 text-[11px] font-medium text-[var(--muted)]">
+            {tenantSlug}
+          </p>
         </>
       }
       sidebarNav={
         <>
+          <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+            เมนูหลัก
+          </p>
           {NAV_TOP.map((item) => (
             <NavLink
               key={item.href}
               href={`${base}/${item.href}`}
               label={item.label}
               active={isActive(item.href)}
+              icon={item.icon}
             />
           ))}
 
           {userRole === "tenant_admin" && (
-            <div className="mb-0.5">
+            <div className="mb-0.5 mt-3">
               <button
                 type="button"
                 onClick={() => setSettingsOpen((o) => !o)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition",
+                  "flex w-full items-center justify-between rounded-[var(--radius-sm)] px-3 py-2.5 text-sm transition",
                   settingsActive
-                    ? "bg-[var(--accent)]/10 font-medium text-[var(--ink)]"
+                    ? "nav-item-active"
                     : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--ink)]",
                 )}
                 aria-expanded={settingsOpen}
               >
-                <span>ตั้งค่า</span>
+                <span className="flex items-center gap-2.5">
+                  <Settings size={17} strokeWidth={settingsActive ? 2.25 : 1.9} />
+                  ตั้งค่า
+                </span>
                 <ChevronDown
                   size={16}
                   className={cn(
@@ -200,14 +226,17 @@ export function AppShell({
             </div>
           )}
 
-          {NAV_BOTTOM.map((item) => (
-            <NavLink
-              key={item.href}
-              href={`${base}/${item.href}`}
-              label={item.label}
-              active={isActive(item.href)}
-            />
-          ))}
+          <div className="mt-3">
+            {NAV_BOTTOM.map((item) => (
+              <NavLink
+                key={item.href}
+                href={`${base}/${item.href}`}
+                label={item.label}
+                active={isActive(item.href)}
+                icon={item.icon}
+              />
+            ))}
+          </div>
         </>
       }
       sidebarFooter={sidebarFooter}

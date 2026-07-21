@@ -310,7 +310,7 @@ export function PlatformTenantsManager({
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="acme"
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
               </div>
@@ -321,7 +321,7 @@ export function PlatformTenantsManager({
                 <input
                   value={tenantName}
                   onChange={(e) => setTenantName(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
               </div>
@@ -332,7 +332,7 @@ export function PlatformTenantsManager({
                 <select
                   value={planId}
                   onChange={(e) => setPlanId(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -352,13 +352,13 @@ export function PlatformTenantsManager({
                   value={adminName}
                   onChange={(e) => setAdminName(e.target.value)}
                   placeholder="ชื่อผู้ดูแล"
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 />
                 <input
                   value={employeeCode}
                   onChange={(e) => setEmployeeCode(e.target.value)}
                   placeholder="รหัสพนักงาน"
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
                 <input
@@ -366,7 +366,7 @@ export function PlatformTenantsManager({
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="admin@tenant.local"
                   type="email"
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
                 <input
@@ -374,7 +374,7 @@ export function PlatformTenantsManager({
                   onChange={(e) => setAdminPassword(e.target.value)}
                   placeholder="รหัสผ่าน (≥8)"
                   type="password"
-                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
               </div>
@@ -405,7 +405,7 @@ export function PlatformTenantsManager({
                 <input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
               </div>
@@ -416,7 +416,7 @@ export function PlatformTenantsManager({
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 >
                   <option value="trial">ทดลองใช้</option>
                   <option value="active">ใช้งาน</option>
@@ -430,7 +430,7 @@ export function PlatformTenantsManager({
                 <select
                   value={editPlanId}
                   onChange={(e) => setEditPlanId(e.target.value)}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 >
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -461,7 +461,7 @@ export function PlatformTenantsManager({
                         value={editAdminEmail}
                         onChange={(e) => setEditAdminEmail(e.target.value)}
                         type="email"
-                        className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                        className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                         required
                       />
                     </div>
@@ -477,7 +477,7 @@ export function PlatformTenantsManager({
                           placeholder={
                             editing.adminPassword ? undefined : "ยังไม่มีการบันทึกรหัสผ่าน"
                           }
-                          className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                          className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                         />
                         <Button
                           type="button"

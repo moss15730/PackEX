@@ -63,6 +63,7 @@ export default async function DashboardPage() {
     };
   });
   const maxCount = Math.max(...chartData.map((d) => d.count), 1);
+  const weekTotal = chartData.reduce((s, d) => s + d.count, 0);
 
   return (
     <div>
@@ -71,7 +72,7 @@ export default async function DashboardPage() {
         description="ภาพรวมการแพ็คและสถานะสถานีวันนี้"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="วิดีโอวันนี้" value={videosToday} hint="อัดวันนี้" />
         <Stat
           label="สถานีออนไลน์"
@@ -82,17 +83,25 @@ export default async function DashboardPage() {
         <Stat label="คิวอัปโหลด" value={uploadQueue} hint="ไฟล์รอ sync" />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <h2 className="mb-4 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-            แจ้งเตือนล่าสุด
-          </h2>
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        <Card className="p-5">
+          <div className="mb-4 flex items-baseline justify-between gap-2">
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
+              แจ้งเตือนล่าสุด
+            </h2>
+            <span className="text-xs text-[var(--muted)]">{alerts.length} รายการ</span>
+          </div>
           {alerts.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">ไม่มีแจ้งเตือน</p>
+            <p className="rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-4 py-8 text-center text-sm text-[var(--muted)]">
+              ไม่มีแจ้งเตือน
+            </p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {alerts.map((a) => (
-                <li key={a.id} className="flex items-start gap-2 text-sm">
+                <li
+                  key={a.id}
+                  className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)]/50 px-3 py-2.5 text-sm"
+                >
                   <Badge
                     tone={
                       a.severity === "critical"
@@ -104,9 +113,9 @@ export default async function DashboardPage() {
                   >
                     {a.severity}
                   </Badge>
-                  <div>
-                    <div className="font-medium text-[var(--ink)]">{a.title}</div>
-                    <div className="text-[var(--muted)]">{a.message}</div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[var(--ink)]">{a.title}</div>
+                    <div className="mt-0.5 text-[var(--muted)]">{a.message}</div>
                   </div>
                 </li>
               ))}
@@ -114,26 +123,29 @@ export default async function DashboardPage() {
           )}
         </Card>
 
-        <Card>
-          <h2 className="mb-4 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-            กราฟการแพ็ค (7 วัน)
-          </h2>
-          <div className="flex h-40 items-end justify-between gap-2 rounded-lg bg-[var(--surface-2)] px-4 pb-4 pt-8">
+        <Card className="p-5">
+          <div className="mb-4 flex items-baseline justify-between gap-2">
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
+              กราฟการแพ็ค
+            </h2>
+            <span className="text-xs text-[var(--muted)]">7 วันล่าสุด</span>
+          </div>
+          <div className="flex h-44 items-end justify-between gap-2 rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-4 pb-4 pt-8">
             {chartData.map((d) => (
-              <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[10px] font-medium text-[var(--ink)]">{d.count}</span>
+              <div key={d.date} className="flex flex-1 flex-col items-center gap-1.5">
+                <span className="text-[10px] font-semibold text-[var(--ink)]">{d.count}</span>
                 <div
-                  className="w-full rounded-t bg-[var(--accent)]/70 transition-all"
-                  style={{ height: `${Math.max((d.count / maxCount) * 120, d.count > 0 ? 8 : 4)}px` }}
+                  className="w-full max-w-[2.25rem] rounded-t-md bg-gradient-to-t from-[var(--accent)] to-[color-mix(in_srgb,var(--accent)_65%,white)] transition-all"
+                  style={{
+                    height: `${Math.max((d.count / maxCount) * 120, d.count > 0 ? 8 : 4)}px`,
+                  }}
                   title={`${d.date}: ${d.count} วิดีโอ`}
                 />
-                <span className="text-[10px] text-[var(--muted)]">{d.label}</span>
+                <span className="text-[10px] font-medium text-[var(--muted)]">{d.label}</span>
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-[var(--muted)]">
-            รวม {chartData.reduce((s, d) => s + d.count, 0)} วิดีโอใน 7 วันล่าสุด
-          </p>
+          <p className="mt-3 text-xs text-[var(--muted)]">รวม {weekTotal} วิดีโอใน 7 วันล่าสุด</p>
         </Card>
       </div>
     </div>

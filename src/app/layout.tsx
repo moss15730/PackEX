@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Sans_Thai, Prompt } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotifyProvider } from "@/components/notify";
 import "./globals.css";
 
-const beVietnam = Be_Vietnam_Pro({
+const ibmPlexThai = IBM_Plex_Sans_Thai({
   variable: "--font-sans",
-  subsets: ["latin", "vietnamese"],
+  subsets: ["thai", "latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-const spaceGrotesk = Space_Grotesk({
+const prompt = Prompt({
   variable: "--font-display",
-  subsets: ["latin"],
+  subsets: ["thai", "latin"],
   weight: ["500", "600", "700"],
 });
 
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${beVietnam.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${ibmPlexThai.variable} ${prompt.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

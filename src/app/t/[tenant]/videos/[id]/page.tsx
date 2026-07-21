@@ -133,7 +133,7 @@ export default async function VideoDetailPage({
           return (
             <article
               key={recording.id}
-              className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]"
+              className="overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
             >
               <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 md:px-4">
                 <div className="min-w-0">
@@ -283,7 +283,7 @@ export default async function VideoDetailPage({
                     }
                   />
 
-                  <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+                  <section className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
                     <div className="mb-2 flex items-center gap-1.5">
                       <ImageIcon className="h-3.5 w-3.5 text-[var(--muted)]" />
                       <h3 className="text-xs font-semibold text-[var(--ink)]">Snapshots</h3>

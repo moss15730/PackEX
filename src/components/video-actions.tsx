@@ -145,7 +145,7 @@ export function VideoActions({
 
   return (
     <div className="space-y-3">
-      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+      <section className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
         <div className="mb-2 flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)]/15 text-[var(--accent-ink)] dark:text-[var(--accent)]">
             <Link2 className="h-3.5 w-3.5" />

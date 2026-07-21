@@ -37,7 +37,7 @@ export function MobileShellLayout({
 
   return (
     <div className="flex h-[100dvh] min-h-0 flex-col lg:flex-row">
-      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 lg:hidden">
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-4 py-3 backdrop-blur-md lg:hidden">
         <Button
           type="button"
           variant="ghost"
@@ -47,7 +47,7 @@ export function MobileShellLayout({
         >
           <Menu size={22} />
         </Button>
-        <div className="min-w-0 flex-1 truncate text-center text-sm font-medium text-[var(--ink)]">
+        <div className="min-w-0 flex-1 truncate text-center text-sm font-semibold text-[var(--ink)]">
           {mobileTitle}
         </div>
         <div className="w-10" aria-hidden />
@@ -56,7 +56,7 @@ export function MobileShellLayout({
       {navOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] animate-[backdrop-in_160ms_ease-out] lg:hidden"
           aria-label="ปิดเมนู"
           onClick={() => setNavOpen(false)}
         />
@@ -64,12 +64,12 @@ export function MobileShellLayout({
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(100vw,16rem)] flex-col border-r border-[var(--border)] bg-[var(--surface)] transition-transform duration-200 lg:static lg:z-auto lg:w-60 lg:shrink-0 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(100vw,17rem)] flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)] transition-transform duration-200 lg:static lg:z-auto lg:w-64 lg:shrink-0 lg:translate-x-0 lg:shadow-none",
           navOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-start justify-between border-b border-[var(--border)] p-4">
-          <div className="min-w-0 flex-1">{sidebarHeader}</div>
+          <div className="min-w-0 flex-1 animate-[shell-slide_280ms_ease-out]">{sidebarHeader}</div>
           <Button
             type="button"
             variant="ghost"
@@ -81,16 +81,18 @@ export function MobileShellLayout({
           </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2" onClick={() => setNavOpen(false)}>
+        <nav className="flex-1 overflow-y-auto p-2.5" onClick={() => setNavOpen(false)}>
           {sidebarNav}
         </nav>
 
-        <div className="border-t border-[var(--border)] p-3">{sidebarFooter}</div>
+        <div className="border-t border-[var(--border)] bg-[color-mix(in_srgb,var(--surface-2)_55%,var(--surface))] p-3">
+          {sidebarFooter}
+        </div>
       </aside>
 
       <main
         className={cn(
-          "min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:p-8",
+          "page-enter min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 md:p-8",
           mainClassName?.includes("overflow-hidden")
             ? "overflow-hidden"
             : "overflow-y-auto",

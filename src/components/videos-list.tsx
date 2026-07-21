@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Card, TableScroll } from "@/components/ui";
+import { Badge, TableScroll } from "@/components/ui";
 import { statusLabel } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -64,7 +64,7 @@ export function VideosList({
           onChange={(e) => setQ(e.target.value)}
           placeholder="ค้นหาเลขออเดอร์…"
           autoComplete="off"
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)] sm:max-w-md"
+          className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] sm:max-w-md"
         />
         {isPending && (
           <p className="mt-1 text-xs text-[var(--muted)]">กำลังค้นหา…</p>
@@ -77,7 +77,7 @@ export function VideosList({
             key={rec.id}
             type="button"
             onClick={() => openVideo(rec.id)}
-            className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition hover:bg-[var(--surface-2)]"
+            className="w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left shadow-[var(--shadow)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

@@ -79,7 +79,7 @@ function StationCard({
     return (
       <Link
         href={`/t/${tenantSlug}/station/${station.id}`}
-        className="group flex flex-col rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 transition-all hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--border))] hover:bg-[var(--surface-2)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent)_18%,transparent)]"
+        className="group flex flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-3.5 shadow-[var(--shadow)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--accent)_45%,var(--border))] hover:shadow-[var(--shadow-lg)]"
       >
         {content}
       </Link>
@@ -89,7 +89,7 @@ function StationCard({
   return (
     <div
       aria-disabled
-      className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 opacity-70"
+      className="flex flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-3.5 opacity-65 shadow-[var(--shadow)]"
     >
       {content}
     </div>
@@ -126,9 +126,9 @@ export default async function StationPickerPage() {
           </p>
         </Card>
       ) : (
-        <div className="grid gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {stations.map((station) => (
-            <StationCard key={station.id} tenantSlug={session.tenantSlug} station={station} />
+            <StationCard key={station.id} tenantSlug={session.tenantSlug!} station={station} />
           ))}
         </div>
       )}
