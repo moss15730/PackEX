@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/components/ui";
+import { Link2, Copy, Check, Trash2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui";
 import { useNotify } from "@/components/notify";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -143,68 +144,91 @@ export function VideoActions({
   }
 
   return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-2">
-      <Card>
-        <h2 className="mb-3 font-semibold text-[var(--ink)]">แชร์ลิงก์ (ดูได้โดยไม่ต้องล็อกอิน)</h2>
+    <div className="space-y-3">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)]/15 text-[var(--accent-ink)] dark:text-[var(--accent)]">
+            <Link2 className="h-3.5 w-3.5" />
+          </span>
+          <div>
+            <h2 className="text-xs font-semibold text-[var(--ink)]">แชร์ลิงก์</h2>
+            <p className="text-[11px] text-[var(--muted)]">ดูได้โดยไม่ต้องล็อกอิน</p>
+          </div>
+        </div>
+
         {canShare ? (
-          <div className="space-y-3 text-sm">
-            {share ? (
-              <>
-                <p className="text-[var(--muted)]">
+          share ? (
+            <div className="space-y-2">
+              <code className="block break-all rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-[11px] leading-relaxed text-[var(--ink)]">
+                {fullShareUrl(share.token)}
+              </code>
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[var(--muted)]">
+                <span>
                   หมดอายุ {format(new Date(share.expiresAt), "d MMM yyyy", { locale: th })}
-                </p>
-                <code className="block break-all rounded bg-[var(--surface-2)] px-2 py-2 text-xs">
-                  {fullShareUrl(share.token)}
-                </code>
-                <p className="text-xs text-[var(--muted)]">
+                </span>
+                <span aria-hidden>·</span>
+                <span>
                   เปิดแล้ว {share.openCount}
                   {share.maxOpens != null ? ` / ${share.maxOpens}` : ""} ครั้ง
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" onClick={copyLink} disabled={busy}>
-                    {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCreateShare}
-                    disabled={busy}
-                  >
-                    สร้างลิงก์ใหม่
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-[var(--muted)]">
-                  สร้างลิงก์สาธารณะให้คนอื่นดูวิดีโอและรายละเอียดได้ โดยไม่ต้องเข้าสู่ระบบ PackEX
-                </p>
-                <Button type="button" onClick={handleCreateShare} disabled={busy}>
-                  สร้างลิงก์แชร์
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <Button type="button" onClick={copyLink} disabled={busy} className="px-2.5 py-1.5 text-xs">
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  {copied ? "คัดลอกแล้ว" : "คัดลอก"}
                 </Button>
-              </>
-            )}
-          </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCreateShare}
+                  disabled={busy}
+                  className="px-2.5 py-1.5 text-xs"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  สร้างใหม่
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs leading-relaxed text-[var(--muted)]">
+                สร้างลิงก์สาธารณะให้คนอื่นดูวิดีโอได้โดยไม่ต้องล็อกอิน
+              </p>
+              <Button
+                type="button"
+                onClick={handleCreateShare}
+                disabled={busy}
+                className="w-full px-2.5 py-1.5 text-xs"
+              >
+                <Link2 className="h-3 w-3" />
+                สร้างลิงก์แชร์
+              </Button>
+            </div>
+          )
         ) : (
-          <p className="text-sm text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์แชร์ลิงก์</p>
+          <p className="text-xs text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์แชร์ลิงก์</p>
         )}
-      </Card>
+      </section>
 
-      <Card>
-        <h2 className="mb-3 font-semibold text-[var(--ink)]">ลบวิดีโอ</h2>
+      <section className="rounded-lg border border-dashed border-[var(--border)] px-3 py-2">
         {canDelete ? (
-          <div className="space-y-3 text-sm">
-            <p className="text-[var(--muted)]">
-              ลบออกจากรายการวิดีโอ (soft delete) — กู้คืนได้เฉพาะจากฐานข้อมูล
-            </p>
-            <Button type="button" variant="danger" onClick={handleDelete} disabled={busy}>
-              ลบวิดีโอ
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-[var(--muted)]">ลบวิดีโอ (soft delete)</p>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleDelete}
+              disabled={busy}
+              className="shrink-0 px-2 py-1 text-xs text-rose-600 hover:bg-rose-500/10 hover:text-rose-500"
+            >
+              <Trash2 className="h-3 w-3" />
+              ลบ
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์ลบวิดีโอ</p>
+          <p className="text-[11px] text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์ลบวิดีโอ</p>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

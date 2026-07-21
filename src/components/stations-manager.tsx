@@ -26,8 +26,8 @@ type FormState = {
 };
 
 const STATUS_OPTIONS = [
-  { value: "idle", label: "ว่าง" },
   { value: "ready", label: "พร้อมใช้" },
+  { value: "disabled", label: "ปิดการใช้งาน" },
   { value: "warning", label: "ต้องตรวจ" },
   { value: "offline", label: "ออฟไลน์" },
   { value: "blocked", label: "ถูกบล็อก" },
@@ -39,7 +39,7 @@ const emptyForm: FormState = {
   code: "",
   name: "",
   location: "",
-  status: "idle",
+  status: "disabled",
 };
 
 export function StationsManager({
@@ -80,8 +80,10 @@ export function StationsManager({
         station.status === "recording" ||
         station.status === "uploading" ||
         station.status === "syncing"
-          ? "idle"
-          : station.status,
+          ? "ready"
+          : station.status === "idle"
+            ? "ready"
+            : station.status,
     });
   }
 
@@ -322,7 +324,9 @@ export function StationsManager({
                     tone={
                       station.status === "idle" || station.status === "ready"
                         ? "success"
-                        : station.status === "blocked" || station.status === "offline"
+                        : station.status === "disabled" ||
+                            station.status === "blocked" ||
+                            station.status === "offline"
                           ? "danger"
                           : "warning"
                     }

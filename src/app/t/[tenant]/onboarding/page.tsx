@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { ensureOnboardingState, refreshOnboardingState } from "@/lib/onboarding";
 import { PageHeader, Card, Button } from "@/components/ui";
 
 const STEPS = [
   { key: "stationCreated", label: "สร้างสถานีแพ็ค", href: "settings/stations" },
-  { key: "cameraTested", label: "ทดสอบกล้อง", href: "settings/stations" },
+  { key: "cameraTested", label: "ทดสอบกล้อง", href: "station" },
   { key: "employeesInvited", label: "เชิญพนักงาน", href: "settings/employees" },
   { key: "localeSet", label: "ตั้งค่าภาษา/โซนเวลา", href: "settings/organization" },
   { key: "testClipDone", label: "อัดคลิปทดสอบ", href: "station" },
@@ -15,11 +16,8 @@ export default async function OnboardingPage() {
   const session = await requireTenantSession();
   if (!session?.tenantId) return null;
 
-  const onboarding = await prisma.onboardingState.findUnique({
-    where: { tenantId: session.tenantId },
-  });
-
-  if (!onboarding) return null;
+  await ensureOnboardingState(session.tenantId);
+  const onboarding = await refreshOnboardingState(session.tenantId);
 
   const done = STEPS.filter((s) => onboarding[s.key]).length;
   const total = STEPS.length;
@@ -28,7 +26,7 @@ export default async function OnboardingPage() {
     <div>
       <PageHeader
         title="เริ่มต้นใช้งาน"
-        description={`ทำครบ {done}/${total} ขั้นตอน`.replace("{done}", String(done)).replace("{total}", String(total))}
+        description={`ทำครบ ${done}/${total} ขั้นตอน`}
       />
 
       {onboarding.completed ? (

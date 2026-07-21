@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createSignedUrl, supabaseRefFromStorage } from "@/lib/storage";
+import { checkStorageAlert } from "@/lib/alerts";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export const runtime = "nodejs";
@@ -83,6 +84,7 @@ export async function POST(
 
     if (kind === "video") {
       await syncUsageMeter(session.tenantId);
+      await checkStorageAlert(session.tenantId);
     }
 
     await prisma.auditLog.create({

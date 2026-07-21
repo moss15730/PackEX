@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hashPassword, requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { initializeNewTenant } from "@/lib/onboarding";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 function normalizeSlug(slug: string) {
@@ -151,6 +152,7 @@ export async function POST(req: Request) {
     return created;
   });
 
+  await initializeNewTenant(tenant.id);
   await syncUsageMeter(tenant.id);
 
   return NextResponse.json({ ok: true, tenant: { id: tenant.id, slug: tenant.slug } });

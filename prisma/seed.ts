@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { publishAnnouncement } from "../src/lib/announcements";
 
 const prisma = new PrismaClient();
 
@@ -33,6 +34,7 @@ async function main() {
   await prisma.plan.deleteMany();
   await prisma.platformAdmin.deleteMany();
   await prisma.announcement.deleteMany();
+  await prisma.announcementTarget.deleteMany();
   await prisma.dataRequest.deleteMany();
 
   const starter = await prisma.plan.create({
@@ -221,7 +223,7 @@ async function main() {
       tenantId: tenant.id,
       code: "ST-01",
       name: "สถานีแพ็ค 1",
-      status: "idle",
+      status: "ready",
       location: "โซน A",
       cameras: {
         create: [
@@ -497,14 +499,6 @@ async function main() {
     ],
   });
 
-  await prisma.announcement.create({
-    data: {
-      title: "Maintenance Window",
-      body: "วันอาทิตย์ 02:00–04:00 น. ระบบอัปโหลดอาจช้าลงชั่วคราว",
-      active: true,
-    },
-  });
-
   // Second demo tenant for isolation demos
   const tenantB = await prisma.tenant.create({
     data: {
@@ -533,6 +527,16 @@ async function main() {
       },
     },
   });
+
+  const announcement = await prisma.announcement.create({
+    data: {
+      title: "Maintenance Window",
+      body: "วันอาทิตย์ 02:00–04:00 น. ระบบอัปโหลดอาจช้าลงชั่วคราว",
+      active: true,
+      targetAll: true,
+    },
+  });
+  await publishAnnouncement(announcement);
 
   console.log("Seed complete");
   console.log("Platform: admin@packex.app / password123");

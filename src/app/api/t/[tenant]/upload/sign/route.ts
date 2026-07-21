@@ -6,6 +6,8 @@ import { createSignedUpload, sanitizeStorageFilename } from "@/lib/storage";
 export const runtime = "nodejs";
 
 function extFromMime(mime: string) {
+  if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+  if (mime.includes("png")) return "png";
   if (mime.includes("mp4")) return "mp4";
   if (mime.includes("webm")) return "webm";
   if (mime.includes("quicktime")) return "mov";

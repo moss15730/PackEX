@@ -58,8 +58,9 @@ model Tenant {
   onboarding      OnboardingState?
   usageMeters     UsageMeter[]
   invoices        Invoice[]
-  featureFlags    FeatureFlag[]
-  supportGrants   SupportAccessGrant[]
+  featureFlags           FeatureFlag[]
+  supportGrants          SupportAccessGrant[]
+  announcementTargets    AnnouncementTarget[]
 }
 
 model TenantSettings {
@@ -174,7 +175,7 @@ model Station {
   tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   code         String
   name         String
-  status       String         @default("idle") // idle | recording | uploading | syncing | ready | warning | offline | camera_error | disk_full | blocked
+  status       String         @default("disabled") // recording | uploading | syncing | ready | disabled | warning | offline | camera_error | disk_full | blocked
   location     String?
   cameras      Camera[]
   agent        StationAgent?
@@ -378,14 +379,19 @@ model AuditLog {
 }
 
 model Alert {
-  id         String   @id @default(cuid())
-  tenantId   String
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  severity   String   @default("warning") // info | warning | critical
-  title      String
-  message    String
-  acknowledged Boolean @default(false)
-  createdAt  DateTime @default(now())
+  id             String        @id @default(cuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  severity       String        @default("warning") // info | warning | critical
+  title          String
+  message        String
+  acknowledged   Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  @@unique([announcementId, tenantId])
+  @@index([announcementId])
 }
 
 model Integration {
@@ -411,11 +417,24 @@ model OnboardingState {
 }
 
 model Announcement {
-  id        String   @id @default(cuid())
+  id        String               @id @default(cuid())
   title     String
   body      String
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  active    Boolean              @default(true)
+  targetAll Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  targets   AnnouncementTarget[]
+  alerts    Alert[]
+}
+
+model AnnouncementTarget {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, tenantId])
 }
 
 model DataRequest {

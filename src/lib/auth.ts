@@ -3,9 +3,15 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET || "packex-dev-secret-change-in-production",
-);
+function getAuthSecret() {
+  const value = process.env.AUTH_SECRET;
+  if (!value && process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET is required in production");
+  }
+  return new TextEncoder().encode(value || "packex-dev-secret-change-in-production");
+}
+
+const secret = getAuthSecret();
 
 export type SessionUser = {
   id: string;

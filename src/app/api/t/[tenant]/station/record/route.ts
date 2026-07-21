@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { alertLowCompleteness } from "@/lib/alerts";
+import { refreshOnboardingState } from "@/lib/onboarding";
 import { getUsageAndLimits, isStorageFull, syncUsageMeter } from "@/lib/tenant-limits";
 
 export async function GET(
@@ -23,7 +25,7 @@ export async function GET(
     where: {
       id: stationId,
       tenantId: session.tenantId,
-      status: { notIn: ["offline", "blocked", "disk_full"] },
+      status: { in: ["ready", "idle"] },
     },
   });
 
@@ -86,7 +88,7 @@ export async function POST(
       where: {
         id: stationId,
         tenantId,
-        status: { notIn: ["offline", "blocked", "disk_full"] },
+        status: { in: ["ready", "idle"] },
       },
       include: { cameras: { where: { active: true } } },
     });
@@ -153,7 +155,10 @@ export async function POST(
 
     const recording = await prisma.recording.findFirst({
       where: { id: recordingId, tenantId, status: "recording" },
-      include: { station: { include: { cameras: { where: { active: true } } } } },
+      include: {
+        station: { include: { cameras: { where: { active: true } } } },
+        order: { select: { orderNo: true } },
+      },
     });
 
     if (!recording) {
@@ -179,17 +184,19 @@ export async function POST(
     const uploadedSnapshots = await prisma.snapshot.count({
       where: { recordingId: recording.id },
     });
-    const usedDeviceCamera = Boolean(clientUploaded) || uploadedFiles > 0;
 
-    const activeCameras = usedDeviceCamera
-      ? Math.max(uploadedFiles, 1)
-      : recording.station.cameras.length;
+    if (!clientUploaded || uploadedFiles === 0) {
+      return NextResponse.json(
+        { error: "ไม่พบไฟล์วิดีโอที่อัปโหลด — กรุณาอัดและอัปโหลดวิดีโอก่อนหยุด" },
+        { status: 400 },
+      );
+    }
+
     let score = 100;
     if (durationSec < minSec) score -= 25;
-    if (activeCameras < minCams) score -= 30;
-    if (snapshotRequired && uploadedSnapshots === 0 && !usedDeviceCamera) score -= 0;
-    if (usedDeviceCamera && uploadedFiles === 0) score -= 40;
-    score = Math.max(40, Math.min(100, score - (usedDeviceCamera ? 0 : Math.floor(Math.random() * 10))));
+    if (uploadedFiles < minCams) score -= 30;
+    if (snapshotRequired && uploadedSnapshots === 0) score -= 20;
+    score = Math.max(0, Math.min(100, score));
 
     const updated = await prisma.recording.update({
       where: { id: recording.id },
@@ -198,28 +205,6 @@ export async function POST(
         endedAt: new Date(),
         durationSec,
         completenessScore: score,
-        ...(usedDeviceCamera
-          ? {}
-          : {
-              files: {
-                create: recording.station.cameras.map((cam, i) => ({
-                  cameraLabel: cam.name,
-                  storagePath: `/${tenantId}/recordings/${recording.id}/${cam.id}.mp4`,
-                  sizeBytes: 20_000_000 + i * 5_000_000,
-                  sha256: `${recording.id}${i}`.padEnd(64, "0").slice(0, 64),
-                })),
-              },
-              ...(snapshotRequired
-                ? {
-                    snapshots: {
-                      create: {
-                        storagePath: `/${tenantId}/snapshots/${recording.id}/preclose.jpg`,
-                        sha256: `${recording.id}s`.padEnd(64, "0").slice(0, 64),
-                      },
-                    },
-                  }
-                : {}),
-            }),
         markers: {
           create: [
             { label: "สแกนเริ่ม", atSec: 0, kind: "scan" },
@@ -236,10 +221,12 @@ export async function POST(
 
     await prisma.station.update({
       where: { id: recording.stationId },
-      data: { status: "idle" },
+      data: { status: "ready" },
     });
 
     await syncUsageMeter(tenantId);
+    await refreshOnboardingState(tenantId);
+    await alertLowCompleteness(tenantId, recording.id, recording.order.orderNo, score);
 
     await prisma.auditLog.create({
       data: {
@@ -248,7 +235,7 @@ export async function POST(
         action: "recording.stop",
         entityType: "recording",
         entityId: recording.id,
-        meta: JSON.stringify({ completenessScore: score }),
+        meta: JSON.stringify({ completenessScore: score, durationSec, uploadedFiles }),
       },
     });
 

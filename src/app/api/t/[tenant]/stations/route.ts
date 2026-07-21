@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { refreshOnboardingState } from "@/lib/onboarding";
 import {
   getUsageAndLimits,
   isStationLimitReached,
@@ -96,7 +97,7 @@ export async function POST(
       code,
       name,
       location,
-      status: "idle",
+      status: "disabled",
       agent: {
         create: {
           tenantId: session.tenantId,
@@ -111,6 +112,7 @@ export async function POST(
   });
 
   await syncUsageMeter(session.tenantId);
+  await refreshOnboardingState(session.tenantId);
 
   await prisma.auditLog.create({
     data: {

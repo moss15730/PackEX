@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { deleteRecordingFiles } from "@/lib/storage";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export async function DELETE(
@@ -24,6 +25,10 @@ export async function DELETE(
       tenantId: session.tenantId,
       status: { not: "deleted" },
     },
+    include: {
+      files: { select: { storagePath: true } },
+      snapshots: { select: { storagePath: true } },
+    },
   });
 
   if (!recording) {
@@ -38,6 +43,12 @@ export async function DELETE(
   }
 
   const wasRecording = recording.status === "recording";
+  const storagePaths = [
+    ...recording.files.map((f) => f.storagePath),
+    ...recording.snapshots.map((s) => s.storagePath),
+  ];
+
+  await deleteRecordingFiles(storagePaths);
 
   await prisma.recording.update({
     where: { id: recording.id },
@@ -56,7 +67,7 @@ export async function DELETE(
   if (wasRecording) {
     await prisma.station.update({
       where: { id: recording.stationId },
-      data: { status: "idle" },
+      data: { status: "ready" },
     });
   }
 
@@ -69,7 +80,7 @@ export async function DELETE(
       action: "video.delete",
       entityType: "recording",
       entityId: recording.id,
-      meta: JSON.stringify({ wasRecording }),
+      meta: JSON.stringify({ wasRecording, filesDeleted: storagePaths.length }),
     },
   });
 

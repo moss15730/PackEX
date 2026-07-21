@@ -14,7 +14,8 @@ export function formatBytes(bytes: number) {
 
 export function statusLabel(status: string) {
   const map: Record<string, string> = {
-    idle: "ว่าง",
+    idle: "พร้อมใช้",
+    disabled: "ปิดการใช้งาน",
     recording: "กำลังอัด",
     uploading: "กำลังอัปโหลด",
     syncing: "กำลังซิงก์",

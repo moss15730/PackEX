@@ -1,6 +1,17 @@
-{"timestamp":"00:00:05.728","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:09.126","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:04:45.852","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:07:37.812","source":"Server","level":"LOG","message":"prisma:error \"\\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\\\"prisma\\\"].tenant.findUnique()` invocation in\\nD:\\\\MOSS\\\\PackEX\\\\.next\\\\dev\\\\server\\\\chunks\\\\[root-of-the-server]__0bb-r-o._.js:324:156\\n\\n  321     \\\"suspended\\\"\\n  322 ];\\n  323 async function resolveTenant(key) {\\n→ 324     const byId = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__[\\\"prisma\\\"].tenant.findUnique(\\nTimed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 13)\""}
-{"timestamp":"00:07:38.034","source":"Server","level":"ERROR","message":"⨯ PrismaClientKnownRequestError: \nInvalid `{imported module ./src/lib/db.ts}[\"prisma\"].tenant.findUnique()` invocation in\nD:\\MOSS\\PackEX\\.next\\dev\\server\\chunks\\[root-of-the-server]__0bb-r-o._.js:324:156\n\n  321     \"suspended\"\n  322 ];\n  323 async function resolveTenant(key) {\n→ 324     const byId = await {imported module ./src/lib/db.ts}[\"prisma\"].tenant.findUnique(\nTimed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 13)"}
-{"timestamp":"00:07:47.021","source":"Server","level":"LOG","message":"prisma:error \"Error in PostgreSQL connection: Error { kind: Io, cause: Some(Os { code: 10054, kind: ConnectionReset, message: \\\"An existing connection was forcibly closed by the remote host.\\\" }) }\""}
+{"timestamp":"00:00:01.867","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:04.267","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:05:21.518","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/lib/utils.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:05:24.215","source":"Server","level":"LOG","message":"✓ Compiled in 599ms"}
+{"timestamp":"00:05:24.341","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/lib/utils.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:05:24.347","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/lib/utils.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:05:24.772","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:05:40.653","source":"Server","level":"LOG","message":"✓ Compiled in 151ms"}
+{"timestamp":"00:05:56.954","source":"Server","level":"LOG","message":"✓ Compiled in 51ms"}
+{"timestamp":"00:08:03.787","source":"Server","level":"LOG","message":"✓ Compiled in 218ms"}
+{"timestamp":"00:11:04.776","source":"Server","level":"LOG","message":"✓ Compiled in 348ms"}
+{"timestamp":"00:11:42.629","source":"Server","level":"LOG","message":"✓ Compiled in 61ms"}
+{"timestamp":"00:11:47.777","source":"Server","level":"LOG","message":"✓ Compiled in 53ms"}
+{"timestamp":"00:11:48.693","source":"Server","level":"LOG","message":"✓ Compiled in 124ms"}
+{"timestamp":"00:13:03.635","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:15:52.634","source":"Server","level":"LOG","message":"✓ Compiled in 209ms"}
+{"timestamp":"00:16:06.435","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}

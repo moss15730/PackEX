@@ -23,12 +23,204 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/api/platform/announcements/[id]",
+      "regex": "^/api/platform/announcements/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/platform/announcements/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/platform/plans/[id]",
+      "regex": "^/api/platform/plans/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/platform/plans/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/platform/support/[id]",
+      "regex": "^/api/platform/support/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/platform/support/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/platform/tenants/[tenant]",
+      "regex": "^/api/platform/tenants/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/platform/tenants/(?<nxtPtenant>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/platform/tenants/[tenant]/employees",
+      "regex": "^/api/platform/tenants/([^/]+?)/employees(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/platform/tenants/(?<nxtPtenant>[^/]+?)/employees(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/alerts/[id]",
+      "regex": "^/api/t/([^/]+?)/alerts/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/alerts/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/claim-reasons",
+      "regex": "^/api/t/([^/]+?)/claim\\-reasons(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/claim\\-reasons(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/claim-reasons/[id]",
+      "regex": "^/api/t/([^/]+?)/claim\\-reasons/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/claim\\-reasons/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/claims",
+      "regex": "^/api/t/([^/]+?)/claims(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/claims(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/claims/[id]",
+      "regex": "^/api/t/([^/]+?)/claims/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/claims/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/employees",
+      "regex": "^/api/t/([^/]+?)/employees(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/employees(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/employees/[id]",
+      "regex": "^/api/t/([^/]+?)/employees/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/employees/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/media/[fileId]",
+      "regex": "^/api/t/([^/]+?)/media/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPfileId": "nxtPfileId"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/media/(?<nxtPfileId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/onboarding",
+      "regex": "^/api/t/([^/]+?)/onboarding(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/onboarding(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/organization",
+      "regex": "^/api/t/([^/]+?)/organization(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/organization(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/reports/export",
+      "regex": "^/api/t/([^/]+?)/reports/export(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/reports/export(?:/)?$"
+    },
+    {
       "page": "/api/t/[tenant]/station/record",
       "regex": "^/api/t/([^/]+?)/station/record(?:/)?$",
       "routeKeys": {
         "nxtPtenant": "nxtPtenant"
       },
       "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/station/record(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/stations",
+      "regex": "^/api/t/([^/]+?)/stations(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/stations(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/stations/[id]",
+      "regex": "^/api/t/([^/]+?)/stations/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/stations/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/upload",
+      "regex": "^/api/t/([^/]+?)/upload(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/upload(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/upload/complete",
+      "regex": "^/api/t/([^/]+?)/upload/complete(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/upload/complete(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/upload/sign",
+      "regex": "^/api/t/([^/]+?)/upload/sign(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/upload/sign(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/videos/[id]",
+      "regex": "^/api/t/([^/]+?)/videos/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/videos/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/t/[tenant]/videos/[id]/share",
+      "regex": "^/api/t/([^/]+?)/videos/([^/]+?)/share(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/t/(?<nxtPtenant>[^/]+?)/videos/(?<nxtPid>[^/]+?)/share(?:/)?$"
     },
     {
       "page": "/share/[token]",
@@ -127,12 +319,69 @@
       "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings(?:/)?$"
     },
     {
+      "page": "/t/[tenant]/settings/billing",
+      "regex": "^/t/([^/]+?)/settings/billing(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/billing(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/settings/claim-reasons",
+      "regex": "^/t/([^/]+?)/settings/claim\\-reasons(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/claim\\-reasons(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/settings/employees",
+      "regex": "^/t/([^/]+?)/settings/employees(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/employees(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/settings/organization",
+      "regex": "^/t/([^/]+?)/settings/organization(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/organization(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/settings/stations",
+      "regex": "^/t/([^/]+?)/settings/stations(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/stations(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/settings/theme",
+      "regex": "^/t/([^/]+?)/settings/theme(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/settings/theme(?:/)?$"
+    },
+    {
       "page": "/t/[tenant]/station",
       "regex": "^/t/([^/]+?)/station(?:/)?$",
       "routeKeys": {
         "nxtPtenant": "nxtPtenant"
       },
       "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/station(?:/)?$"
+    },
+    {
+      "page": "/t/[tenant]/station/[stationId]",
+      "regex": "^/t/([^/]+?)/station/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtenant": "nxtPtenant",
+        "nxtPstationId": "nxtPstationId"
+      },
+      "namedRegex": "^/t/(?<nxtPtenant>[^/]+?)/station/(?<nxtPstationId>[^/]+?)(?:/)?$"
     },
     {
       "page": "/t/[tenant]/stations",
@@ -192,10 +441,40 @@
       "namedRegex": "^/api/auth/logout(?:/)?$"
     },
     {
+      "page": "/api/platform/announcements",
+      "regex": "^/api/platform/announcements(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/platform/announcements(?:/)?$"
+    },
+    {
+      "page": "/api/platform/plans",
+      "regex": "^/api/platform/plans(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/platform/plans(?:/)?$"
+    },
+    {
+      "page": "/api/platform/support",
+      "regex": "^/api/platform/support(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/platform/support(?:/)?$"
+    },
+    {
+      "page": "/api/platform/tenants",
+      "regex": "^/api/platform/tenants(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/platform/tenants(?:/)?$"
+    },
+    {
       "page": "/favicon.ico",
       "regex": "^/favicon\\.ico(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/icon.svg",
+      "regex": "^/icon\\.svg(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon\\.svg(?:/)?$"
     },
     {
       "page": "/login",
@@ -244,6 +523,12 @@
       "regex": "^/platform/tenants(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/platform/tenants(?:/)?$"
+    },
+    {
+      "page": "/platform/tenants/create",
+      "regex": "^/platform/tenants/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/platform/tenants/create(?:/)?$"
     },
     {
       "page": "/platform/usage",

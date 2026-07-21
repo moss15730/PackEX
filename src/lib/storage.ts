@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash, randomUUID } from "crypto";
-import { mkdir, writeFile, readFile } from "fs/promises";
+import { mkdir, writeFile, readFile, unlink } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import os from "os";
@@ -337,6 +337,37 @@ export async function resolvePlaybackUrl(opts: {
   }
 
   return { kind: "none", src: null };
+}
+
+export async function deleteStorageObject(storagePath: string): Promise<boolean> {
+  const ref = supabaseRefFromStorage(storagePath);
+  if (ref) {
+    const supabase = getSupabaseAdmin();
+    if (!supabase) return false;
+    const { error } = await supabase.storage.from(ref.bucket).remove([ref.objectPath]);
+    if (error) {
+      console.error("[storage] delete failed", error.message);
+      return false;
+    }
+    return true;
+  }
+
+  const local = localPathFromStorage(storagePath);
+  if (local) {
+    try {
+      await unlink(local);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+export async function deleteRecordingFiles(storagePaths: string[]) {
+  const results = await Promise.all(storagePaths.map((p) => deleteStorageObject(p)));
+  return results.filter(Boolean).length;
 }
 
 export const isDriveConfigured = isStorageConfigured;

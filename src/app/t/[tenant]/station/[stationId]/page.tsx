@@ -173,6 +173,11 @@ export default function StationConsolePage() {
 
         setPreviewReady(true);
         setHealth((h) => ({ ...h, camera: "ok" }));
+        void fetch(`/api/t/${tenant}/onboarding`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "camera-tested" }),
+        });
       } catch (err) {
         const name = err instanceof DOMException ? err.name : "";
         if (name === "NotAllowedError" || name === "PermissionDeniedError") {
@@ -311,11 +316,15 @@ export default function StationConsolePage() {
     });
   }
 
-  async function uploadRecording(recId: string, blob: Blob) {
-    const ext = blob.type.includes("mp4") ? "mp4" : "webm";
-    const contentType = blob.type || "video/webm";
-    const camLabel =
-      cameras.find((c) => c.deviceId === selectedCameraId)?.label || "device-camera";
+  async function uploadBlob(
+    recId: string,
+    blob: Blob,
+    opts: { kind: "video" | "snapshot"; cameraLabel?: string; contentType?: string },
+  ) {
+    const contentType = opts.contentType || blob.type || "video/webm";
+    const ext = contentType.includes("jpeg") || contentType.includes("jpg") ? "jpg" : contentType.includes("webm") ? "webm" : "mp4";
+    const camLabel = opts.cameraLabel || cameras.find((c) => c.deviceId === selectedCameraId)?.label || "device-camera";
+    const defaultFilename = opts.kind === "snapshot" ? `snapshot.${ext}` : `camera.${ext}`;
 
     const signRes = await fetch(`/api/t/${tenant}/upload/sign`, {
       method: "POST",
@@ -324,6 +333,7 @@ export default function StationConsolePage() {
         recordingId: recId,
         cameraLabel: camLabel,
         contentType,
+        filename: defaultFilename,
       }),
     });
     const signData = await signRes.json().catch(() => ({}));
@@ -333,13 +343,11 @@ export default function StationConsolePage() {
 
     const form = new FormData();
     form.append("cacheControl", "3600");
-    const uploadName = String(signData.filename || `camera.${ext}`);
+    const uploadName = String(signData.filename || defaultFilename);
     form.append("", blob, uploadName);
     const putRes = await fetch(signData.signedUrl as string, {
       method: "PUT",
-      headers: {
-        "x-upsert": "true",
-      },
+      headers: { "x-upsert": "true" },
       body: form,
     });
     if (!putRes.ok) {
@@ -358,7 +366,7 @@ export default function StationConsolePage() {
         cameraLabel: camLabel,
         storagePath: signData.storagePath,
         sizeBytes: blob.size,
-        kind: "video",
+        kind: opts.kind,
         contentType,
       }),
     });
@@ -369,6 +377,26 @@ export default function StationConsolePage() {
     return completeData;
   }
 
+  async function captureSnapshot(recId: string) {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.85),
+    );
+    if (!blob) return;
+    await uploadBlob(recId, blob, { kind: "snapshot", contentType: "image/jpeg" });
+  }
+
+  async function uploadRecording(recId: string, blob: Blob) {
+    return uploadBlob(recId, blob, { kind: "video" });
+  }
+
   async function stopRecording() {
     if (!recordingId) return;
     setLoading(true);
@@ -377,6 +405,12 @@ export default function StationConsolePage() {
       const blob = await stopRecorder();
       if (!blob) {
         throw new Error("ไม่พบข้อมูลวิดีโอที่อัด — ลองอัดใหม่อีกครั้ง");
+      }
+
+      try {
+        await captureSnapshot(recordingId);
+      } catch {
+        // snapshot is optional for scoring but improves completeness
       }
 
       const uploaded = await uploadRecording(recordingId, blob);

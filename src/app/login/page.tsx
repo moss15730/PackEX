@@ -14,8 +14,8 @@ function LoginForm() {
   const platformMode = searchParams.get("platform") === "1";
 
   const [platform, setPlatform] = useState(platformMode);
-  const [email, setEmail] = useState(platformMode ? "admin@packex.app" : "admin@acme.local");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState(platformMode ? "" : "");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -106,7 +106,8 @@ function LoginForm() {
               type="button"
               onClick={() => {
                 setPlatform(!platform);
-                setEmail(!platform ? "admin@packex.app" : "admin@acme.local");
+                setEmail("");
+                setPassword("");
               }}
               className="text-[var(--accent)] hover:underline"
             >
@@ -117,12 +118,6 @@ function LoginForm() {
             </Link>
           </div>
         </Card>
-
-        <div className="mt-4 rounded-lg border border-dashed border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)]">
-          <p className="font-medium text-[var(--ink)]">Demo credentials</p>
-          <p className="mt-1">Org: admin@acme.local / password123</p>
-          <p>Platform: admin@packex.app / password123</p>
-        </div>
       </div>
     </div>
   );

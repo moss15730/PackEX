@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 const ALLOWED_STATUS = [
-  "idle",
   "ready",
+  "disabled",
   "warning",
   "offline",
   "blocked",
@@ -171,7 +171,7 @@ export async function DELETE(
     if (wasRecording) {
       await prisma.station.update({
         where: { id: station.id },
-        data: { status: "idle" },
+        data: { status: "ready" },
       });
     }
     return NextResponse.json(

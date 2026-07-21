@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Stat, Card } from "@/components/ui";
+import { PageHeader, Stat, Card, Button } from "@/components/ui";
 import { startOfDay, subDays } from "date-fns";
 
 export default async function ReportsPage() {
@@ -11,12 +12,18 @@ export default async function ReportsPage() {
   const weekAgo = subDays(startOfDay(new Date()), 7);
 
   const [totalRecordings, weekRecordings, avgCompleteness, claimCount] = await Promise.all([
-    prisma.recording.count({ where: { tenantId, status: "ready" } }),
     prisma.recording.count({
-      where: { tenantId, startedAt: { gte: weekAgo }, status: "ready" },
+      where: { tenantId, status: { in: ["ready", "warning"] } },
+    }),
+    prisma.recording.count({
+      where: {
+        tenantId,
+        startedAt: { gte: weekAgo },
+        status: { in: ["ready", "warning"] },
+      },
     }),
     prisma.recording.aggregate({
-      where: { tenantId, status: "ready" },
+      where: { tenantId, status: { in: ["ready", "warning"] } },
       _avg: { completenessScore: true },
     }),
     prisma.claimCase.count({ where: { tenantId, status: { in: ["open", "reviewing"] } } }),
@@ -38,11 +45,17 @@ export default async function ReportsPage() {
       </div>
 
       <Card className="mt-6">
-        <h2 className="mb-2 font-semibold text-[var(--ink)]">สรุป</h2>
-        <p className="text-sm text-[var(--muted)]">
-          รายงานนี้สรุปจากข้อมูลในฐานข้อมูลของ tenant คุณเท่านั้น
-          ส่งออก CSV/PDF จะพร้อมในเวอร์ชันถัดไป
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-[var(--ink)]">ส่งออกรายงาน</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              ดาวน์โหลดข้อมูลวิดีโอและเคสเคลมเป็นไฟล์ CSV
+            </p>
+          </div>
+          <Link href={`/api/t/${session.tenantSlug}/reports/export`}>
+            <Button variant="primary">ดาวน์โหลด CSV</Button>
+          </Link>
+        </div>
       </Card>
     </div>
   );
