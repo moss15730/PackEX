@@ -80,7 +80,6 @@ export default async function PlatformTenantsPage() {
         adminEmail: admin?.email ?? null,
         adminName: admin?.name ?? null,
         adminEmployeeCode: admin?.employeeCode ?? null,
-        adminPassword: t.settings?.tenantAdminPassword ?? null,
       };
     }),
   );

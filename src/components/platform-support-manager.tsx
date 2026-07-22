@@ -49,6 +49,26 @@ export function PlatformSupportManager({ grants: initial }: { grants: Grant[] })
     }
   }
 
+  async function enterTenant(slug: string) {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/platform/support/enter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tenantSlug: slug }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast({ title: data.error || "เข้าองค์กรไม่สำเร็จ", tone: "danger" });
+        return;
+      }
+      toast({ title: "เข้าองค์กรแบบ Support แล้ว", tone: "success" });
+      window.location.href = data.redirect || `/t/${slug}/videos`;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function revoke(id: string) {
     const res = await fetch(`/api/platform/support/${id}`, { method: "PATCH" });
     if (res.ok) router.refresh();
@@ -107,9 +127,19 @@ export function PlatformSupportManager({ grants: initial }: { grants: Grant[] })
                     {revoked ? "ยกเลิกแล้ว" : expired ? "หมดอายุ" : "ใช้งานได้"}
                   </Badge>
                   {!revoked && !expired && (
-                    <Button variant="outline" className="text-xs" onClick={() => void revoke(g.id)}>
-                      ยกเลิก
-                    </Button>
+                    <>
+                      <Button
+                        variant="secondary"
+                        className="text-xs"
+                        disabled={busy}
+                        onClick={() => void enterTenant(g.tenant.slug)}
+                      >
+                        เข้าองค์กร
+                      </Button>
+                      <Button variant="outline" className="text-xs" onClick={() => void revoke(g.id)}>
+                        ยกเลิก
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>

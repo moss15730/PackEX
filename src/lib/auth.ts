@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 
+export { PERMISSIONS, can, type Permission } from "./permissions";
+
 function getAuthSecret() {
   const value = process.env.AUTH_SECRET;
   if (!value && process.env.NODE_ENV === "production") {
@@ -21,28 +23,9 @@ export type SessionUser = {
   kind: "tenant" | "platform";
   tenantId?: string;
   tenantSlug?: string;
+  /** Set when platform support enters a tenant via active grant */
+  supportGrantId?: string;
 };
-
-export const PERMISSIONS = {
-  "recording.start": ["tenant_admin", "supervisor", "packer"],
-  "recording.stop": ["tenant_admin", "supervisor", "packer"],
-  "video.view": ["tenant_admin", "supervisor", "packer", "viewer", "claim_officer"],
-  "video.download": ["tenant_admin", "supervisor", "claim_officer"],
-  "video.share": ["tenant_admin", "supervisor", "claim_officer"],
-  "video.delete": ["tenant_admin", "supervisor"],
-  "employees.manage": ["tenant_admin"],
-  "stations.manage": ["tenant_admin", "supervisor"],
-  "billing.view": ["tenant_admin"],
-  "claims.manage": ["tenant_admin", "supervisor", "claim_officer"],
-  "claim_reasons.manage": ["tenant_admin", "supervisor"],
-  "audit.view": ["tenant_admin", "supervisor"],
-} as const;
-
-export type Permission = keyof typeof PERMISSIONS;
-
-export function can(role: string, permission: Permission) {
-  return (PERMISSIONS[permission] as readonly string[]).includes(role);
-}
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
@@ -178,4 +161,68 @@ export async function requirePlatformSession() {
   const session = await readSession();
   if (!session || session.kind !== "platform") return null;
   return session;
+}
+
+/** Platform support enters a tenant under an active grant (viewer-only session). */
+export async function enterTenantWithSupportGrant(opts: {
+  platformSession: SessionUser;
+  tenantSlug: string;
+}) {
+  if (opts.platformSession.kind !== "platform") {
+    return { error: "ต้องเป็นบัญชีแพลตฟอร์ม" as const };
+  }
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { slug: opts.tenantSlug },
+  });
+  if (!tenant || tenant.status === "deleted") {
+    return { error: "ไม่พบองค์กร" as const };
+  }
+
+  const now = new Date();
+  const grant = await prisma.supportAccessGrant.findFirst({
+    where: {
+      tenantId: tenant.id,
+      revokedAt: null,
+      expiresAt: { gt: now },
+      grantedTo: { equals: opts.platformSession.email, mode: "insensitive" },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!grant && opts.platformSession.role !== "super_admin") {
+    return {
+      error: "ไม่มี Support Grant ที่ยังไม่หมดอายุสำหรับอีเมลนี้" as const,
+    };
+  }
+
+  const session: SessionUser = {
+    id: opts.platformSession.id,
+    email: opts.platformSession.email,
+    name: `${opts.platformSession.name} (Support)`,
+    role: "viewer",
+    kind: "tenant",
+    tenantId: tenant.id,
+    tenantSlug: tenant.slug,
+    supportGrantId: grant?.id ?? "super_admin_break_glass",
+  };
+
+  const token = await createSessionToken(session);
+  await setSessionCookie(token);
+
+  await prisma.auditLog.create({
+    data: {
+      tenantId: tenant.id,
+      action: "support.enter",
+      entityType: "support_access_grant",
+      entityId: grant?.id ?? tenant.id,
+      meta: JSON.stringify({
+        platformEmail: opts.platformSession.email,
+        role: opts.platformSession.role,
+        breakGlass: !grant,
+      }),
+    },
+  });
+
+  return { ok: true as const, tenant, grantId: grant?.id ?? null };
 }

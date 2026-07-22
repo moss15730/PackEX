@@ -40,7 +40,6 @@ export type TenantListItem = {
   adminEmail: string | null;
   adminName: string | null;
   adminEmployeeCode: string | null;
-  adminPassword: string | null;
 };
 
 function statusTone(status: string): "success" | "danger" | "neutral" | "warning" {
@@ -115,7 +114,7 @@ export function PlatformTenantsManager({
     );
     setEditMaxUsers(t.maxUsersOverride != null ? String(t.maxUsersOverride) : "");
     setEditAdminEmail(t.adminEmail ?? "");
-    setEditAdminPassword(t.adminPassword ?? "");
+    setEditAdminPassword("");
     setShowEditPassword(false);
     setShowCreate(false);
     setError(null);
@@ -185,9 +184,8 @@ export function PlatformTenantsManager({
           tenantAdmin: editing?.adminUserId
             ? {
                 email: editAdminEmail,
-                ...(editAdminPassword &&
-                editAdminPassword !== (editing.adminPassword ?? "")
-                  ? { password: editAdminPassword }
+                ...(editAdminPassword.trim()
+                  ? { password: editAdminPassword.trim() }
                   : {}),
               }
             : undefined,
@@ -474,9 +472,7 @@ export function PlatformTenantsManager({
                           value={editAdminPassword}
                           onChange={(e) => setEditAdminPassword(e.target.value)}
                           type={showEditPassword ? "text" : "password"}
-                          placeholder={
-                            editing.adminPassword ? undefined : "ยังไม่มีการบันทึกรหัสผ่าน"
-                          }
+                          placeholder="เว้นว่างถ้าไม่เปลี่ยน"
                           className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                         />
                         <Button
@@ -489,7 +485,7 @@ export function PlatformTenantsManager({
                         </Button>
                       </div>
                       <p className="mt-1 text-xs text-[var(--muted)]">
-                        กรอกรหัสผ่านใหม่เพื่อเปลี่ยน · องค์กรเก่าที่สร้างก่อนหน้านี้อาจยังไม่มีรหัสผ่านบันทึกไว้
+                        กรอกรหัสผ่านใหม่เพื่อเปลี่ยน — ระบบไม่เก็บรหัสผ่านแบบอ่านกลับได้
                       </p>
                     </div>
                   </div>

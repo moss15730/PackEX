@@ -1,4 +1,5 @@
-import { requireTenantSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader, Card, TableScroll } from "@/components/ui";
 import { format } from "date-fns";
@@ -6,7 +7,11 @@ import { th } from "date-fns/locale";
 
 export default async function AuditPage() {
   const session = await requireTenantSession();
-  if (!session?.tenantId) return null;
+  if (!session?.tenantId || !session.tenantSlug) return null;
+
+  if (!can(session.role, "audit.view")) {
+    redirect(`/t/${session.tenantSlug}/dashboard`);
+  }
 
   const logs = await prisma.auditLog.findMany({
     where: { tenantId: session.tenantId },

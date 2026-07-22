@@ -65,6 +65,8 @@ npx vercel env add AUTH_SECRET
 npx vercel env add NEXT_PUBLIC_SUPABASE_URL
 npx vercel env add SUPABASE_SERVICE_ROLE_KEY
 npx vercel env add SUPABASE_STORAGE_BUCKET
+npx vercel env add CRON_SECRET
+npx vercel env add STATION_AGENT_KEY
 npx vercel --prod
 ```
 
@@ -76,8 +78,28 @@ npx vercel --prod
 - Project ID (เปลี่ยนไม่ได้): `sybzcdsbkjwrfiycmjep`
 - URL: `https://sybzcdsbkjwrfiycmjep.supabase.co`
 
+## Go-live checklist (production)
+
+ก่อนเปิดใช้จริง ตรวจให้ครบ:
+
+- [ ] `AUTH_SECRET` สุ่มใหม่ ≥ 32 ตัวอักษร (ไม่ใช่ค่าตัวอย่าง)
+- [ ] `DATABASE_URL` + `DIRECT_URL` จาก Supabase pooler/direct
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + bucket `recordings` (Private)
+- [ ] Storage Global file size limit ≥ 50MB (แนะนำ Pro ถ้าคลิปยาว)
+- [ ] `CRON_SECRET` ตั้งแล้ว และ Vercel Cron `/api/cron/retention` ทำงาน
+- [ ] `STATION_AGENT_KEY` ถ้าใช้ Agent heartbeat
+- [ ] เปลี่ยนรหัสผ่าน demo ทั้งหมด (`password123`)
+- [ ] ทดสอบ: login → อัด → อัปโหลด → เล่น → ตรวจ hash → แชร์ (มี/ไม่มีรหัส) → เคลม export
+- [ ] ทดสอบ: trial หมดอายุแล้ว tenant ถูก suspend โดย cron
+- [ ] ทดสอบ: Support Grant → ปุ่ม «เข้าองค์กร» เข้าได้เฉพาะ grantee / super_admin
+
+**ขอบเขต go-live ที่รองรับตอนนี้:** สถานีอัดผ่านเบราว์เซอร์บนเครื่องที่เน็ตเสถียร คลิปสั้น–กลาง  
+**ยังไม่ใช่:** offline-first Agent เต็มระบบ / IP camera RTSP / คลิปยาวหลายชั่วโมงโดยไม่ปรับ storage limit
+
 ## หมายเหตุ
 
 - บน Vercel ใช้ **pooler URL** เป็น `DATABASE_URL` เสมอ
 - `AUTH_SECRET` ควรเป็นสตริงยาวสุ่ม (อย่างน้อย 32 ตัวอักษร)
+- ตั้ง `CRON_SECRET` สำหรับ `/api/cron/retention` (Vercel Cron รันทุกวัน 03:00 — soft-delete purge + stuck recording cleanup + trial suspend + mark agent stale)
+- ตั้ง `STATION_AGENT_KEY` ถ้าจะใช้ Station Agent heartbeat
 - Google Drive เป็น interim storage — ภายหลังย้ายไป S3/R2 ได้โดยเปลี่ยน adapter ใน `src/lib/drive.ts`

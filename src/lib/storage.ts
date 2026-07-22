@@ -306,6 +306,32 @@ export async function readLocalMedia(storagePath: string): Promise<Buffer | null
   }
 }
 
+/** Download object bytes for integrity hashing (Supabase or local). */
+export async function downloadStorageBytes(
+  storagePath: string,
+): Promise<Buffer | null> {
+  const local = await readLocalMedia(storagePath);
+  if (local) return local;
+
+  const ref = supabaseRefFromStorage(storagePath);
+  if (!ref) return null;
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.storage
+    .from(ref.bucket)
+    .download(ref.objectPath);
+  if (error || !data) {
+    console.error("[storage] download for hash failed", error?.message);
+    return null;
+  }
+  return Buffer.from(await data.arrayBuffer());
+}
+
+export function sha256OfBuffer(buffer: Buffer) {
+  return createHash("sha256").update(buffer).digest("hex");
+}
+
 export async function resolvePlaybackUrl(opts: {
   storagePath: string;
   thumbnailPath?: string | null;

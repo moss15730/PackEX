@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -10,27 +16,61 @@ const ThemeContext = createContext<{
   resolved: "light" | "dark";
 }>({ theme: "system", setTheme: () => {}, resolved: "light" });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("system");
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
+const THEME_EVENT = "packex-theme";
 
-  useEffect(() => {
-    const stored = localStorage.getItem("packex-theme") as Theme | null;
-    if (stored) setTheme(stored);
+function subscribeTheme(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_EVENT, callback);
+  };
+}
+
+function getStoredTheme(): Theme {
+  const stored = localStorage.getItem("packex-theme");
+  return stored === "light" || stored === "dark" || stored === "system"
+    ? stored
+    : "system";
+}
+
+function getServerTheme(): Theme {
+  return "system";
+}
+
+function subscribeSystem(callback: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getSystemResolved(): "light" | "dark" {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function getServerResolved(): "light" | "dark" {
+  return "light";
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = useSyncExternalStore(subscribeTheme, getStoredTheme, getServerTheme);
+  const systemResolved = useSyncExternalStore(
+    subscribeSystem,
+    getSystemResolved,
+    getServerResolved,
+  );
+  const resolved = theme === "system" ? systemResolved : theme;
+
+  const setTheme = useCallback((next: Theme) => {
+    localStorage.setItem("packex-theme", next);
+    window.dispatchEvent(new Event(THEME_EVENT));
   }, []);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => {
-      const next = theme === "system" ? (mq.matches ? "dark" : "light") : theme;
-      setResolved(next);
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem("packex-theme", theme);
-    };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, [theme]);
+    document.documentElement.dataset.theme = resolved;
+  }, [resolved]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolved }}>

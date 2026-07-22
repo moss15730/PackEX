@@ -1,4 +1,5 @@
-import { requireTenantSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader, Card, Stat, Badge, TableScroll } from "@/components/ui";
 import { statusLabel } from "@/lib/utils";
@@ -8,7 +9,11 @@ import { getUsageAndLimits } from "@/lib/tenant-limits";
 
 export default async function SettingsBillingPage() {
   const session = await requireTenantSession();
-  if (!session?.tenantId) return null;
+  if (!session?.tenantId || !session.tenantSlug) return null;
+
+  if (!can(session.role, "billing.view")) {
+    redirect(`/t/${session.tenantSlug}/dashboard`);
+  }
 
   const tenantId = session.tenantId;
 

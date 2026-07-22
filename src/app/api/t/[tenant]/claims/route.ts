@@ -96,7 +96,7 @@ export async function POST(
         packages: {
           create: recordings.map((rec) => ({
             recordingId: rec.id,
-            exportPath: `/${tenantId}/claims/${orderNo}/${rec.id}.zip`,
+            exportPath: null,
           })),
         },
       },

@@ -1,12 +1,17 @@
 import Link from "next/link";
-import { requireTenantSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader, Stat, Card, Button } from "@/components/ui";
 import { startOfDay, subDays } from "date-fns";
 
 export default async function ReportsPage() {
   const session = await requireTenantSession();
-  if (!session?.tenantId) return null;
+  if (!session?.tenantId || !session.tenantSlug) return null;
+
+  if (!can(session.role, "audit.view")) {
+    redirect(`/t/${session.tenantSlug}/dashboard`);
+  }
 
   const tenantId = session.tenantId;
   const weekAgo = subDays(startOfDay(new Date()), 7);

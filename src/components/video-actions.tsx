@@ -36,6 +36,8 @@ export function VideoActions({
   const [share, setShare] = useState<ShareInfo | null>(initialShare);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sharePassword, setSharePassword] = useState("");
+  const [maxOpens, setMaxOpens] = useState("");
 
   function fullShareUrl(token: string) {
     if (typeof window === "undefined") return `/share/${token}`;
@@ -48,8 +50,8 @@ export function VideoActions({
     const ok = await confirm({
       title: isRecording ? "กำลังอัดอยู่ — ยืนยันที่จะลบหรือไม่?" : "ลบวิดีโอนี้?",
       description: isRecording
-        ? "วิดีโอนี้กำลังอัดอยู่ หากลบ การอัดจะถูกยกเลิก และผู้รับลิงก์แชร์จะดูไม่ได้"
-        : "วิดีโอจะถูกนำออกจากรายการ และผู้รับลิงก์แชร์จะดูต่อไม่ได้",
+        ? "วิดีโอนี้กำลังอัดอยู่ หากลบ การอัดจะถูกยกเลิก — ไฟล์จะถูกเก็บไว้ชั่วคราวเพื่อกู้คืนได้ตามนโยบาย"
+        : "วิดีโอจะถูกซ่อนจากรายการ (soft delete) และกู้คืนได้ภายในช่วงที่ตั้งไว้ — ผู้รับลิงก์แชร์จะดูต่อไม่ได้",
       confirmLabel: "ลบวิดีโอ",
       cancelLabel: "ยกเลิก",
       tone: "danger",
@@ -92,7 +94,11 @@ export function VideoActions({
       const res = await fetch(`/api/t/${tenantSlug}/videos/${recordingId}/share`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expiresInDays: 30 }),
+        body: JSON.stringify({
+          expiresInDays: 30,
+          password: sharePassword.trim() || null,
+          maxOpens: maxOpens.trim() ? Number(maxOpens) : null,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -110,9 +116,12 @@ export function VideoActions({
         openCount: 0,
         maxOpens: data.maxOpens ?? null,
       });
+      setSharePassword("");
       toast({
         title: "สร้างลิงก์แชร์แล้ว",
-        description: "คัดลอกลิงก์เพื่อส่งให้ผู้อื่นดูได้โดยไม่ต้องล็อกอิน",
+        description: data.passwordProtected
+          ? "ลิงก์มีรหัสผ่าน — ส่งรหัสแยกจากลิงก์"
+          : "คัดลอกลิงก์เพื่อส่งให้ผู้อื่นดูได้โดยไม่ต้องล็อกอิน",
         tone: "success",
       });
       router.refresh();
@@ -194,6 +203,21 @@ export function VideoActions({
               <p className="text-xs leading-relaxed text-[var(--muted)]">
                 สร้างลิงก์สาธารณะให้คนอื่นดูวิดีโอได้โดยไม่ต้องล็อกอิน
               </p>
+              <input
+                type="password"
+                value={sharePassword}
+                onChange={(e) => setSharePassword(e.target.value)}
+                placeholder="รหัสผ่าน (ว่าง = ไม่ใส่)"
+                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs outline-none focus:border-[var(--accent)]"
+              />
+              <input
+                type="number"
+                min={1}
+                value={maxOpens}
+                onChange={(e) => setMaxOpens(e.target.value)}
+                placeholder="จำกัดครั้งเปิด (ว่าง = ไม่จำกัด)"
+                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs outline-none focus:border-[var(--accent)]"
+              />
               <Button
                 type="button"
                 onClick={handleCreateShare}

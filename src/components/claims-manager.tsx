@@ -471,6 +471,12 @@ export function ClaimsManager({
                   เปิดวิดีโอหลักฐาน
                 </Link>
               )}
+              <a
+                href={`/api/t/${tenantSlug}/claims/${claim.id}/export`}
+                className="text-[var(--accent)] hover:underline"
+              >
+                ดาวน์โหลด Claim Package (.zip)
+              </a>
             </div>
 
             {canManage && (

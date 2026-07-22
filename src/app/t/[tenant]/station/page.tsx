@@ -3,6 +3,7 @@ import { Camera, ChevronRight, Radio } from "lucide-react";
 import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader, Card, Badge } from "@/components/ui";
+import { canAccessStation } from "@/lib/station-access";
 import { statusLabel } from "@/lib/utils";
 
 function stationBadgeTone(status: string) {
@@ -100,11 +101,21 @@ export default async function StationPickerPage() {
   const session = await requireTenantSession();
   if (!session?.tenantId) return null;
 
-  const stations = await prisma.station.findMany({
-    where: { tenantId: session.tenantId },
-    include: { cameras: { where: { active: true } } },
-    orderBy: { code: "asc" },
-  });
+  const [user, stations] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.id },
+      select: { stationAccess: true },
+    }),
+    prisma.station.findMany({
+      where: { tenantId: session.tenantId },
+      include: { cameras: { where: { active: true } } },
+      orderBy: { code: "asc" },
+    }),
+  ]);
+
+  const accessible = stations.filter((station) =>
+    canAccessStation(user?.stationAccess, station.id),
+  );
 
   return (
     <div>
@@ -113,21 +124,27 @@ export default async function StationPickerPage() {
         description="เลือกสถานีที่คุณอยู่ก่อนเข้า Station Console — เข้าใช้งานได้เฉพาะสถานีที่พร้อมใช้"
       />
 
-      {stations.length === 0 ? (
+      {accessible.length === 0 ? (
         <Card>
           <p className="text-sm text-[var(--muted)]">
-            ยังไม่มีสถานี —{" "}
-            <Link
-              href={`/t/${session.tenantSlug}/settings/stations`}
-              className="text-[var(--accent)] hover:underline"
-            >
-              ดูรายการสถานี
-            </Link>
+            {stations.length === 0 ? (
+              <>
+                ยังไม่มีสถานี —{" "}
+                <Link
+                  href={`/t/${session.tenantSlug}/settings/stations`}
+                  className="text-[var(--accent)] hover:underline"
+                >
+                  ดูรายการสถานี
+                </Link>
+              </>
+            ) : (
+              "ไม่มีสถานีที่คุณมีสิทธิ์เข้าถึง — ติดต่อผู้ดูแลระบบ"
+            )}
           </p>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {stations.map((station) => (
+          {accessible.map((station) => (
             <StationCard key={station.id} tenantSlug={session.tenantSlug!} station={station} />
           ))}
         </div>

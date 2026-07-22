@@ -32,10 +32,6 @@ export function VideosList({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setQ(initialQ);
-  }, [initialQ]);
-
-  useEffect(() => {
     const trimmed = q.trim();
     if (trimmed === (initialQ || "").trim()) return;
 

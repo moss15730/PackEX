@@ -79,7 +79,6 @@ model TenantSettings {
   maxStationsOverride   Int?
   maxStorageGbOverride  Int?
   maxUsersOverride      Int?
-  tenantAdminPassword   String? // recoverable password for platform admin reference only
 }
 
 model Subscription {

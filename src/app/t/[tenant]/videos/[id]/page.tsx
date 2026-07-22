@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { isStorageConfigured, resolvePlaybackUrl } from "@/lib/storage";
 import { PageHeader, Badge, Button } from "@/components/ui";
 import { VideoActions } from "@/components/video-actions";
+import { HashVerifyButton } from "@/components/hash-verify-button";
 import { statusLabel, formatBytes } from "@/lib/utils";
 import { addSeconds, format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -221,6 +222,9 @@ export default async function VideoDetailPage({
                             {file.cameraLabel}
                           </span>
                           <span className="text-[var(--muted)]">{formatBytes(file.sizeBytes)}</span>
+                          <span className="font-mono text-[10px] text-[var(--muted)]" title={file.sha256}>
+                            sha256:{file.sha256.slice(0, 12)}…
+                          </span>
                           {file.isSupabase && (
                             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                               <HardDrive className="h-3 w-3" />
@@ -264,6 +268,10 @@ export default async function VideoDetailPage({
                 </div>
 
                 <aside className="flex flex-col gap-3 p-3 lg:bg-[var(--surface-2)]/40">
+                  <HashVerifyButton
+                    tenantSlug={session.tenantSlug!}
+                    recordingId={recording.id}
+                  />
                   <VideoActions
                     tenantSlug={session.tenantSlug!}
                     recordingId={recording.id}

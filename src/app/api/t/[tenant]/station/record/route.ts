@@ -3,7 +3,16 @@ import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { alertLowCompleteness } from "@/lib/alerts";
 import { refreshOnboardingState } from "@/lib/onboarding";
+import { canAccessStation } from "@/lib/station-access";
+import { cleanupStuckRecordings } from "@/lib/recording-cleanup";
 import { getUsageAndLimits, isStorageFull, syncUsageMeter } from "@/lib/tenant-limits";
+
+async function loadUserAccess(userId: string) {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: { stationAccess: true },
+  });
+}
 
 export async function GET(
   req: Request,
@@ -21,6 +30,11 @@ export async function GET(
     return NextResponse.json({ error: "กรุณาระบุสถานี" }, { status: 400 });
   }
 
+  const access = await loadUserAccess(session.id);
+  if (!access || !canAccessStation(access.stationAccess, stationId)) {
+    return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าสถานีนี้" }, { status: 403 });
+  }
+
   const station = await prisma.station.findFirst({
     where: {
       id: stationId,
@@ -33,8 +47,38 @@ export async function GET(
     return NextResponse.json({ error: "ไม่พบสถานีหรือสถานีไม่พร้อมใช้งาน" }, { status: 404 });
   }
 
+  const [settings, profile, tenant] = await Promise.all([
+    prisma.tenantSettings.findUnique({
+      where: { tenantId: session.tenantId },
+      select: {
+        overlayEnabled: true,
+        idleAutoStopMinutes: true,
+        videoPreset: true,
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.id },
+      select: { name: true, employeeCode: true },
+    }),
+    prisma.tenant.findUnique({
+      where: { id: session.tenantId },
+      select: { timezone: true, slug: true },
+    }),
+  ]);
+
   return NextResponse.json({
     station: { id: station.id, code: station.code, name: station.name },
+    overlay: {
+      enabled: settings?.overlayEnabled ?? true,
+      tenantSlug: tenant?.slug ?? tenantSlug,
+      timezone: tenant?.timezone ?? "Asia/Bangkok",
+      employeeName: profile?.name ?? session.name,
+      employeeCode: profile?.employeeCode ?? "",
+    },
+    policy: {
+      idleAutoStopMinutes: settings?.idleAutoStopMinutes ?? 10,
+      videoPreset: settings?.videoPreset ?? "standard",
+    },
   });
 }
 
@@ -50,13 +94,15 @@ export async function POST(
   }
 
   const body = await req.json();
-  const { action, orderNo, recordingId, clientUploaded, stationId } = body as {
-    action?: "start" | "stop";
-    orderNo?: string;
-    recordingId?: string;
-    clientUploaded?: boolean;
-    stationId?: string;
-  };
+  const { action, orderNo, recordingId, clientUploaded, stationId, reopenReason } =
+    body as {
+      action?: "start" | "stop";
+      orderNo?: string;
+      recordingId?: string;
+      clientUploaded?: boolean;
+      stationId?: string;
+      reopenReason?: string;
+    };
 
   if (action === "start") {
     if (!can(session.role, "recording.start")) {
@@ -70,6 +116,13 @@ export async function POST(
     }
 
     const tenantId = session.tenantId;
+
+    await cleanupStuckRecordings(tenantId);
+
+    const user = await loadUserAccess(session.id);
+    if (!user || !canAccessStation(user.stationAccess, stationId)) {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าสถานีนี้" }, { status: 403 });
+    }
 
     const { limits, usage } = await getUsageAndLimits(tenantId);
     if (!limits) {
@@ -97,6 +150,38 @@ export async function POST(
       return NextResponse.json({ error: "ไม่พบสถานีหรือสถานีไม่พร้อมใช้งาน" }, { status: 400 });
     }
 
+    const existingComplete = await prisma.recording.findFirst({
+      where: {
+        tenantId,
+        status: { in: ["ready", "warning"] },
+        deletedAt: null,
+        order: { orderNo },
+      },
+      select: { id: true, status: true },
+    });
+
+    if (existingComplete) {
+      const reason = reopenReason?.trim();
+      if (!reason) {
+        return NextResponse.json(
+          {
+            error:
+              "ออเดอร์นี้มีคลิปพร้อมแล้ว — ต้องระบุเหตุผลจึงจะอัดใหม่ได้ (เช่น แพ็คใหม่ / สแกนผิด)",
+            code: "REOPEN_REQUIRED",
+          },
+          { status: 409 },
+        );
+      }
+
+      await prisma.recording.update({
+        where: { id: existingComplete.id },
+        data: {
+          status: "canceled",
+          cancelReason: `reopen: ${reason.slice(0, 200)}`,
+        },
+      });
+    }
+
     const order = await prisma.order.upsert({
       where: { tenantId_orderNo: { tenantId, orderNo } },
       create: {
@@ -116,6 +201,9 @@ export async function POST(
         employeeId: session.id,
         status: "recording",
         completenessScore: 0,
+        cancelReason: reopenReason?.trim()
+          ? `reopen: ${reopenReason.trim().slice(0, 200)}`
+          : undefined,
       },
     });
 
@@ -131,7 +219,10 @@ export async function POST(
         action: "recording.start",
         entityType: "recording",
         entityId: recording.id,
-        meta: JSON.stringify({ orderNo }),
+        meta: JSON.stringify({
+          orderNo,
+          reopenReason: reopenReason?.trim() || null,
+        }),
       },
     });
 
@@ -163,6 +254,11 @@ export async function POST(
 
     if (!recording) {
       return NextResponse.json({ error: "ไม่พบการอัดที่กำลังดำเนินอยู่" }, { status: 404 });
+    }
+
+    const user = await loadUserAccess(session.id);
+    if (!user || !canAccessStation(user.stationAccess, recording.stationId)) {
+      return NextResponse.json({ error: "ไม่มีสิทธิ์เข้าสถานีนี้" }, { status: 403 });
     }
 
     const settings = await prisma.tenantSettings.findUnique({

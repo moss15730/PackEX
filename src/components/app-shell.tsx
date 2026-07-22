@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -23,25 +23,73 @@ import { PackExWordmark } from "@/components/brand";
 import { MobileShellLayout } from "@/components/mobile-shell-layout";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui";
+import { can, type Permission } from "@/lib/permissions";
 import { cn, roleLabel } from "@/lib/utils";
 
-const NAV_TOP: { href: string; label: string; icon: LucideIcon }[] = [
+const NAV_TOP: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  permission?: Permission;
+  roles?: string[];
+}[] = [
   { href: "dashboard", label: "แดชบอร์ด", icon: LayoutDashboard },
-  { href: "station", label: "เลือกสถานี", icon: Camera },
-  { href: "videos", label: "วิดีโอ", icon: Film },
-  { href: "claims", label: "เคลม", icon: FileWarning },
-  { href: "audit", label: "Audit", icon: ClipboardList },
-  { href: "alerts", label: "แจ้งเตือน", icon: Bell },
-  { href: "reports", label: "รายงาน", icon: BarChart3 },
+  {
+    href: "station",
+    label: "เลือกสถานี",
+    icon: Camera,
+    permission: "recording.start",
+  },
+  { href: "videos", label: "วิดีโอ", icon: Film, permission: "video.view" },
+  {
+    href: "claims",
+    label: "เคลม",
+    icon: FileWarning,
+    permission: "claims.manage",
+  },
+  {
+    href: "audit",
+    label: "Audit",
+    icon: ClipboardList,
+    permission: "audit.view",
+  },
+  {
+    href: "alerts",
+    label: "แจ้งเตือน",
+    icon: Bell,
+    roles: ["tenant_admin", "supervisor"],
+  },
+  {
+    href: "reports",
+    label: "รายงาน",
+    icon: BarChart3,
+    permission: "audit.view",
+  },
 ];
 
 const SETTINGS_SUB = [
-  { href: "settings/organization", label: "ข้อมูลองค์กร" },
-  { href: "settings/stations", label: "จัดการสถานี" },
-  { href: "settings/claim-reasons", label: "เหตุผลเคลม" },
-  { href: "settings/employees", label: "พนักงาน" },
-  { href: "settings/billing", label: "แพ็กเกจและการใช้งาน" },
-  { href: "settings/theme", label: "ธีม" },
+  { href: "settings/organization", label: "ข้อมูลองค์กร", roles: ["tenant_admin"] },
+  {
+    href: "settings/stations",
+    label: "จัดการสถานี",
+    roles: ["tenant_admin", "supervisor"],
+  },
+  {
+    href: "settings/claim-reasons",
+    label: "เหตุผลเคลม",
+    roles: ["tenant_admin", "supervisor"],
+  },
+  { href: "settings/employees", label: "พนักงาน", roles: ["tenant_admin"] },
+  {
+    href: "settings/billing",
+    label: "แพ็กเกจและการใช้งาน",
+    roles: ["tenant_admin"],
+  },
+  {
+    href: "settings/theme",
+    label: "ธีม",
+    roles: ["tenant_admin", "supervisor"],
+  },
 ] as const;
 
 const NAV_BOTTOM: { href: string; label: string; icon: LucideIcon }[] = [
@@ -107,11 +155,19 @@ export function AppShell({
   const { resolved, setTheme } = useTheme();
   const base = `/t/${tenantSlug}`;
   const settingsActive = pathname.startsWith(`${base}/settings`);
-  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
+  const [settingsPinned, setSettingsPinned] = useState(false);
+  const settingsOpen = settingsActive || settingsPinned;
 
-  useEffect(() => {
-    if (settingsActive) setSettingsOpen(true);
-  }, [settingsActive]);
+  const visibleNav = NAV_TOP.filter((item) => {
+    if (item.permission && !can(userRole, item.permission)) return false;
+    if (item.roles && !item.roles.includes(userRole)) return false;
+    return true;
+  });
+
+  const visibleSettings = SETTINGS_SUB.filter((item) =>
+    (item.roles as readonly string[]).includes(userRole),
+  );
+  const showSettings = visibleSettings.length > 0;
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -175,7 +231,7 @@ export function AppShell({
           <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
             เมนูหลัก
           </p>
-          {NAV_TOP.map((item) => (
+          {visibleNav.map((item) => (
             <NavLink
               key={item.href}
               href={`${base}/${item.href}`}
@@ -185,11 +241,11 @@ export function AppShell({
             />
           ))}
 
-          {userRole === "tenant_admin" && (
+          {showSettings && (
             <div className="mb-0.5 mt-3">
               <button
                 type="button"
-                onClick={() => setSettingsOpen((o) => !o)}
+                onClick={() => setSettingsPinned((o) => !o)}
                 className={cn(
                   "flex w-full items-center justify-between rounded-[var(--radius-sm)] px-3 py-2.5 text-sm transition",
                   settingsActive
@@ -212,7 +268,7 @@ export function AppShell({
               </button>
               {settingsOpen && (
                 <div className="mt-0.5">
-                  {SETTINGS_SUB.map((item) => (
+                  {visibleSettings.map((item) => (
                     <NavLink
                       key={item.href}
                       href={`${base}/${item.href}`}

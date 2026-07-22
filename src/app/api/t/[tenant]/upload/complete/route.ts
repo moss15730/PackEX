@@ -1,8 +1,12 @@
-import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { createSignedUrl, supabaseRefFromStorage } from "@/lib/storage";
+import {
+  createSignedUrl,
+  downloadStorageBytes,
+  sha256OfBuffer,
+  supabaseRefFromStorage,
+} from "@/lib/storage";
 import { checkStorageAlert } from "@/lib/alerts";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
@@ -55,9 +59,16 @@ export async function POST(
       return NextResponse.json({ error: "ไม่พบ recording" }, { status: 404 });
     }
 
-    const sha256 = createHash("sha256")
-      .update(`${storagePath}:${sizeBytes}:${recordingId}`)
-      .digest("hex");
+    const bytes = await downloadStorageBytes(storagePath);
+    if (!bytes || bytes.length === 0) {
+      return NextResponse.json(
+        { error: "ไม่พบไฟล์ใน Storage สำหรับคำนวณ hash — ลองอัปโหลดใหม่" },
+        { status: 400 },
+      );
+    }
+
+    const sha256 = sha256OfBuffer(bytes);
+    const actualSize = bytes.length;
 
     const previewUrl = await createSignedUrl(storagePath, 60 * 60);
 
@@ -77,7 +88,7 @@ export async function POST(
         recordingId,
         cameraLabel,
         storagePath,
-        sizeBytes: Number.isFinite(sizeBytes) ? sizeBytes : 0,
+        sizeBytes: actualSize || (Number.isFinite(sizeBytes) ? sizeBytes : 0),
         sha256,
       },
     });
@@ -96,7 +107,8 @@ export async function POST(
         entityId: recordingFile.id,
         meta: JSON.stringify({
           storagePath,
-          sizeBytes,
+          sizeBytes: actualSize,
+          sha256,
           previewUrl,
           via: "signed-upload",
         }),

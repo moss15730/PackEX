@@ -22,11 +22,9 @@ export function MobileShellLayout({
   mainClassName?: string;
 }) {
   const pathname = usePathname();
-  const [navOpen, setNavOpen] = useState(false);
-
-  useEffect(() => {
-    setNavOpen(false);
-  }, [pathname]);
+  /** Open only while path matches the path when the menu was opened — auto-closes on navigate. */
+  const [openForPath, setOpenForPath] = useState<string | null>(null);
+  const navOpen = openForPath === pathname;
 
   useEffect(() => {
     document.body.style.overflow = navOpen ? "hidden" : "";
@@ -42,7 +40,7 @@ export function MobileShellLayout({
           type="button"
           variant="ghost"
           className="px-2"
-          onClick={() => setNavOpen(true)}
+          onClick={() => setOpenForPath(pathname)}
           aria-label="เปิดเมนู"
         >
           <Menu size={22} />
@@ -58,7 +56,7 @@ export function MobileShellLayout({
           type="button"
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] animate-[backdrop-in_160ms_ease-out] lg:hidden"
           aria-label="ปิดเมนู"
-          onClick={() => setNavOpen(false)}
+          onClick={() => setOpenForPath(null)}
         />
       )}
 
@@ -74,14 +72,14 @@ export function MobileShellLayout({
             type="button"
             variant="ghost"
             className="ml-2 shrink-0 px-2 lg:hidden"
-            onClick={() => setNavOpen(false)}
+            onClick={() => setOpenForPath(null)}
             aria-label="ปิดเมนู"
           >
             <X size={20} />
           </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2.5" onClick={() => setNavOpen(false)}>
+        <nav className="flex-1 overflow-y-auto p-2.5" onClick={() => setOpenForPath(null)}>
           {sidebarNav}
         </nav>
 

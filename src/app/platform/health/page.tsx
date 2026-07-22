@@ -11,6 +11,9 @@ export default async function PlatformHealthPage() {
     orderBy: { lastHeartbeatAt: "desc" },
   });
 
+  // Snapshot once per request for stale detection (server component).
+  const nowMs = Date.now(); // eslint-disable-line react-hooks/purity -- request-time clock
+
   return (
     <div>
       <PageHeader title="สุขภาพระบบ" description="Station Agent heartbeat ทั้งแพลตฟอร์ม" />
@@ -19,7 +22,7 @@ export default async function PlatformHealthPage() {
         {agents.map((agent) => {
           const stale =
             !agent.lastHeartbeatAt ||
-            Date.now() - agent.lastHeartbeatAt.getTime() > 5 * 60 * 1000;
+            nowMs - agent.lastHeartbeatAt.getTime() > 5 * 60 * 1000;
           return (
             <Card key={agent.id}>
               <div className="flex flex-wrap items-center justify-between gap-2">

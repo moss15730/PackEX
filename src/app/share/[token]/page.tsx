@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import {
   Camera,
   Clock,
@@ -13,8 +14,10 @@ import {
 import { prisma } from "@/lib/db";
 import { PackExWordmark } from "@/components/brand";
 import { Badge, Card } from "@/components/ui";
+import { ShareUnlockForm } from "@/components/share-unlock-form";
 import { formatBytes, statusLabel } from "@/lib/utils";
 import { createSignedUrl } from "@/lib/storage";
+import { hasValidShareUnlock } from "@/lib/share-access";
 import { addSeconds, format, formatDistanceStrict } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -82,18 +85,45 @@ export default async function SharePage({
 
   const expired = link.expiresAt < new Date();
   const maxReached = link.maxOpens != null && link.openCount >= link.maxOpens;
+  const needsPassword = Boolean(link.passwordHash);
+  const unlocked = needsPassword ? await hasValidShareUnlock(token) : true;
 
-  if (!expired && !maxReached) {
+  if (!expired && !maxReached && unlocked) {
+    const hdrs = await headers();
+    const ip =
+      hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      hdrs.get("x-real-ip") ||
+      "unknown";
+
     await prisma.shareLink.update({
       where: { id: link.id },
       data: { openCount: { increment: 1 } },
     });
     await prisma.shareLinkAccess.create({
-      data: { shareLinkId: link.id },
+      data: {
+        shareLinkId: link.id,
+        ip,
+        watermark: `PackEX · ${link.tenant.slug} · ${ip} · ${new Date().toISOString()}`,
+      },
     });
   }
 
   const rec = link.recording;
+  const watermarkLabel = `PackEX · ${link.tenant.name} · ${format(new Date(), "d MMM yyyy HH:mm", { locale: th })}`;
+
+  if (!expired && !maxReached && needsPassword && !unlocked) {
+    return (
+      <div className="warehouse-atmosphere relative min-h-screen">
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-4 py-8">
+          <div className="mb-8 flex justify-center">
+            <PackExWordmark />
+          </div>
+          <ShareUnlockForm token={token} />
+        </div>
+      </div>
+    );
+  }
+
   const durationSec =
     rec.durationSec ??
     (rec.endedAt
@@ -278,7 +308,7 @@ export default async function SharePage({
                 >
                   {filesWithSrc.map((file, index) => (
                     <Card key={file.id} className="overflow-hidden p-0">
-                      <div className="aspect-video bg-black">
+                      <div className="relative aspect-video bg-black">
                         {file.playSrc ? (
                           file.playSrc.includes("drive.google.com") ? (
                             <iframe
@@ -303,6 +333,12 @@ export default async function SharePage({
                             <span className="text-xs text-white/50">{file.cameraLabel}</span>
                           </div>
                         )}
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-8">
+                          <p className="truncate text-[10px] font-medium tracking-wide text-white/90 sm:text-xs">
+                            {watermarkLabel}
+                            {filesWithSrc.length > 1 ? ` · cam ${index + 1}` : ""}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] px-4 py-3">
                         <div>

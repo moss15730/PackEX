@@ -117,7 +117,6 @@ async function main() {
           overlayEnabled: true,
           snapshotRequired: true,
           minRecordingSeconds: 15,
-          tenantAdminPassword: "password123",
         },
       },
       subscription: {
@@ -261,7 +260,7 @@ async function main() {
     },
   });
 
-  const station2 = await prisma.station.create({
+  await prisma.station.create({
     data: {
       tenantId: tenant.id,
       code: "ST-02",
@@ -513,7 +512,7 @@ async function main() {
         },
       },
       usageMeters: { create: { stationsUsed: 1, storageUsedGb: 12, usersUsed: 1 } },
-      settings: { create: { tenantAdminPassword: "password123" } },
+      settings: { create: {} },
       onboarding: { create: { stationCreated: true } },
       users: {
         create: {

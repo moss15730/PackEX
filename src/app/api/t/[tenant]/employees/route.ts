@@ -20,12 +20,6 @@ function normalizeEmployeeCode(code: string) {
   return code.trim().toUpperCase();
 }
 
-function serializeStationAccess(allStations: boolean, stationIds: string[]) {
-  if (allStations) return "*";
-  const ids = stationIds.filter(Boolean);
-  return ids.length ? ids.join(",") : null;
-}
-
 async function validateStationAccess(
   tenantId: string,
   allStations: boolean,

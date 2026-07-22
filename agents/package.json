@@ -1,0 +1,14 @@
+{
+  "name": "packex-station-agent",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal PackEX Station Agent — heartbeat worker scaffold",
+  "scripts": {
+    "start": "node heartbeat-agent.mjs",
+    "dev": "node --watch heartbeat-agent.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

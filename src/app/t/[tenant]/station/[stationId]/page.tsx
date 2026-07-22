@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Badge, Button } from "@/components/ui";
+import { paintBurnIn } from "@/lib/recording-overlay";
 import { cn } from "@/lib/utils";
 
 type HealthStrip = {
@@ -23,6 +24,25 @@ type StationInfo = {
   name: string;
 };
 
+type OverlayInfo = {
+  enabled: boolean;
+  tenantSlug: string;
+  timezone: string;
+  employeeName: string;
+  employeeCode: string;
+};
+
+type StationPolicy = {
+  idleAutoStopMinutes: number;
+  videoPreset: "economy" | "standard" | "high" | string;
+};
+
+function bitrateForPreset(preset: string) {
+  if (preset === "economy") return { video: 700_000, audio: 48_000 };
+  if (preset === "high") return { video: 2_000_000, audio: 96_000 };
+  return { video: 1_200_000, audio: 64_000 };
+}
+
 function pickRecorderMimeType() {
   const candidates = [
     "video/webm;codecs=vp9,opus",
@@ -40,11 +60,19 @@ export default function StationConsolePage() {
   const stationId = params.stationId as string;
   const inputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const composeRafRef = useRef(0);
+  const overlayRef = useRef<OverlayInfo | null>(null);
 
   const [station, setStation] = useState<StationInfo | null>(null);
+  const [overlay, setOverlay] = useState<OverlayInfo | null>(null);
+  const [policy, setPolicy] = useState<StationPolicy>({
+    idleAutoStopMinutes: 10,
+    videoPreset: "standard",
+  });
   const [stationError, setStationError] = useState("");
   const [barcode, setBarcode] = useState("");
   const [orderNo, setOrderNo] = useState<string | null>(null);
@@ -57,11 +85,38 @@ export default function StationConsolePage() {
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState("");
   const [previewReady, setPreviewReady] = useState(false);
+  const [clock, setClock] = useState("");
   const [health, setHealth] = useState<HealthStrip>({
     camera: "warn",
     disk: "ok",
     sync: "ok",
   });
+
+  useEffect(() => {
+    overlayRef.current = overlay;
+  }, [overlay]);
+
+  useEffect(() => {
+    if (!overlay?.enabled || !orderNo) return;
+    const tick = () => {
+      try {
+        setClock(
+          new Date().toLocaleString("th-TH", {
+            timeZone: overlay.timezone || "Asia/Bangkok",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          }),
+        );
+      } catch {
+        setClock("");
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [overlay, orderNo]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +125,15 @@ export default function StationConsolePage() {
         const res = await fetch(
           `/api/t/${tenant}/station/record?stationId=${encodeURIComponent(stationId)}`,
         );
-        const data = await res.json().catch(() => ({} as { error?: string }));
+        const data = await res.json().catch(
+          () =>
+            ({} as {
+              error?: string;
+              station?: StationInfo;
+              overlay?: OverlayInfo;
+              policy?: StationPolicy;
+            }),
+        );
         if (cancelled) return;
         if (!res.ok) {
           setStationError(
@@ -87,6 +150,8 @@ export default function StationConsolePage() {
           return;
         }
         setStation(data.station);
+        if (data.overlay) setOverlay(data.overlay);
+        if (data.policy) setPolicy(data.policy);
       } catch {
         if (!cancelled) setStationError("โหลดสถานีไม่สำเร็จ");
       }
@@ -97,7 +162,15 @@ export default function StationConsolePage() {
     };
   }, [tenant, stationId]);
 
+  const stopComposeLoop = useCallback(() => {
+    if (composeRafRef.current) {
+      cancelAnimationFrame(composeRafRef.current);
+      composeRafRef.current = 0;
+    }
+  }, []);
+
   const stopStream = useCallback(() => {
+    stopComposeLoop();
     recorderRef.current = null;
     chunksRef.current = [];
     if (streamRef.current) {
@@ -108,7 +181,7 @@ export default function StationConsolePage() {
       videoRef.current.srcObject = null;
     }
     setPreviewReady(false);
-  }, []);
+  }, [stopComposeLoop]);
 
   const refreshCameras = useCallback(async () => {
     if (!navigator.mediaDevices?.enumerateDevices) {
@@ -203,7 +276,7 @@ export default function StationConsolePage() {
         setHealth((h) => ({ ...h, camera: "error" }));
       }
     },
-    [refreshCameras],
+    [refreshCameras, tenant],
   );
 
   useEffect(() => {
@@ -221,21 +294,34 @@ export default function StationConsolePage() {
     };
   }, [refreshCameras, stopStream]);
 
-  useEffect(() => {
-    if (!orderNo || recording) return;
-    void startPreview(selectedCameraId || undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderNo]);
+  const stopRecordingRef = useRef<() => Promise<void>>(async () => {});
 
-  const handleScan = useCallback((value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    setOrderNo(trimmed);
-    setBarcode("");
-    setError("");
-    setCompleteness(null);
-    setOrderVideoCount(0);
-  }, []);
+  const handleScan = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      if (!trimmed) return;
+
+      if (recording) {
+        if (orderNo && trimmed === orderNo) {
+          void stopRecordingRef.current();
+        } else {
+          setError(
+            "กำลังอัดออเดอร์นี้อยู่ — สแกนเลขเดิมเพื่อปิดงาน หรือกดหยุดอัด (ห้ามสแกนออเดอร์อื่น)",
+          );
+        }
+        setBarcode("");
+        return;
+      }
+
+      setOrderNo(trimmed);
+      setBarcode("");
+      setError("");
+      setCompleteness(null);
+      setOrderVideoCount(0);
+      void startPreview(selectedCameraId || undefined);
+    },
+    [recording, orderNo, selectedCameraId, startPreview],
+  );
 
   async function onCameraChange(deviceId: string) {
     setSelectedCameraId(deviceId);
@@ -243,7 +329,7 @@ export default function StationConsolePage() {
     await startPreview(deviceId);
   }
 
-  async function startRecording() {
+  async function startRecording(reopenReason?: string) {
     if (!orderNo) {
       setError("สแกนหรือพิมพ์เลขออเดอร์ก่อน");
       return;
@@ -266,26 +352,80 @@ export default function StationConsolePage() {
       const res = await fetch(`/api/t/${tenant}/station/record`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "start", orderNo, stationId }),
+        body: JSON.stringify({
+          action: "start",
+          orderNo,
+          stationId,
+          ...(reopenReason ? { reopenReason } : {}),
+        }),
       });
       const data = await res.json();
+      if (res.status === 409 && data.code === "REOPEN_REQUIRED") {
+        const reason = window.prompt(
+          data.error ||
+            "ออเดอร์นี้มีคลิปพร้อมแล้ว — ระบุเหตุผลที่ต้องการอัดใหม่",
+        );
+        if (!reason?.trim()) {
+          setError("ต้องระบุเหตุผลจึงจะอัดออเดอร์เดิมได้อีกครั้ง");
+          return;
+        }
+        await startRecording(reason.trim());
+        return;
+      }
       if (!res.ok) {
         setError(data.error || "เริ่มอัดไม่สำเร็จ");
         return;
       }
 
       chunksRef.current = [];
+
+      let recordStream: MediaStream = streamRef.current;
+      stopComposeLoop();
+
+      const ov = overlayRef.current;
+      if (ov?.enabled && videoRef.current && canvasRef.current && station) {
+        const videoEl = videoRef.current;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const draw = () => {
+            const w = videoEl.videoWidth || 960;
+            const h = videoEl.videoHeight || 540;
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+            ctx.drawImage(videoEl, 0, 0, w, h);
+            paintBurnIn(ctx, w, h, {
+              orderNo: orderNo!,
+              stationCode: station.code,
+              employeeName: ov.employeeName,
+              tenantSlug: ov.tenantSlug,
+              timezone: ov.timezone,
+              recording: true,
+            });
+            composeRafRef.current = requestAnimationFrame(draw);
+          };
+          draw();
+
+          const composed = canvas.captureStream(20);
+          for (const track of streamRef.current.getAudioTracks()) {
+            composed.addTrack(track);
+          }
+          recordStream = composed;
+        }
+      }
+
+      const rates = bitrateForPreset(policy.videoPreset);
       const recorderOptions: MediaRecorderOptions = {
         ...(mimeType ? { mimeType } : {}),
-        videoBitsPerSecond: 1_200_000,
-        audioBitsPerSecond: 64_000,
+        videoBitsPerSecond: rates.video,
+        audioBitsPerSecond: rates.audio,
       };
       let recorder: MediaRecorder;
       try {
-        recorder = new MediaRecorder(streamRef.current, recorderOptions);
+        recorder = new MediaRecorder(recordStream, recorderOptions);
       } catch {
         recorder = new MediaRecorder(
-          streamRef.current,
+          recordStream,
           mimeType ? { mimeType } : undefined,
         );
       }
@@ -308,11 +448,13 @@ export default function StationConsolePage() {
   async function stopRecorder(): Promise<Blob | null> {
     const recorder = recorderRef.current;
     if (!recorder || recorder.state === "inactive") {
+      stopComposeLoop();
       return null;
     }
 
     return new Promise((resolve) => {
       recorder.onstop = () => {
+        stopComposeLoop();
         const type = recorder.mimeType || "video/webm";
         const blob = new Blob(chunksRef.current, { type });
         chunksRef.current = [];
@@ -333,6 +475,13 @@ export default function StationConsolePage() {
     blob: Blob,
     opts: { kind: "video" | "snapshot"; cameraLabel?: string; contentType?: string },
   ) {
+    const maxBytes = 45 * 1024 * 1024;
+    if (blob.size > maxBytes) {
+      throw new Error(
+        `ไฟล์ใหญ่เกิน ${(maxBytes / (1024 * 1024)).toFixed(0)} MB (ขนาด ${(blob.size / (1024 * 1024)).toFixed(1)} MB) — อัดสั้นลงหรือลดคุณภาพในตั้งค่าองค์กร`,
+      );
+    }
+
     const contentType = opts.contentType || blob.type || "video/webm";
     const ext = contentType.includes("jpeg") || contentType.includes("jpg") ? "jpg" : contentType.includes("webm") ? "webm" : "mp4";
     const camLabel = opts.cameraLabel || cameras.find((c) => c.deviceId === selectedCameraId)?.label || "device-camera";
@@ -398,6 +547,17 @@ export default function StationConsolePage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
+    const ov = overlayRef.current;
+    if (ov?.enabled && station && orderNo) {
+      paintBurnIn(ctx, canvas.width, canvas.height, {
+        orderNo,
+        stationCode: station.code,
+        employeeName: ov.employeeName,
+        tenantSlug: ov.tenantSlug,
+        timezone: ov.timezone,
+        recording: true,
+      });
+    }
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.85),
     );
@@ -460,6 +620,46 @@ export default function StationConsolePage() {
       setLoading(false);
     }
   }
+
+  stopRecordingRef.current = stopRecording;
+
+  useEffect(() => {
+    if (!recording) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "กำลังอัดวิดีโออยู่ — ออกจากหน้านี้จะทำให้การอัดเสียหาย";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [recording]);
+
+  useEffect(() => {
+    if (!recording) return;
+    const idleMs = Math.max(1, policy.idleAutoStopMinutes) * 60 * 1000;
+    let timer = window.setTimeout(() => {
+      setError(
+        `หยุดอัดอัตโนมัติเพราะไม่มีการใช้งาน ${policy.idleAutoStopMinutes} นาที`,
+      );
+      void stopRecordingRef.current();
+    }, idleMs);
+
+    const bump = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        setError(
+          `หยุดอัดอัตโนมัติเพราะไม่มีการใช้งาน ${policy.idleAutoStopMinutes} นาที`,
+        );
+        void stopRecordingRef.current();
+      }, idleMs);
+    };
+
+    const events = ["pointerdown", "keydown"] as const;
+    for (const event of events) window.addEventListener(event, bump);
+    return () => {
+      window.clearTimeout(timer);
+      for (const event of events) window.removeEventListener(event, bump);
+    };
+  }, [recording, policy.idleAutoStopMinutes]);
 
   function recordAnotherVideo() {
     if (recording) return;
@@ -667,7 +867,7 @@ export default function StationConsolePage() {
                 <Button
                   variant="primary"
                   className="min-h-11 flex-1 font-semibold"
-                  onClick={startRecording}
+                  onClick={() => void startRecording()}
                   disabled={loading || !orderNo || !previewReady}
                 >
                   เริ่มอัดวิดีโอ
@@ -695,6 +895,22 @@ export default function StationConsolePage() {
                 autoPlay
                 className="h-full w-full object-contain"
               />
+              <canvas ref={canvasRef} className="pointer-events-none absolute left-0 top-0 h-px w-px opacity-0" aria-hidden />
+              {overlay?.enabled && previewReady && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/55 to-transparent px-3 pb-3 pt-10 text-white">
+                  <p className="font-[family-name:var(--font-display)] text-base font-bold tracking-wide sm:text-lg">
+                    {orderNo}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-white/90 sm:text-xs">
+                    {station.code} · {overlay.employeeName} · {overlay.tenantSlug}
+                  </p>
+                  <p className="text-[11px] text-white/80 sm:text-xs">
+                    {clock}
+                    {recording ? " · REC" : ""}
+                    {" · burn-in ในไฟล์"}
+                  </p>
+                </div>
+              )}
               {!previewReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/80 text-sm text-white/80">
                   รออนุญาตกล้อง / เปิดกล้อง...

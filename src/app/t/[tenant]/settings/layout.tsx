@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireTenantSession } from "@/lib/auth";
+import { can, requireTenantSession } from "@/lib/auth";
 
 export default async function SettingsLayout({
   children,
@@ -15,7 +15,12 @@ export default async function SettingsLayout({
     redirect("/login");
   }
 
-  if (session.role !== "tenant_admin") {
+  const allowed =
+    session.role === "tenant_admin" ||
+    can(session.role, "stations.manage") ||
+    can(session.role, "claim_reasons.manage");
+
+  if (!allowed) {
     redirect(`/t/${tenant}/dashboard`);
   }
 

@@ -99,7 +99,6 @@ export async function PATCH(
   let tenantAdminUserId: string | null = null;
   let tenantAdminEmail: string | undefined;
   let tenantAdminPasswordHash: string | undefined;
-  let tenantAdminPasswordPlain: string | undefined;
 
   if (tenantAdmin && (tenantAdmin.email !== undefined || tenantAdmin.password)) {
     const adminUser = await prisma.user.findFirst({
@@ -135,7 +134,6 @@ export async function PATCH(
         );
       }
       tenantAdminPasswordHash = await hashPassword(tenantAdmin.password);
-      tenantAdminPasswordPlain = tenantAdmin.password;
     }
   }
 
@@ -187,14 +185,6 @@ export async function PATCH(
           ...(tenantAdminPasswordHash ? { passwordHash: tenantAdminPasswordHash } : {}),
         },
       });
-
-      if (tenantAdminPasswordPlain) {
-        await tx.tenantSettings.upsert({
-          where: { tenantId: id },
-          update: { tenantAdminPassword: tenantAdminPasswordPlain },
-          create: { tenantId: id, tenantAdminPassword: tenantAdminPasswordPlain },
-        });
-      }
     }
 
     await tx.auditLog.create({

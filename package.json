@@ -12,7 +12,8 @@
     "db:purge-tenants": "tsx scripts/purge-tenants.ts",
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "storage:setup": "tsx scripts/setup-storage.ts"
+    "storage:setup": "tsx scripts/setup-storage.ts",
+    "retention:purge": "tsx scripts/retention-purge.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
@@ -21,6 +22,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "jose": "^6.2.3",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.25.0",
     "next": "16.2.10",
     "prisma": "6.19.3",

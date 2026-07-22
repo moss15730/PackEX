@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { deleteRecordingFiles } from "@/lib/storage";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 
 export async function DELETE(
@@ -26,8 +25,8 @@ export async function DELETE(
       status: { not: "deleted" },
     },
     include: {
-      files: { select: { storagePath: true } },
-      snapshots: { select: { storagePath: true } },
+      files: { select: { id: true } },
+      snapshots: { select: { id: true } },
     },
   });
 
@@ -43,13 +42,8 @@ export async function DELETE(
   }
 
   const wasRecording = recording.status === "recording";
-  const storagePaths = [
-    ...recording.files.map((f) => f.storagePath),
-    ...recording.snapshots.map((s) => s.storagePath),
-  ];
 
-  await deleteRecordingFiles(storagePaths);
-
+  // Soft delete only — keep blobs for restore window (softDeleteDays).
   await prisma.recording.update({
     where: { id: recording.id },
     data: {
@@ -80,9 +74,14 @@ export async function DELETE(
       action: "video.delete",
       entityType: "recording",
       entityId: recording.id,
-      meta: JSON.stringify({ wasRecording, filesDeleted: storagePaths.length }),
+      meta: JSON.stringify({
+        wasRecording,
+        softDelete: true,
+        fileCount: recording.files.length,
+        snapshotCount: recording.snapshots.length,
+      }),
     },
   });
 
-  return NextResponse.json({ ok: true, wasRecording });
+  return NextResponse.json({ ok: true, wasRecording, softDelete: true });
 }

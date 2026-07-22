@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requirePlatformSession } from "@/lib/auth";
-import { can } from "@/lib/auth";
 
 type PlanPayload = {
   code?: string;
