@@ -96,7 +96,7 @@ export default async function VideoDetailPage({
   const videoCount = orderRecordings.length;
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title={anchor.order.orderNo}
         description={
@@ -175,7 +175,7 @@ export default async function VideoDetailPage({
                 </div>
               </header>
 
-              <div className="grid lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="min-w-0 border-[var(--border)] lg:border-r">
                   {filesWithLinks.length === 0 ? (
                     <div className="flex h-40 items-center justify-center bg-[var(--surface-2)] px-4 text-center text-sm text-[var(--muted)]">
@@ -188,7 +188,7 @@ export default async function VideoDetailPage({
                         className={fileIndex > 0 ? "border-t border-[var(--border)]" : ""}
                       >
                         <div className="bg-black">
-                          <div className="mx-auto aspect-video w-full max-w-md sm:max-w-lg">
+                          <div className="mx-auto aspect-video w-full max-w-3xl">
                           {file.playSrc && file.playKind !== "none" ? (
                             file.playSrc.includes("drive.google.com") ? (
                               <iframe
