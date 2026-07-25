@@ -1,18 +1,9 @@
 {
   "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js",
   "/api/auth/signup/route": "app/api/auth/signup/route.js",
   "/api/platform/support-chat/[tenantId]/route": "app/api/platform/support-chat/[tenantId]/route.js",
   "/api/platform/support-chat/route": "app/api/platform/support-chat/route.js",
-  "/api/t/[tenant]/organization/route": "app/api/t/[tenant]/organization/route.js",
-  "/api/t/[tenant]/stations/route": "app/api/t/[tenant]/stations/route.js",
   "/api/t/[tenant]/support/messages/route": "app/api/t/[tenant]/support/messages/route.js",
   "/login/page": "app/login/page.js",
-  "/platform/health/page": "app/platform/health/page.js",
-  "/platform/inbox/page": "app/platform/inbox/page.js",
-  "/platform/page": "app/platform/page.js",
-  "/platform/tenants/page": "app/platform/tenants/page.js",
-  "/platform/usage/page": "app/platform/usage/page.js",
-  "/signup/page": "app/signup/page.js",
   "/t/[tenant]/dashboard/page": "app/t/[tenant]/dashboard/page.js"
 }

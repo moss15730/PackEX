@@ -5,6 +5,7 @@ import {
   getOrCreateConversation,
   listMessages,
   markRead,
+  peerLastReadAt,
   postMessage,
   sanitizeMessage,
 } from "@/lib/support-chat";
@@ -16,7 +17,7 @@ import {
  * read-only tenant needs to do to get unblocked.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ tenant: string }> },
 ) {
   const { tenant: tenantSlug } = await params;
@@ -26,17 +27,24 @@ export async function GET(
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
   }
 
+  // Background polls (widget closed) must not claim the messages were read.
+  const shouldMarkRead = new URL(req.url).searchParams.get("open") === "1";
+
   const conversation = await getOrCreateConversation(session.tenantId);
   const messages = await listMessages(conversation.id);
 
-  if (conversation.unreadForTenant > 0) {
-    await markRead(conversation.id, "tenant");
+  let readAt: Date | null = null;
+  if (shouldMarkRead && conversation.unreadForTenant > 0) {
+    readAt = await markRead(conversation.id, "tenant");
   }
 
   return NextResponse.json({
     messages,
-    unread: conversation.unreadForTenant,
+    unread: shouldMarkRead ? 0 : conversation.unreadForTenant,
     status: conversation.status,
+    // Timestamp of the admin's last read → drives the tenant's "อ่านแล้ว" marker.
+    peerLastReadAt: peerLastReadAt(conversation, "tenant"),
+    selfLastReadAt: (readAt ?? conversation.tenantLastReadAt)?.toISOString() ?? null,
   });
 }
 
@@ -81,5 +89,12 @@ export async function POST(
   const conversation = await getOrCreateConversation(session.tenantId);
   const messages = await listMessages(conversation.id);
 
-  return NextResponse.json({ ok: true, messages }, { status: 201 });
+  return NextResponse.json(
+    {
+      ok: true,
+      messages,
+      peerLastReadAt: peerLastReadAt(conversation, "tenant"),
+    },
+    { status: 201 },
+  );
 }

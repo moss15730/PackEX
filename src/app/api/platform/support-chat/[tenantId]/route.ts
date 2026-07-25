@@ -5,6 +5,7 @@ import {
   getOrCreateConversation,
   listMessages,
   markRead,
+  peerLastReadAt,
   postMessage,
   sanitizeMessage,
 } from "@/lib/support-chat";
@@ -17,7 +18,7 @@ async function loadTenant(tenantId: string) {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ tenantId: string }> },
 ) {
   const session = await requirePlatformSession();
@@ -27,14 +28,23 @@ export async function GET(
   const tenant = await loadTenant(tenantId);
   if (!tenant) return NextResponse.json({ error: "ไม่พบองค์กร" }, { status: 404 });
 
+  // The admin only "reads" a thread that is actually on screen.
+  const shouldMarkRead = new URL(req.url).searchParams.get("open") !== "0";
+
   const conversation = await getOrCreateConversation(tenantId);
   const messages = await listMessages(conversation.id);
 
-  if (conversation.unreadForAdmin > 0) {
+  if (shouldMarkRead && conversation.unreadForAdmin > 0) {
     await markRead(conversation.id, "platform");
   }
 
-  return NextResponse.json({ tenant, messages, status: conversation.status });
+  return NextResponse.json({
+    tenant,
+    messages,
+    status: conversation.status,
+    // Timestamp of the tenant's last read → drives the admin's "อ่านแล้ว" marker.
+    peerLastReadAt: peerLastReadAt(conversation, "platform"),
+  });
 }
 
 /** Platform admin replies to an organisation. */
@@ -67,5 +77,8 @@ export async function POST(
   const conversation = await getOrCreateConversation(tenantId);
   const messages = await listMessages(conversation.id);
 
-  return NextResponse.json({ ok: true, messages }, { status: 201 });
+  return NextResponse.json(
+    { ok: true, messages, peerLastReadAt: peerLastReadAt(conversation, "platform") },
+    { status: 201 },
+  );
 }

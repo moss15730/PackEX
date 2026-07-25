@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Building2, Inbox, Loader2, MessageCircle, Send } from "lucide-react";
+import {
+  Building2,
+  Check,
+  CheckCheck,
+  Inbox,
+  Loader2,
+  MessageCircle,
+  Send,
+} from "lucide-react";
 import { Badge, EmptyState } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { format, isToday } from "date-fns";
@@ -52,6 +60,7 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
     initial[0]?.tenantId ?? null,
   );
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [peerReadAt, setPeerReadAt] = useState<string | null>(null);
   const [loadingThread, setLoadingThread] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -77,8 +86,12 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
       try {
         const res = await fetch(`/api/platform/support-chat/${tenantId}`, { cache: "no-store" });
         if (!res.ok) return;
-        const data = (await res.json()) as { messages: ChatMessage[] };
+        const data = (await res.json()) as {
+          messages: ChatMessage[];
+          peerLastReadAt: string | null;
+        };
         setMessages(data.messages);
+        setPeerReadAt(data.peerLastReadAt);
         setConversations((prev) =>
           prev.map((c) => (c.tenantId === tenantId ? { ...c, unreadForAdmin: 0 } : c)),
         );
@@ -129,6 +142,7 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
         return;
       }
       setMessages(data.messages ?? []);
+      setPeerReadAt(data.peerLastReadAt ?? null);
       setDraft("");
       void refreshInbox();
     } catch {
@@ -137,6 +151,14 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
       setSending(false);
     }
   }
+
+  // Receipt sits under the newest outgoing (admin) message only.
+  const lastOwnMessage = [...messages].reverse().find((m) => m.senderKind === "platform") ?? null;
+  const lastOwnSeen = Boolean(
+    lastOwnMessage &&
+      peerReadAt &&
+      new Date(peerReadAt).getTime() >= new Date(lastOwnMessage.createdAt).getTime(),
+  );
 
   if (conversations.length === 0) {
     return (
@@ -237,6 +259,7 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
               ) : (
                 messages.map((message) => {
                   const mine = message.senderKind === "platform";
+                  const isLastOwn = mine && message.id === lastOwnMessage?.id;
                   return (
                     <div
                       key={message.id}
@@ -252,8 +275,21 @@ export function PlatformSupportChat({ initial }: { initial: ConversationRow[] })
                       >
                         {message.body}
                       </div>
-                      <span className="mt-1 px-1 text-[10px] text-faint">
+                      <span className="mt-1 flex items-center gap-1 px-1 text-[10px] text-faint">
                         {message.senderName} · {stamp(message.createdAt)}
+                        {isLastOwn ? (
+                          lastOwnSeen ? (
+                            <>
+                              <CheckCheck size={12} className="text-brand" aria-hidden />
+                              <span className="text-brand">องค์กรอ่านแล้ว</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check size={12} aria-hidden />
+                              <span>ส่งแล้ว</span>
+                            </>
+                          )
+                        ) : null}
                       </span>
                     </div>
                   );

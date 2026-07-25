@@ -450,17 +450,20 @@ model PlatformSettings {
 
 /// One chat thread per organisation, between the tenant and platform support.
 model SupportConversation {
-  id              String           @id @default(cuid())
-  tenantId        String           @unique
-  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  subject         String?
-  status          String           @default("open") // open | closed
-  lastMessageAt   DateTime         @default(now())
+  id               String           @id @default(cuid())
+  tenantId         String           @unique
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subject          String?
+  status           String           @default("open") // open | closed
+  lastMessageAt    DateTime         @default(now())
   /// Denormalised unread counters keep the inbox and widget badge cheap.
-  unreadForAdmin  Int              @default(0)
-  unreadForTenant Int              @default(0)
-  createdAt       DateTime         @default(now())
-  messages        SupportMessage[]
+  unreadForAdmin   Int              @default(0)
+  unreadForTenant  Int              @default(0)
+  /// When each side last had the thread open — drives the "อ่านแล้ว" receipt.
+  tenantLastReadAt DateTime?
+  adminLastReadAt  DateTime?
+  createdAt        DateTime         @default(now())
+  messages         SupportMessage[]
 
   @@index([status, lastMessageAt])
 }

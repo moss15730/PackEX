@@ -84,12 +84,36 @@ export async function postMessage(opts: {
   return message;
 }
 
-/** Clears the badge for whichever side just opened the thread. */
+/**
+ * Clears the badge for whichever side has the thread open and stamps the time,
+ * which is what the other side renders as "อ่านแล้ว".
+ *
+ * Only call this when the panel is genuinely visible — marking read on a
+ * background poll would tell the sender their message was seen when nobody
+ * looked at it.
+ */
 export async function markRead(conversationId: string, side: "tenant" | "platform") {
+  const now = new Date();
   await prisma.supportConversation.update({
     where: { id: conversationId },
-    data: side === "tenant" ? { unreadForTenant: 0 } : { unreadForAdmin: 0 },
+    data:
+      side === "tenant"
+        ? { unreadForTenant: 0, tenantLastReadAt: now }
+        : { unreadForAdmin: 0, adminLastReadAt: now },
   });
+  return now;
+}
+
+/**
+ * When the *other* party last read this thread. A message is "seen" when it was
+ * sent at or before this timestamp.
+ */
+export function peerLastReadAt(
+  conversation: { tenantLastReadAt: Date | null; adminLastReadAt: Date | null },
+  viewer: "tenant" | "platform",
+) {
+  const value = viewer === "tenant" ? conversation.adminLastReadAt : conversation.tenantLastReadAt;
+  return value ? value.toISOString() : null;
 }
 
 /** Inbox rows for the platform console, newest activity first. */

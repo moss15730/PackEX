@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Headset, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { Check, CheckCheck, Headset, Loader2, MessageCircle, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, isToday } from "date-fns";
 import { th } from "date-fns/locale";
@@ -39,35 +39,34 @@ export function SupportChatWidget({
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [unread, setUnread] = useState(0);
+  const [peerReadAt, setPeerReadAt] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastSeenId = useRef<string | null>(null);
 
   const load = useCallback(
     async (opts: { silent?: boolean } = {}) => {
       if (!opts.silent) setLoading(true);
       try {
-        const res = await fetch(`/api/t/${tenantSlug}/support/messages`, {
-          cache: "no-store",
-        });
+        // `open=1` tells the server the panel is visible, so the admin's
+        // messages are only marked read when someone is actually looking.
+        const res = await fetch(
+          `/api/t/${tenantSlug}/support/messages?open=${open ? "1" : "0"}`,
+          { cache: "no-store" },
+        );
         if (!res.ok) return;
-        const data = (await res.json()) as { messages: ChatMessage[]; unread: number };
+        const data = (await res.json()) as {
+          messages: ChatMessage[];
+          unread: number;
+          peerLastReadAt: string | null;
+        };
         setMessages(data.messages);
+        setPeerReadAt(data.peerLastReadAt);
+        setUnread(open ? 0 : data.unread);
         setError("");
-
-        const newest = data.messages[data.messages.length - 1];
-        if (!open && newest && newest.senderKind === "platform") {
-          // Badge counts replies that arrived since the widget was last opened.
-          if (lastSeenId.current !== newest.id) setUnread(data.unread || 1);
-        }
-        if (open) {
-          lastSeenId.current = newest?.id ?? null;
-          setUnread(0);
-        }
       } catch {
         /* transient network failure — next poll retries */
       } finally {
@@ -116,6 +115,7 @@ export function SupportChatWidget({
         return;
       }
       setMessages(data.messages ?? []);
+      setPeerReadAt(data.peerLastReadAt ?? null);
       setDraft("");
     } catch {
       setError("ส่งข้อความไม่สำเร็จ — ตรวจการเชื่อมต่อ");
@@ -123,6 +123,14 @@ export function SupportChatWidget({
       setSending(false);
     }
   }
+
+  // Messenger-style: the receipt sits under the newest outgoing message only.
+  const lastOwnMessage = [...messages].reverse().find((m) => m.senderKind === "tenant") ?? null;
+  const lastOwnSeen = Boolean(
+    lastOwnMessage &&
+      peerReadAt &&
+      new Date(peerReadAt).getTime() >= new Date(lastOwnMessage.createdAt).getTime(),
+  );
 
   return (
     <>
@@ -198,6 +206,7 @@ export function SupportChatWidget({
             ) : (
               messages.map((message) => {
                 const mine = message.senderKind === "tenant";
+                const isLastOwn = mine && message.id === lastOwnMessage?.id;
                 return (
                   <div
                     key={message.id}
@@ -213,8 +222,21 @@ export function SupportChatWidget({
                     >
                       {message.body}
                     </div>
-                    <span className="mt-1 px-1 text-[10px] text-faint">
+                    <span className="mt-1 flex items-center gap-1 px-1 text-[10px] text-faint">
                       {mine ? "คุณ" : message.senderName} · {stamp(message.createdAt)}
+                      {isLastOwn ? (
+                        lastOwnSeen ? (
+                          <>
+                            <CheckCheck size={12} className="text-brand" aria-hidden />
+                            <span className="text-brand">อ่านแล้ว</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check size={12} aria-hidden />
+                            <span>ส่งแล้ว</span>
+                          </>
+                        )
+                      ) : null}
                     </span>
                   </div>
                 );
