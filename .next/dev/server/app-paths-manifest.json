@@ -1,6 +1,7 @@
 {
   "/api/auth/login/route": "app/api/auth/login/route.js",
   "/api/auth/signup/route": "app/api/auth/signup/route.js",
+  "/api/health/route": "app/api/health/route.js",
   "/api/platform/support-chat/[tenantId]/route": "app/api/platform/support-chat/[tenantId]/route.js",
   "/api/platform/support-chat/route": "app/api/platform/support-chat/route.js",
   "/api/t/[tenant]/support/messages/route": "app/api/t/[tenant]/support/messages/route.js",
