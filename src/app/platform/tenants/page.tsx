@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader } from "@/components/ui";
+import { ShieldOff } from "lucide-react";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { PlatformTenantsManager } from "@/components/platform-tenants-manager";
 import { getTenantLimits, syncUsageMeter } from "@/lib/tenant-limits";
 
@@ -86,12 +87,19 @@ export default async function PlatformTenantsPage() {
 
   return (
     <div>
-      <PageHeader title="Tenants" description="องค์กรทั้งหมดบนแพลตฟอร์ม" />
+      <PageHeader
+        title="Tenants"
+        description="องค์กรทั้งหมดบนแพลตฟอร์ม พร้อมโควต้าและการใช้งานปัจจุบัน"
+      />
 
       {canManage ? (
         <PlatformTenantsManager tenants={tenantItems} plans={plans} />
       ) : (
-        <p className="text-sm text-[var(--muted)]">ไม่มีสิทธิ์จัดการองค์กร</p>
+        <EmptyState
+          icon={ShieldOff}
+          title="ไม่มีสิทธิ์จัดการองค์กร"
+          description="เฉพาะบัญชี super admin เท่านั้นที่เข้าถึงการจัดการ tenant ได้"
+        />
       )}
     </div>
   );

@@ -10,7 +10,10 @@ export default async function PlatformSupportPage() {
 
   return (
     <div>
-      <PageHeader title="Support Grants" description="สิทธิ์เข้าถึง tenant ชั่วคราวสำหรับทีม support" />
+      <PageHeader
+        title="Support grants"
+        description="สิทธิ์เข้าถึงข้อมูล tenant ชั่วคราวสำหรับทีมซัพพอร์ต — ทุกการเข้าถึงถูกบันทึกไว้"
+      />
       <PlatformSupportManager
         grants={grants.map((g) => ({
           id: g.id,

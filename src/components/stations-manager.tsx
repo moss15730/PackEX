@@ -1,11 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import {
+  Camera,
+  Film,
+  MapPin,
+  MonitorPlay,
+  Pencil,
+  Plus,
+  Radio,
+  Trash2,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+} from "@/components/ui";
+import { Modal } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
-import { statusLabel } from "@/lib/utils";
+import { statusLabel, statusTone } from "@/lib/utils";
 
 export type StationManageItem = {
   id: string;
@@ -170,9 +188,7 @@ export function StationsManager({
   async function handleDelete(station: StationManageItem) {
     const isRecording = station.status === "recording";
     const ok = await confirm({
-      title: isRecording
-        ? "กำลังอัดอยู่ — ยืนยันที่จะลบหรือไม่?"
-        : `ลบสถานี ${station.code}?`,
+      title: isRecording ? "กำลังอัดอยู่ — ยืนยันที่จะลบหรือไม่?" : `ลบสถานี ${station.code}?`,
       description: isRecording
         ? `สถานี ${station.code} กำลังอัดวิดีโออยู่ หากลบ การอัดจะถูกยกเลิก และสถานี «${station.name}» จะถูกลบออกจากระบบ`
         : `จะลบ «${station.name}» ออกจากระบบ ถ้ายังมีวิดีโอบันทึกอยู่จะลบไม่ได้`,
@@ -210,152 +226,134 @@ export function StationsManager({
     }
   }
 
+  const fields = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Field label="รหัสสถานี" required>
+        <Input
+          value={form.code}
+          onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+          placeholder="ST-03"
+          required
+        />
+      </Field>
+      <Field label="ชื่อสถานี" required>
+        <Input
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder="โต๊ะแพ็ค 3"
+          required
+        />
+      </Field>
+      <Field label="ตำแหน่งในคลัง" className="sm:col-span-2">
+        <Input
+          value={form.location}
+          onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+          placeholder="ชั้น 1 โซน A"
+        />
+      </Field>
+      {editingId ? (
+        <Field label="สถานะ" className="sm:col-span-2">
+          <Select
+            value={form.status}
+            onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      ) : null}
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {canManage && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-[var(--muted)]">
-            เพิ่ม แก้ไข หรือลบสถานีแพ็คขององค์กร
-          </p>
-          <Button type="button" onClick={openCreate} disabled={busy || showCreate}>
+          <p className="text-sm text-muted">เพิ่ม แก้ไข หรือลบสถานีแพ็คขององค์กร</p>
+          <Button type="button" onClick={openCreate} disabled={busy} icon={Plus}>
             เพิ่มสถานี
           </Button>
         </div>
       )}
 
-      {showCreate && canManage && (
-        <Card>
-          <h2 className="mb-4 font-semibold text-[var(--ink)]">เพิ่มสถานีใหม่</h2>
-          <form onSubmit={submitCreate} className="grid gap-3 sm:grid-cols-2">
-            <Field
-              label="รหัสสถานี"
-              value={form.code}
-              onChange={(v) => setForm((f) => ({ ...f, code: v }))}
-              placeholder="ST-03"
-              required
-            />
-            <Field
-              label="ชื่อสถานี"
-              value={form.name}
-              onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-              placeholder="โต๊ะแพ็ค 3"
-              required
-            />
-            <Field
-              label="ตำแหน่ง"
-              value={form.location}
-              onChange={(v) => setForm((f) => ({ ...f, location: v }))}
-              placeholder="ชั้น 1 โซน A"
-              className="sm:col-span-2"
-            />
-            <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <Button type="submit" disabled={busy}>
-                บันทึก
+      {stations.length === 0 ? (
+        <EmptyState
+          icon={MonitorPlay}
+          title="ยังไม่มีสถานีแพ็ค"
+          description="สร้างสถานีแรกเพื่อกำหนดจุดบันทึกวิดีโอในคลังของคุณ"
+          action={
+            canManage ? (
+              <Button type="button" onClick={openCreate} icon={Plus}>
+                เพิ่มสถานี
               </Button>
-              <Button type="button" variant="outline" onClick={closeForm} disabled={busy}>
-                ยกเลิก
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {editingStation && canManage && (
-        <Card>
-          <h2 className="mb-4 font-semibold text-[var(--ink)]">
-            แก้ไขสถานี {editingStation.code}
-          </h2>
-          <form onSubmit={submitEdit} className="grid gap-3 sm:grid-cols-2">
-            <Field
-              label="รหัสสถานี"
-              value={form.code}
-              onChange={(v) => setForm((f) => ({ ...f, code: v }))}
-              required
-            />
-            <Field
-              label="ชื่อสถานี"
-              value={form.name}
-              onChange={(v) => setForm((f) => ({ ...f, name: v }))}
-              required
-            />
-            <Field
-              label="ตำแหน่ง"
-              value={form.location}
-              onChange={(v) => setForm((f) => ({ ...f, location: v }))}
-            />
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                สถานะ
-              </label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <Button type="submit" disabled={busy}>
-                บันทึกการแก้ไข
-              </Button>
-              <Button type="button" variant="outline" onClick={closeForm} disabled={busy}>
-                ยกเลิก
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      <div className="space-y-4">
-        {stations.map((station) => (
-          <Card key={station.id}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-                    {station.code} — {station.name}
-                  </h2>
-                  <Badge
-                    tone={
-                      station.status === "idle" || station.status === "ready"
-                        ? "success"
-                        : station.status === "disabled" ||
-                            station.status === "blocked" ||
-                            station.status === "offline"
-                          ? "danger"
-                          : "warning"
-                    }
-                  >
-                    {statusLabel(station.status)}
-                  </Badge>
+            ) : null
+          }
+        />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {stations.map((station) => (
+            <div
+              key={station.id}
+              className="flex flex-col rounded-xl border border-line bg-surface p-5 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold tracking-tight text-ink">
+                      {station.code}
+                    </h3>
+                    <Badge tone={statusTone(station.status)} dot>
+                      {statusLabel(station.status)}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 truncate text-[13px] text-ink-2">{station.name}</p>
+                  {station.location ? (
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      <MapPin size={12} />
+                      {station.location}
+                    </p>
+                  ) : null}
                 </div>
-                {station.location && (
-                  <p className="mt-1 text-sm text-[var(--muted)]">{station.location}</p>
-                )}
-                <p className="mt-2 text-xs text-[var(--muted)]">
-                  กล้อง {station.cameraCount} · วิดีโอ {station.recordingCount}
-                  {station.agentOnline != null &&
-                    ` · Agent ${station.agentOnline ? "ออนไลน์" : "ออฟไลน์"}`}
-                </p>
+
+                {station.agentOnline != null ? (
+                  <Badge tone={station.agentOnline ? "success" : "danger"} icon={Radio}>
+                    {station.agentOnline ? "Agent ออนไลน์" : "Agent ออฟไลน์"}
+                  </Badge>
+                ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/t/${tenantSlug}/station/${station.id}`}>
-                  <Button type="button" variant="outline" className="text-sm">
-                    เปิด Console
-                  </Button>
-                </Link>
+              <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <Camera size={13} className="text-muted" />
+                  <dt className="text-muted">กล้อง</dt>
+                  <dd className="tabular font-medium text-ink">{station.cameraCount}</dd>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Film size={13} className="text-muted" />
+                  <dt className="text-muted">วิดีโอ</dt>
+                  <dd className="tabular font-medium text-ink">{station.recordingCount}</dd>
+                </div>
+              </dl>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <ButtonLink
+                  href={`/t/${tenantSlug}/station/${station.id}`}
+                  variant="secondary"
+                  size="sm"
+                  icon={MonitorPlay}
+                >
+                  เปิด Console
+                </ButtonLink>
                 {canManage && (
                   <>
                     <Button
                       type="button"
-                      variant="secondary"
-                      className="text-sm"
+                      variant="ghost"
+                      size="sm"
+                      icon={Pencil}
                       onClick={() => openEdit(station)}
                       disabled={busy || station.status === "recording"}
                     >
@@ -363,8 +361,10 @@ export function StationsManager({
                     </Button>
                     <Button
                       type="button"
-                      variant="danger"
-                      className="text-sm"
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
                       onClick={() => void handleDelete(station)}
                       disabled={busy}
                     >
@@ -374,49 +374,53 @@ export function StationsManager({
                 )}
               </div>
             </div>
-          </Card>
-        ))}
+          ))}
+        </div>
+      )}
 
-        {stations.length === 0 && (
-          <Card>
-            <p className="text-center text-sm text-[var(--muted)]">
-              ยังไม่มีสถานี
-              {canManage ? " — กด «เพิ่มสถานี» เพื่อเริ่มต้น" : ""}
-            </p>
-          </Card>
-        )}
-      </div>
-    </div>
-  );
-}
+      <Modal
+        open={showCreate && canManage}
+        onClose={closeForm}
+        title="เพิ่มสถานีใหม่"
+        description="กำหนดรหัสและตำแหน่งของสถานีแพ็ค"
+        icon={Plus}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="station-create" loading={busy}>
+              บันทึก
+            </Button>
+          </>
+        }
+      >
+        <form id="station-create" onSubmit={submitCreate}>
+          {fields}
+        </form>
+      </Modal>
 
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  required,
-  className,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        {label}
-      </label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-      />
+      <Modal
+        open={Boolean(editingStation) && canManage}
+        onClose={closeForm}
+        title={`แก้ไขสถานี ${editingStation?.code ?? ""}`}
+        description="ปรับข้อมูลและสถานะการใช้งานของสถานี"
+        icon={Pencil}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="station-edit" loading={busy}>
+              บันทึกการแก้ไข
+            </Button>
+          </>
+        }
+      >
+        <form id="station-edit" onSubmit={submitEdit}>
+          {fields}
+        </form>
+      </Modal>
     </div>
   );
 }

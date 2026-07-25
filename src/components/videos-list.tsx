@@ -2,8 +2,22 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, TableScroll } from "@/components/ui";
-import { statusLabel } from "@/lib/utils";
+import { ChevronRight, Film, Layers } from "lucide-react";
+import {
+  Badge,
+  EmptyState,
+  Progress,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Toolbar,
+  Tr,
+} from "@/components/ui";
+import { SearchInput } from "@/components/ui-client";
+import { statusLabel, statusTone } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -17,6 +31,12 @@ export type VideoListItem = {
   employeeName: string;
   videoCount: number;
 };
+
+function scoreTone(score: number) {
+  if (score >= 80) return "text-success-ink";
+  if (score >= 50) return "text-warning-ink";
+  return "text-danger-ink";
+}
 
 export function VideosList({
   tenantSlug,
@@ -51,120 +71,157 @@ export function VideosList({
     router.push(`/t/${tenantSlug}/videos/${id}`);
   }
 
+  const empty = (
+    <EmptyState
+      icon={Film}
+      title={q ? "ไม่พบวิดีโอที่ตรงกับการค้นหา" : "ยังไม่มีวิดีโอ"}
+      description={
+        q
+          ? `ไม่พบผลลัพธ์สำหรับ “${q}” — ลองค้นด้วยเลขออเดอร์อื่น`
+          : "เมื่อสถานีเริ่มบันทึกการแพ็ค วิดีโอจะปรากฏที่นี่โดยอัตโนมัติ"
+      }
+    />
+  );
+
   return (
     <div>
-      <div className="mb-4">
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="ค้นหาเลขออเดอร์…"
-          autoComplete="off"
-          className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] sm:max-w-md"
-        />
-        {isPending && (
-          <p className="mt-1 text-xs text-[var(--muted)]">กำลังค้นหา…</p>
-        )}
-      </div>
-
-      <div className="space-y-3 md:hidden">
-        {items.map((rec) => (
-          <button
-            key={rec.id}
-            type="button"
-            onClick={() => openVideo(rec.id)}
-            className="w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left shadow-[var(--shadow)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-medium text-[var(--accent)]">{rec.orderNo}</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  {rec.stationCode} · {format(new Date(rec.startedAt), "d MMM HH:mm", { locale: th })}
-                </p>
-                <p className="mt-1 text-sm text-[var(--ink)]">{rec.employeeName}</p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <Badge tone={rec.status === "ready" ? "success" : "neutral"}>
-                  {statusLabel(rec.status)}
-                </Badge>
-                {rec.videoCount > 1 && <Badge tone="neutral">{rec.videoCount} วิดีโอ</Badge>}
-              </div>
-            </div>
-            <p
-              className={`mt-3 text-sm font-medium ${rec.completenessScore >= 80 ? "text-emerald-600" : "text-amber-600"}`}
-            >
-              ครบถ้วน {rec.completenessScore}%
-            </p>
-          </button>
-        ))}
-        {items.length === 0 && (
-          <p className="py-8 text-center text-[var(--muted)]">ไม่พบวิดีโอ</p>
-        )}
-      </div>
-
-      <div className="hidden md:block">
-        <TableScroll>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-                <th className="px-4 py-3 font-medium">ออเดอร์</th>
-                <th className="px-4 py-3 font-medium">สถานี</th>
-                <th className="px-4 py-3 font-medium">สถานะ</th>
-                <th className="px-4 py-3 font-medium">ครบถ้วน</th>
-                <th className="px-4 py-3 font-medium">เวลา</th>
-                <th className="px-4 py-3 font-medium">พนักงาน</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((rec) => (
-                <tr
-                  key={rec.id}
-                  role="link"
-                  tabIndex={0}
-                  onClick={() => openVideo(rec.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      openVideo(rec.id);
-                    }
-                  }}
-                  className="cursor-pointer border-b border-[var(--border)] last:border-0 transition hover:bg-[var(--surface-2)]"
-                >
-                  <td className="px-4 py-3 font-medium text-[var(--accent)]">
-                    <span>{rec.orderNo}</span>
-                    {rec.videoCount > 1 && (
-                      <Badge tone="neutral" className="ml-2 align-middle">
-                        {rec.videoCount} วิดีโอ
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{rec.stationCode}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={rec.status === "ready" ? "success" : "neutral"}>
+      {/* Mobile: cards */}
+      <div className="md:hidden">
+        <SearchInput value={q} onChange={setQ} placeholder="ค้นหาเลขออเดอร์…" className="mb-4" />
+        {items.length === 0 ? (
+          empty
+        ) : (
+          <div className="space-y-3">
+            {items.map((rec) => (
+              <button
+                key={rec.id}
+                type="button"
+                onClick={() => openVideo(rec.id)}
+                className="card-interactive w-full rounded-xl border border-line bg-surface p-4 text-left shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-ink">{rec.orderNo}</p>
+                    <p className="mt-1 text-[13px] text-muted">
+                      {rec.stationCode} ·{" "}
+                      {format(new Date(rec.startedAt), "d MMM HH:mm", { locale: th })}
+                    </p>
+                    <p className="mt-0.5 text-[13px] text-ink-2">{rec.employeeName}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <Badge tone={statusTone(rec.status)} dot>
                       {statusLabel(rec.status)}
                     </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        rec.completenessScore >= 80 ? "text-emerald-600" : "text-amber-600"
-                      }
-                    >
-                      {rec.completenessScore}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[var(--muted)]">
-                    {format(new Date(rec.startedAt), "d MMM HH:mm", { locale: th })}
-                  </td>
-                  <td className="px-4 py-3">{rec.employeeName}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {items.length === 0 && (
-            <p className="px-4 py-8 text-center text-[var(--muted)]">ไม่พบวิดีโอ</p>
+                    {rec.videoCount > 1 ? (
+                      <Badge icon={Layers}>{rec.videoCount} คลิป</Badge>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="mt-3.5 flex items-center gap-3">
+                  <Progress
+                    value={rec.completenessScore}
+                    tone={rec.completenessScore >= 80 ? "brand" : "warning"}
+                    className="flex-1"
+                  />
+                  <span
+                    className={`tabular text-xs font-medium ${scoreTone(rec.completenessScore)}`}
+                  >
+                    {rec.completenessScore}%
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden md:block">
+        <TableCard
+          header={
+            <Toolbar
+              actions={
+                isPending ? (
+                  <span className="text-xs text-muted">กำลังค้นหา…</span>
+                ) : (
+                  <span className="text-xs text-muted">{items.length} รายการ</span>
+                )
+              }
+            >
+              <SearchInput
+                value={q}
+                onChange={setQ}
+                placeholder="ค้นหาเลขออเดอร์…"
+                className="w-full sm:w-72"
+              />
+            </Toolbar>
+          }
+        >
+          {items.length === 0 ? (
+            <div className="p-6">{empty}</div>
+          ) : (
+            <Table>
+              <THead>
+                <Th>ออเดอร์</Th>
+                <Th>สถานี</Th>
+                <Th>สถานะ</Th>
+                <Th>ความครบถ้วน</Th>
+                <Th>เวลา</Th>
+                <Th>พนักงาน</Th>
+                <Th className="w-10" />
+              </THead>
+              <TBody>
+                {items.map((rec) => (
+                  <Tr
+                    key={rec.id}
+                    className="group"
+                    onClick={() => openVideo(rec.id)}
+                    ariaLabel={`เปิดวิดีโอออเดอร์ ${rec.orderNo}`}
+                  >
+                    <Td className="font-medium text-ink">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{rec.orderNo}</span>
+                        {rec.videoCount > 1 ? (
+                          <Badge icon={Layers}>{rec.videoCount}</Badge>
+                        ) : null}
+                      </div>
+                    </Td>
+                    <Td>{rec.stationCode}</Td>
+                    <Td>
+                      <Badge tone={statusTone(rec.status)} dot>
+                        {statusLabel(rec.status)}
+                      </Badge>
+                    </Td>
+                    <Td>
+                      <div className="flex items-center gap-2.5">
+                        <Progress
+                          value={rec.completenessScore}
+                          tone={rec.completenessScore >= 80 ? "brand" : "warning"}
+                          className="w-16"
+                        />
+                        <span
+                          className={`tabular text-xs font-medium ${scoreTone(rec.completenessScore)}`}
+                        >
+                          {rec.completenessScore}%
+                        </span>
+                      </div>
+                    </Td>
+                    <Td className="text-muted">
+                      {format(new Date(rec.startedAt), "d MMM HH:mm", { locale: th })}
+                    </Td>
+                    <Td>{rec.employeeName}</Td>
+                    <Td align="right">
+                      <ChevronRight
+                        size={16}
+                        className="text-faint transition group-hover:translate-x-0.5 group-hover:text-ink-2"
+                      />
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
           )}
-        </TableScroll>
+        </TableCard>
       </div>
     </div>
   );

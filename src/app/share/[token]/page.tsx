@@ -10,10 +10,14 @@ import {
   ShieldCheck,
   Link2,
   CalendarClock,
+  CircleSlash,
+  Hourglass,
+  ImageIcon,
+  ListTree,
 } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { PackExWordmark } from "@/components/brand";
-import { Badge, Card } from "@/components/ui";
+import { Badge, Card, EmptyState, Progress } from "@/components/ui";
 import { ShareUnlockForm } from "@/components/share-unlock-form";
 import { formatBytes, statusLabel } from "@/lib/utils";
 import { createSignedUrl } from "@/lib/storage";
@@ -39,16 +43,31 @@ function DetailItem({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-[var(--radius-sm)] bg-[var(--surface-2)] px-3.5 py-3 ring-1 ring-inset ring-[var(--border)]">
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--accent)] ring-1 ring-[var(--border)]">
-        <Icon className="h-4 w-4" strokeWidth={2.25} />
-      </div>
+    <div className="flex gap-3 rounded-xl border border-line bg-surface p-4 shadow-xs">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-subtle text-muted">
+        <Icon className="h-4 w-4" strokeWidth={2} />
+      </span>
       <div className="min-w-0">
-        <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-          {label}
-        </dt>
-        <dd className="mt-0.5 truncate text-sm font-semibold text-[var(--ink)]">{value}</dd>
+        <dt className="text-xs font-medium text-muted">{label}</dt>
+        <dd className="mt-1 truncate text-sm font-medium text-ink">{value}</dd>
       </div>
+    </div>
+  );
+}
+
+function ShareShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="aurora min-h-[100dvh]">
+      <header className="glass sticky top-0 z-30 border-b border-line/60">
+        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+          <PackExWordmark size="sm" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-subtle px-2.5 py-1 text-[11px] font-medium text-muted">
+            <ShieldCheck size={12} strokeWidth={2.2} />
+            หลักฐานวิดีโอการแพ็ค
+          </span>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">{children}</main>
     </div>
   );
 }
@@ -91,9 +110,7 @@ export default async function SharePage({
   if (!expired && !maxReached && unlocked) {
     const hdrs = await headers();
     const ip =
-      hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      hdrs.get("x-real-ip") ||
-      "unknown";
+      hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || hdrs.get("x-real-ip") || "unknown";
 
     await prisma.shareLink.update({
       where: { id: link.id },
@@ -113,14 +130,39 @@ export default async function SharePage({
 
   if (!expired && !maxReached && needsPassword && !unlocked) {
     return (
-      <div className="warehouse-atmosphere relative min-h-screen">
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-4 py-8">
-          <div className="mb-8 flex justify-center">
-            <PackExWordmark />
-          </div>
-          <ShareUnlockForm token={token} />
+      <div className="aurora flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12">
+        <div className="mb-8">
+          <PackExWordmark />
         </div>
+        <ShareUnlockForm token={token} />
       </div>
+    );
+  }
+
+  if (expired || maxReached) {
+    return (
+      <ShareShell>
+        <Card className="mx-auto max-w-md p-8 text-center sm:p-10">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-danger-soft text-danger-ink">
+            {expired ? (
+              <Hourglass size={24} strokeWidth={1.9} />
+            ) : (
+              <CircleSlash size={24} strokeWidth={1.9} />
+            )}
+          </span>
+          <h1 className="mt-5 text-xl font-semibold tracking-tight text-ink">
+            {expired ? "ลิงก์หมดอายุแล้ว" : "เปิดครบจำนวนที่กำหนดแล้ว"}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            {expired
+              ? `หมดอายุเมื่อ ${format(link.expiresAt, "d MMMM yyyy เวลา HH:mm น.", { locale: th })}`
+              : `เปิดแล้ว ${link.openCount}${link.maxOpens != null ? ` / ${link.maxOpens}` : ""} ครั้ง`}
+          </p>
+          <p className="mt-5 text-xs text-faint">
+            ติดต่อผู้ส่งหลักฐานเพื่อขอลิงก์ใหม่
+          </p>
+        </Card>
+      </ShareShell>
     );
   }
 
@@ -142,291 +184,254 @@ export default async function SharePage({
     }),
   );
 
+  const totalBytes = filesWithSrc.reduce((sum, f) => sum + f.sizeBytes, 0);
+
   return (
-    <div className="warehouse-atmosphere relative min-h-screen">
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <PackExWordmark />
-          <p className="text-xs text-[var(--muted)]">
-            หลักฐานวิดีโอการแพ็ค · {link.tenant.name}
-          </p>
-        </header>
-
-        {expired ? (
-          <Card className="p-8 text-center sm:p-10">
-            <Badge tone="danger" className="mb-4">
-              หมดอายุ
+    <ShareShell>
+      <div className="space-y-10">
+        {/* Summary */}
+        <section>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="brand" dot>
+              ลิงก์แชร์หลักฐาน
             </Badge>
-            <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-rose-600 sm:text-2xl">
-              ลิงก์หมดอายุแล้ว
-            </h1>
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              หมดอายุเมื่อ {format(link.expiresAt, "d MMMM yyyy เวลา HH:mm น.", { locale: th })}
-            </p>
-          </Card>
-        ) : maxReached ? (
-          <Card className="p-8 text-center sm:p-10">
-            <Badge tone="danger" className="mb-4">
-              จำกัดการเปิด
+            <Badge tone={rec.status === "ready" ? "success" : "warning"}>
+              {statusLabel(rec.status)}
             </Badge>
-            <h1 className="font-[family-name:var(--font-display)] text-xl font-semibold text-rose-600 sm:text-2xl">
-              เปิดครบจำนวนที่กำหนดแล้ว
-            </h1>
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              เปิดแล้ว {link.openCount}
-              {link.maxOpens != null ? ` / ${link.maxOpens}` : ""} ครั้ง
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            <section>
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <Badge tone="info">ลิงก์แชร์หลักฐาน</Badge>
-                <Badge tone={rec.status === "ready" ? "success" : "warning"}>
-                  {statusLabel(rec.status)}
-                </Badge>
-                <Badge tone={rec.completenessScore >= 80 ? "success" : "warning"}>
-                  ครบถ้วน {rec.completenessScore}%
-                </Badge>
-                {rec.legalHold ? <Badge tone="danger">Legal Hold</Badge> : null}
-              </div>
-
-              <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
-                {rec.order.orderNo}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
-                บันทึกวิดีโอตอนแพ็คสินค้าจากสถานี {rec.station.code}
-                {rec.station.name ? ` · ${rec.station.name}` : ""} — ใช้เป็นหลักฐานตรวจสอบออเดอร์
-              </p>
-            </section>
-
-            <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <DetailItem
-                icon={CalendarClock}
-                label="เริ่มอัด"
-                value={format(rec.startedAt, "d MMM yyyy HH:mm:ss", { locale: th })}
-              />
-              <DetailItem
-                icon={Clock}
-                label="สิ้นสุด"
-                value={
-                  rec.endedAt
-                    ? format(rec.endedAt, "d MMM yyyy HH:mm:ss", { locale: th })
-                    : "—"
-                }
-              />
-              <DetailItem icon={Timer} label="ระยะเวลา" value={formatDuration(durationSec)} />
-              <DetailItem
-                icon={MapPin}
-                label="สถานี"
-                value={[rec.station.code, rec.station.name, rec.station.location]
-                  .filter(Boolean)
-                  .join(" · ")}
-              />
-              <DetailItem icon={User} label="พนักงานแพ็ค" value={rec.employee.name} />
-              <DetailItem
-                icon={Package}
-                label="ออเดอร์"
-                value={[
-                  rec.order.orderNo,
-                  rec.order.trackingNo ? `Tracking ${rec.order.trackingNo}` : null,
-                  rec.order.source !== "manual" ? rec.order.source : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              />
-            </section>
-
-            <section className="grid gap-3 sm:grid-cols-3">
-              <Card className="flex items-center gap-3 p-4">
-                <ShieldCheck className="h-5 w-5 shrink-0 text-[var(--accent)]" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-                    คะแนนครบถ้วน
-                  </p>
-                  <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-                    {rec.completenessScore}%
-                  </p>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-3 p-4">
-                <Camera className="h-5 w-5 shrink-0 text-[var(--accent)]" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-                    ไฟล์วิดีโอ
-                  </p>
-                  <p className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-                    {filesWithSrc.length} มุมกล้อง
-                  </p>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-3 p-4">
-                <Link2 className="h-5 w-5 shrink-0 text-[var(--accent)]" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-                    ลิงก์นี้หมดอายุ
-                  </p>
-                  <p className="text-sm font-semibold leading-snug text-[var(--ink)]">
-                    {format(link.expiresAt, "d MMM yyyy HH:mm", { locale: th })}
-                    <span className="mt-0.5 block text-xs font-normal text-[var(--muted)]">
-                      เหลือ{" "}
-                      {formatDistanceStrict(link.expiresAt, new Date(), {
-                        locale: th,
-                        addSuffix: false,
-                      })}
-                      {link.maxOpens != null
-                        ? ` · เปิดแล้ว ${link.openCount}/${link.maxOpens}`
-                        : ` · เปิดแล้ว ${link.openCount} ครั้ง`}
-                    </span>
-                  </p>
-                </div>
-              </Card>
-            </section>
-
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-2">
-                <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-                  วิดีโอหลักฐาน
-                </h2>
-                <p className="text-xs text-[var(--muted)]">
-                  รวม{" "}
-                  {formatBytes(filesWithSrc.reduce((sum, f) => sum + f.sizeBytes, 0))}
-                </p>
-              </div>
-
-              {filesWithSrc.length === 0 ? (
-                <Card className="px-6 py-12 text-center text-sm text-[var(--muted)]">
-                  ยังไม่มีไฟล์วิดีโอในลิงก์นี้
-                </Card>
-              ) : (
-                <div
-                  className={
-                    filesWithSrc.length === 1
-                      ? "grid gap-4"
-                      : "grid gap-4 sm:grid-cols-2"
-                  }
-                >
-                  {filesWithSrc.map((file, index) => (
-                    <Card key={file.id} className="overflow-hidden p-0">
-                      <div className="relative aspect-video bg-black">
-                        {file.playSrc ? (
-                          file.playSrc.includes("drive.google.com") ? (
-                            <iframe
-                              title={file.cameraLabel}
-                              src={file.playSrc}
-                              className="h-full w-full border-0"
-                              allow="autoplay"
-                              allowFullScreen
-                            />
-                          ) : (
-                            <video
-                              controls
-                              playsInline
-                              preload="metadata"
-                              className="h-full w-full"
-                              src={file.playSrc}
-                            />
-                          )
-                        ) : (
-                          <div className="flex h-full flex-col items-center justify-center gap-1 px-4 text-center text-sm text-white/70">
-                            <span>ไม่สามารถเล่นไฟล์ได้</span>
-                            <span className="text-xs text-white/50">{file.cameraLabel}</span>
-                          </div>
-                        )}
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-8">
-                          <p className="truncate text-[10px] font-medium tracking-wide text-white/90 sm:text-xs">
-                            {watermarkLabel}
-                            {filesWithSrc.length > 1 ? ` · cam ${index + 1}` : ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] px-4 py-3">
-                        <div>
-                          <p className="text-sm font-semibold text-[var(--ink)]">
-                            {file.cameraLabel || `กล้อง ${index + 1}`}
-                          </p>
-                          <p className="mt-0.5 text-xs text-[var(--muted)]">
-                            {formatBytes(file.sizeBytes)}
-                            {file.createdAt
-                              ? ` · อัปโหลด ${format(file.createdAt, "d MMM HH:mm", { locale: th })}`
-                              : ""}
-                          </p>
-                        </div>
-                        <Badge tone="neutral">มุมที่ {index + 1}</Badge>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {rec.markers.length > 0 ? (
-              <section>
-                <h2 className="mb-3 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-                  ไทม์ไลน์เหตุการณ์
-                </h2>
-                <Card className="overflow-hidden p-0">
-                  <ul className="divide-y divide-[var(--border)]">
-                    {rec.markers.map((m) => {
-                      const at = addSeconds(rec.startedAt, m.atSec);
-                      return (
-                        <li
-                          key={m.id}
-                          className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 sm:px-5"
-                        >
-                          <div>
-                            <p className="font-semibold text-[var(--ink)]">{m.label}</p>
-                            <p className="mt-0.5 text-xs text-[var(--muted)]">
-                              {format(at, "d MMM yyyy HH:mm:ss", { locale: th })}
-                              <span className="mx-1.5 opacity-40">·</span>
-                              วินาทีที่ {m.atSec}
-                              {m.kind !== "scan" ? ` · ${m.kind}` : ""}
-                            </p>
-                          </div>
-                          <Badge tone="neutral">+{m.atSec}s</Badge>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </Card>
-              </section>
-            ) : null}
-
-            {rec.snapshots.length > 0 ? (
-              <section>
-                <h2 className="mb-3 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--ink)]">
-                  Snapshots
-                </h2>
-                <Card className="p-0">
-                  <ul className="divide-y divide-[var(--border)] text-sm">
-                    {rec.snapshots.map((s, i) => (
-                      <li
-                        key={s.id}
-                        className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-5"
-                      >
-                        <span className="font-medium text-[var(--ink)]">Snapshot {i + 1}</span>
-                        <time className="text-xs text-[var(--muted)]" dateTime={s.takenAt.toISOString()}>
-                          {format(s.takenAt, "d MMM yyyy HH:mm:ss", { locale: th })}
-                        </time>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              </section>
-            ) : null}
-
-            <footer className="border-t border-[var(--border)] pt-6 text-center text-xs leading-relaxed text-[var(--muted)]">
-              <p>
-                เอกสารหลักฐานจาก PackEX · สร้างลิงก์เมื่อ{" "}
-                {format(link.createdAt, "d MMM yyyy HH:mm", { locale: th })}
-              </p>
-              <p className="mt-1">
-                ข้อมูลนี้แชร์เพื่อตรวจสอบเคลมเท่านั้น — อย่าเผยแพร่ต่อหากไม่จำเป็น
-              </p>
-            </footer>
+            {rec.legalHold ? <Badge tone="danger">Legal hold</Badge> : null}
           </div>
-        )}
+
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            {rec.order.orderNo}
+          </h1>
+          <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-muted">
+            บันทึกวิดีโอตอนแพ็คสินค้าจากสถานี {rec.station.code}
+            {rec.station.name ? ` · ${rec.station.name}` : ""} — ใช้เป็นหลักฐานตรวจสอบออเดอร์
+          </p>
+        </section>
+
+        {/* Key metrics */}
+        <section className="grid gap-4 sm:grid-cols-3">
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px] font-medium text-muted">คะแนนความครบถ้วน</p>
+              <ShieldCheck
+                size={16}
+                className={rec.completenessScore >= 80 ? "text-success" : "text-warning"}
+              />
+            </div>
+            <p className="tabular mt-3 text-3xl leading-none font-semibold tracking-tight text-ink">
+              {rec.completenessScore}%
+            </p>
+            <Progress
+              className="mt-4"
+              value={rec.completenessScore}
+              tone={rec.completenessScore >= 80 ? "brand" : "warning"}
+            />
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px] font-medium text-muted">ไฟล์วิดีโอ</p>
+              <Camera size={16} className="text-muted" />
+            </div>
+            <p className="tabular mt-3 text-3xl leading-none font-semibold tracking-tight text-ink">
+              {filesWithSrc.length}
+            </p>
+            <p className="mt-4 text-xs text-muted">มุมกล้อง · รวม {formatBytes(totalBytes)}</p>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[13px] font-medium text-muted">ลิงก์หมดอายุ</p>
+              <Link2 size={16} className="text-muted" />
+            </div>
+            <p className="mt-3 text-lg font-semibold tracking-tight text-ink">
+              {format(link.expiresAt, "d MMM yyyy HH:mm", { locale: th })}
+            </p>
+            <p className="mt-3 text-xs text-muted">
+              เหลือ{" "}
+              {formatDistanceStrict(link.expiresAt, new Date(), { locale: th, addSuffix: false })}
+              {link.maxOpens != null
+                ? ` · เปิดแล้ว ${link.openCount}/${link.maxOpens}`
+                : ` · เปิดแล้ว ${link.openCount} ครั้ง`}
+            </p>
+          </Card>
+        </section>
+
+        {/* Videos */}
+        <section>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+            <h2 className="text-lg font-semibold tracking-tight text-ink">วิดีโอหลักฐาน</h2>
+            <p className="text-xs text-muted">{formatBytes(totalBytes)} รวมทุกมุมกล้อง</p>
+          </div>
+
+          {filesWithSrc.length === 0 ? (
+            <EmptyState
+              icon={Camera}
+              title="ยังไม่มีไฟล์วิดีโอ"
+              description="ลิงก์นี้ยังไม่มีไฟล์ที่เผยแพร่ได้ กรุณาติดต่อผู้ส่งหลักฐาน"
+            />
+          ) : (
+            <div className={filesWithSrc.length === 1 ? "grid gap-5" : "grid gap-5 sm:grid-cols-2"}>
+              {filesWithSrc.map((file, index) => (
+                <Card key={file.id} flush className="overflow-hidden">
+                  <div className="relative aspect-video bg-black">
+                    {file.playSrc ? (
+                      file.playSrc.includes("drive.google.com") ? (
+                        <iframe
+                          title={file.cameraLabel}
+                          src={file.playSrc}
+                          className="h-full w-full border-0"
+                          allow="autoplay"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <video
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="h-full w-full"
+                          src={file.playSrc}
+                        />
+                      )
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center gap-1.5 px-4 text-center text-sm text-white/70">
+                        <CircleSlash size={20} className="opacity-60" />
+                        <span>ไม่สามารถเล่นไฟล์ได้</span>
+                        <span className="text-xs text-white/50">{file.cameraLabel}</span>
+                      </div>
+                    )}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-8 pb-2">
+                      <p className="truncate text-[10px] font-medium tracking-wide text-white/90 sm:text-xs">
+                        {watermarkLabel}
+                        {filesWithSrc.length > 1 ? ` · cam ${index + 1}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">
+                        {file.cameraLabel || `กล้อง ${index + 1}`}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {formatBytes(file.sizeBytes)}
+                        {file.createdAt
+                          ? ` · อัปโหลด ${format(file.createdAt, "d MMM HH:mm", { locale: th })}`
+                          : ""}
+                      </p>
+                    </div>
+                    <Badge>มุมที่ {index + 1}</Badge>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Details */}
+        <section>
+          <h2 className="mb-4 text-lg font-semibold tracking-tight text-ink">รายละเอียดการแพ็ค</h2>
+          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <DetailItem
+              icon={CalendarClock}
+              label="เริ่มอัด"
+              value={format(rec.startedAt, "d MMM yyyy HH:mm:ss", { locale: th })}
+            />
+            <DetailItem
+              icon={Clock}
+              label="สิ้นสุด"
+              value={rec.endedAt ? format(rec.endedAt, "d MMM yyyy HH:mm:ss", { locale: th }) : "—"}
+            />
+            <DetailItem icon={Timer} label="ระยะเวลา" value={formatDuration(durationSec)} />
+            <DetailItem
+              icon={MapPin}
+              label="สถานี"
+              value={[rec.station.code, rec.station.name, rec.station.location]
+                .filter(Boolean)
+                .join(" · ")}
+            />
+            <DetailItem icon={User} label="พนักงานแพ็ค" value={rec.employee.name} />
+            <DetailItem
+              icon={Package}
+              label="ออเดอร์"
+              value={[
+                rec.order.orderNo,
+                rec.order.trackingNo ? `Tracking ${rec.order.trackingNo}` : null,
+                rec.order.source !== "manual" ? rec.order.source : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            />
+          </dl>
+        </section>
+
+        {/* Timeline */}
+        {rec.markers.length > 0 ? (
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold tracking-tight text-ink">
+              <ListTree size={18} className="text-muted" />
+              ไทม์ไลน์เหตุการณ์
+            </h2>
+            <Card flush>
+              <ol className="relative px-5 py-5">
+                <span className="absolute top-7 bottom-7 left-[1.6rem] w-px bg-line" aria-hidden />
+                {rec.markers.map((m) => {
+                  const at = addSeconds(rec.startedAt, m.atSec);
+                  return (
+                    <li key={m.id} className="relative flex gap-4 py-2.5 pl-0">
+                      <span className="relative z-10 mt-1 flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-brand ring-4 ring-surface" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                          <p className="text-sm font-medium text-ink">{m.label}</p>
+                          <span className="tabular text-xs text-muted">+{m.atSec}s</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted">
+                          {format(at, "d MMM yyyy HH:mm:ss", { locale: th })}
+                          {m.kind !== "scan" ? ` · ${m.kind}` : ""}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </Card>
+          </section>
+        ) : null}
+
+        {/* Snapshots */}
+        {rec.snapshots.length > 0 ? (
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold tracking-tight text-ink">
+              <ImageIcon size={18} className="text-muted" />
+              Snapshots
+            </h2>
+            <Card flush>
+              <ul className="divide-y divide-line text-sm">
+                {rec.snapshots.map((s, i) => (
+                  <li
+                    key={s.id}
+                    className="flex flex-wrap items-center justify-between gap-2 px-5 py-3.5"
+                  >
+                    <span className="font-medium text-ink">Snapshot {i + 1}</span>
+                    <time className="text-xs text-muted" dateTime={s.takenAt.toISOString()}>
+                      {format(s.takenAt, "d MMM yyyy HH:mm:ss", { locale: th })}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </section>
+        ) : null}
+
+        <footer className="border-t border-line pt-6 text-center text-xs leading-relaxed text-muted">
+          <p>
+            เอกสารหลักฐานจาก PackEX · สร้างลิงก์เมื่อ{" "}
+            {format(link.createdAt, "d MMM yyyy HH:mm", { locale: th })}
+          </p>
+          <p className="mt-1">ข้อมูลนี้แชร์เพื่อตรวจสอบเคลมเท่านั้น — อย่าเผยแพร่ต่อหากไม่จำเป็น</p>
+        </footer>
       </div>
-    </div>
+    </ShareShell>
   );
 }

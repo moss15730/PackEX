@@ -1,5 +1,17 @@
+import { Activity } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card } from "@/components/ui";
+import {
+  EmptyState,
+  PageHeader,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Toolbar,
+  Tr,
+} from "@/components/ui";
 
 export default async function PlatformUsagePage() {
   const meters = await prisma.usageMeter.findMany({
@@ -7,32 +19,67 @@ export default async function PlatformUsagePage() {
     orderBy: { storageUsedGb: "desc" },
   });
 
+  const totalStorage = meters.reduce((sum, m) => sum + m.storageUsedGb, 0);
+
   return (
     <div>
-      <PageHeader title="Usage" description="การใช้งานทรัพยากรตาม tenant" />
+      <PageHeader
+        title="การใช้งาน"
+        description="ทรัพยากรที่แต่ละ tenant ใช้อยู่ เรียงตามพื้นที่จัดเก็บ"
+      />
 
-      <Card className="overflow-x-auto p-0">
-        <table className="min-w-[560px] w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">Tenant</th>
-              <th className="px-4 py-3 font-medium">สถานี</th>
-              <th className="px-4 py-3 font-medium">พื้นที่ (GB)</th>
-              <th className="px-4 py-3 font-medium">ผู้ใช้</th>
-            </tr>
-          </thead>
-          <tbody>
-            {meters.map((m) => (
-              <tr key={m.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="px-4 py-3 font-mono">{m.tenant.slug}</td>
-                <td className="px-4 py-3">{m.stationsUsed}</td>
-                <td className="px-4 py-3">{m.storageUsedGb.toFixed(1)}</td>
-                <td className="px-4 py-3">{m.usersUsed}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      {meters.length === 0 ? (
+        <EmptyState
+          icon={Activity}
+          title="ยังไม่มีข้อมูลการใช้งาน"
+          description="เมื่อ tenant เริ่มบันทึกวิดีโอ ตัวเลขการใช้งานจะแสดงที่นี่"
+        />
+      ) : (
+        <TableCard
+          minWidthClassName="min-w-[560px]"
+          header={
+            <Toolbar
+              actions={
+                <span className="tabular text-xs text-muted">
+                  รวม {totalStorage.toFixed(1)} GB · {meters.length} tenants
+                </span>
+              }
+            >
+              <span className="text-[13px] font-medium text-ink">การใช้งานตาม tenant</span>
+            </Toolbar>
+          }
+        >
+          <Table>
+            <THead>
+              <Th>Tenant</Th>
+              <Th align="right">สถานี</Th>
+              <Th align="right">พื้นที่ (GB)</Th>
+              <Th align="right">ผู้ใช้</Th>
+            </THead>
+            <TBody>
+              {meters.map((m) => (
+                <Tr key={m.id}>
+                  <Td>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">{m.tenant.name}</p>
+                      <p className="font-mono text-xs text-muted">{m.tenant.slug}</p>
+                    </div>
+                  </Td>
+                  <Td align="right" className="tabular">
+                    {m.stationsUsed}
+                  </Td>
+                  <Td align="right" className="tabular font-medium text-ink">
+                    {m.storageUsedGb.toFixed(1)}
+                  </Td>
+                  <Td align="right" className="tabular">
+                    {m.usersUsed}
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        </TableCard>
+      )}
     </div>
   );
 }

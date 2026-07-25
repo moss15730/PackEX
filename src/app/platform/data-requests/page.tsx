@@ -1,12 +1,23 @@
+import { Database, Download, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card, Badge } from "@/components/ui";
+import {
+  Badge,
+  EmptyState,
+  PageHeader,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Toolbar,
+  Tr,
+} from "@/components/ui";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
 export default async function PlatformDataRequestsPage() {
-  const requests = await prisma.dataRequest.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const requests = await prisma.dataRequest.findMany({ orderBy: { createdAt: "desc" } });
 
   const tenantIds = [...new Set(requests.map((r) => r.tenantId))];
   const tenants = await prisma.tenant.findMany({
@@ -15,44 +26,72 @@ export default async function PlatformDataRequestsPage() {
   });
   const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t.slug]));
 
+  const pending = requests.filter((r) => r.status === "pending").length;
+
   return (
     <div>
       <PageHeader
-        title="Data Requests"
-        description="คำขอส่งออก/ลบข้อมูลตาม PDPA"
+        title="Data requests"
+        description="คำขอส่งออกหรือลบข้อมูลส่วนบุคคลตาม PDPA"
+        actions={
+          pending > 0 ? (
+            <Badge tone="warning" dot>
+              รอดำเนินการ {pending} รายการ
+            </Badge>
+          ) : null
+        }
       />
 
-      <Card className="overflow-x-auto p-0">
-        <table className="min-w-[640px] w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">Tenant</th>
-              <th className="px-4 py-3 font-medium">ประเภท</th>
-              <th className="px-4 py-3 font-medium">สถานะ</th>
-              <th className="px-4 py-3 font-medium">วันที่</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((r) => (
-              <tr key={r.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="px-4 py-3 font-mono">{tenantMap[r.tenantId] ?? r.tenantId}</td>
-                <td className="px-4 py-3">{r.type === "export" ? "ส่งออก" : "ลบข้อมูล"}</td>
-                <td className="px-4 py-3">
-                  <Badge tone={r.status === "pending" ? "warning" : "success"}>
-                    {r.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {format(r.createdAt, "d MMM yyyy", { locale: th })}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {requests.length === 0 && (
-          <p className="px-4 py-8 text-center text-[var(--muted)]">ไม่มีคำขอ</p>
-        )}
-      </Card>
+      {requests.length === 0 ? (
+        <EmptyState
+          icon={Database}
+          title="ไม่มีคำขอข้อมูล"
+          description="เมื่อ tenant ยื่นคำขอส่งออกหรือลบข้อมูล รายการจะปรากฏที่นี่"
+        />
+      ) : (
+        <TableCard
+          minWidthClassName="min-w-[640px]"
+          header={
+            <Toolbar
+              actions={<span className="text-xs text-muted">{requests.length} รายการ</span>}
+            >
+              <span className="text-[13px] font-medium text-ink">คำขอทั้งหมด</span>
+            </Toolbar>
+          }
+        >
+          <Table>
+            <THead>
+              <Th>Tenant</Th>
+              <Th>ประเภท</Th>
+              <Th>สถานะ</Th>
+              <Th align="right">วันที่ยื่น</Th>
+            </THead>
+            <TBody>
+              {requests.map((r) => (
+                <Tr key={r.id}>
+                  <Td className="font-mono text-ink">{tenantMap[r.tenantId] ?? r.tenantId}</Td>
+                  <Td>
+                    <Badge
+                      tone={r.type === "export" ? "info" : "danger"}
+                      icon={r.type === "export" ? Download : Trash2}
+                    >
+                      {r.type === "export" ? "ส่งออกข้อมูล" : "ลบข้อมูล"}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    <Badge tone={r.status === "pending" ? "warning" : "success"} dot>
+                      {r.status}
+                    </Badge>
+                  </Td>
+                  <Td align="right" className="text-muted">
+                    {format(r.createdAt, "d MMM yyyy", { locale: th })}
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
+        </TableCard>
+      )}
     </div>
   );
 }

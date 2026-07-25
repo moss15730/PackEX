@@ -1,13 +1,22 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Camera, HardDrive, Clock, User, MapPin, ImageIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Clock,
+  FileWarning,
+  HardDrive,
+  ImageIcon,
+  MapPin,
+  User,
+  VideoOff,
+} from "lucide-react";
 import { requireTenantSession, can } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isStorageConfigured, resolvePlaybackUrl } from "@/lib/storage";
-import { PageHeader, Badge, Button } from "@/components/ui";
+import { Badge, ButtonLink, PageHeader, Progress } from "@/components/ui";
 import { VideoActions } from "@/components/video-actions";
 import { HashVerifyButton } from "@/components/hash-verify-button";
-import { statusLabel, formatBytes } from "@/lib/utils";
+import { statusLabel, statusTone, formatBytes } from "@/lib/utils";
 import { addSeconds, format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -52,11 +61,7 @@ export default async function VideoDetailPage({
   const { id } = await params;
 
   const anchor = await prisma.recording.findFirst({
-    where: {
-      id,
-      tenantId: session.tenantId,
-      status: { not: "deleted" },
-    },
+    where: { id, tenantId: session.tenantId, status: { not: "deleted" } },
     include: { order: true },
   });
 
@@ -96,143 +101,158 @@ export default async function VideoDetailPage({
   const videoCount = orderRecordings.length;
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div>
       <PageHeader
+        eyebrow="วิดีโอการแพ็ค"
         title={anchor.order.orderNo}
         description={
           videoCount > 1
-            ? `${videoCount} วิดีโอในออเดอร์เดียวกัน`
-            : `บันทึกวิดีโอการแพ็ค · ${format(anchor.startedAt, "d MMM yyyy HH:mm", { locale: th })}`
+            ? `${videoCount} วิดีโอในออเดอร์เดียวกัน · เริ่ม ${format(anchor.startedAt, "d MMM yyyy HH:mm", { locale: th })}`
+            : `บันทึกเมื่อ ${format(anchor.startedAt, "d MMM yyyy HH:mm", { locale: th })}`
         }
         actions={
-          <div className="flex flex-wrap gap-2">
+          <>
             {can(session.role, "claims.manage") && (
-              <Link
+              <ButtonLink
                 href={`/t/${session.tenantSlug}/claims?orderNo=${encodeURIComponent(anchor.order.orderNo)}&recordingId=${anchor.id}`}
+                variant="secondary"
+                icon={FileWarning}
               >
-                <Button variant="secondary">สร้างเคสเคลม</Button>
-              </Link>
+                สร้างเคสเคลม
+              </ButtonLink>
             )}
-            <Link href={`/t/${session.tenantSlug}/videos`}>
-              <Button variant="outline">กลับ</Button>
-            </Link>
-          </div>
+            <ButtonLink
+              href={`/t/${session.tenantSlug}/videos`}
+              variant="ghost"
+              icon={ArrowLeft}
+            >
+              กลับ
+            </ButtonLink>
+          </>
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Badge tone="neutral">{videoCount} วิดีโอ</Badge>
-        <Badge tone={storageReady ? "success" : "warning"}>
-          {storageReady ? "Storage พร้อม" : "Storage ยังไม่ตั้งค่า"}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <Badge icon={Camera}>{videoCount} วิดีโอ</Badge>
+        <Badge tone={storageReady ? "success" : "warning"} dot>
+          {storageReady ? "Storage พร้อมใช้งาน" : "Storage ยังไม่ตั้งค่า"}
         </Badge>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {recordingsWithFiles.map(({ index, recording, filesWithLinks }) => {
           const shareLink = recording.shareLinks[0];
 
           return (
             <article
               key={recording.id}
-              className="overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]"
+              className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm"
             >
-              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] px-3 py-2.5 md:px-4">
+              <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-3.5 sm:px-5">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-[family-name:var(--font-display)] text-base font-semibold text-[var(--ink)]">
-                      วิดีโอ {index + 1}
-                    </h2>
-                    {recording.id === anchor.id && (
-                      <Badge tone="info">รายการที่เปิด</Badge>
-                    )}
+                    <h2 className="text-[15px] font-semibold text-ink">วิดีโอ {index + 1}</h2>
+                    {recording.id === anchor.id && <Badge tone="brand">รายการที่เปิด</Badge>}
                   </div>
-                  <dl className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 shrink-0 opacity-70" />
+                  <dl className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin size={12} />
                       <dt className="sr-only">สถานี</dt>
                       <dd>{recording.station.code}</dd>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 shrink-0 opacity-70" />
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={12} />
                       <dt className="sr-only">เวลา</dt>
                       <dd>{format(recording.startedAt, "d MMM yyyy HH:mm", { locale: th })}</dd>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3 shrink-0 opacity-70" />
+                    <div className="flex items-center gap-1.5">
+                      <User size={12} />
                       <dt className="sr-only">พนักงาน</dt>
                       <dd>{recording.employee.name}</dd>
                     </div>
                   </dl>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge tone={recording.status === "ready" ? "success" : "neutral"}>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={statusTone(recording.status)} dot>
                     {statusLabel(recording.status)}
                   </Badge>
-                  <Badge tone={recording.completenessScore >= 80 ? "success" : "warning"}>
-                    ครบถ้วน {recording.completenessScore}%
-                  </Badge>
-                  {recording.legalHold && <Badge tone="danger">Legal Hold</Badge>}
+                  {recording.legalHold && <Badge tone="danger">Legal hold</Badge>}
+                  <div className="flex items-center gap-2">
+                    <Progress
+                      value={recording.completenessScore}
+                      tone={recording.completenessScore >= 80 ? "brand" : "warning"}
+                      className="w-14"
+                    />
+                    <span className="tabular text-xs font-medium text-ink-2">
+                      {recording.completenessScore}%
+                    </span>
+                  </div>
                 </div>
               </header>
 
-              <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
-                <div className="min-w-0 border-[var(--border)] lg:border-r">
+              <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem]">
+                <div className="min-w-0 lg:border-r lg:border-line">
                   {filesWithLinks.length === 0 ? (
-                    <div className="flex h-40 items-center justify-center bg-[var(--surface-2)] px-4 text-center text-sm text-[var(--muted)]">
-                      ยังไม่มีไฟล์วิดีโอสำหรับรายการนี้
+                    <div className="flex h-48 flex-col items-center justify-center gap-2 bg-subtle/50 px-4 text-center">
+                      <VideoOff size={20} className="text-faint" />
+                      <p className="text-sm text-muted">ยังไม่มีไฟล์วิดีโอสำหรับรายการนี้</p>
                     </div>
                   ) : (
                     filesWithLinks.map((file, fileIndex) => (
-                      <div
-                        key={file.id}
-                        className={fileIndex > 0 ? "border-t border-[var(--border)]" : ""}
-                      >
+                      <div key={file.id} className={fileIndex > 0 ? "border-t border-line" : ""}>
                         <div className="bg-black">
                           <div className="mx-auto aspect-video w-full max-w-3xl">
-                          {file.playSrc && file.playKind !== "none" ? (
-                            file.playSrc.includes("drive.google.com") ? (
-                              <iframe
-                                title={file.cameraLabel}
-                                src={file.playSrc}
-                                className="h-full w-full border-0"
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                              />
+                            {file.playSrc && file.playKind !== "none" ? (
+                              file.playSrc.includes("drive.google.com") ? (
+                                <iframe
+                                  title={file.cameraLabel}
+                                  src={file.playSrc}
+                                  className="h-full w-full border-0"
+                                  allow="autoplay; encrypted-media"
+                                  allowFullScreen
+                                />
+                              ) : (
+                                <video
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                  className="h-full w-full"
+                                  src={file.playSrc}
+                                />
+                              )
                             ) : (
-                              <video
-                                controls
-                                playsInline
-                                preload="metadata"
-                                className="h-full w-full"
-                                src={file.playSrc}
-                              />
-                            )
-                          ) : (
-                            <div className="flex h-full items-center justify-center px-4 text-center text-sm text-white/70">
-                              ไม่มีไฟล์วิดีโอให้เล่น
-                              <br />
-                              (อาจเป็นข้อมูลจำลองจาก seed)
-                            </div>
-                          )}
+                              <div className="flex h-full flex-col items-center justify-center gap-1.5 px-4 text-center text-sm text-white/70">
+                                <VideoOff size={20} className="opacity-60" />
+                                ไม่มีไฟล์วิดีโอให้เล่น
+                                <span className="text-xs text-white/45">
+                                  (อาจเป็นข้อมูลจำลองจาก seed)
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-xs md:px-4">
-                          <span className="flex items-center gap-1 font-medium text-[var(--ink)]">
-                            <Camera className="h-3 w-3 text-[var(--muted)]" />
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 text-xs sm:px-5">
+                          <span className="flex items-center gap-1.5 font-medium text-ink">
+                            <Camera size={13} className="text-muted" />
                             {file.cameraLabel}
                           </span>
-                          <span className="text-[var(--muted)]">{formatBytes(file.sizeBytes)}</span>
-                          <span className="font-mono text-[10px] text-[var(--muted)]" title={file.sha256}>
+                          <span className="tabular text-muted">{formatBytes(file.sizeBytes)}</span>
+                          <span
+                            className="font-mono text-[10px] text-faint"
+                            title={file.sha256}
+                          >
                             sha256:{file.sha256.slice(0, 12)}…
                           </span>
                           {file.isSupabase && (
-                            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                              <HardDrive className="h-3 w-3" />
+                            <span className="flex items-center gap-1.5 text-success-ink">
+                              <HardDrive size={12} />
                               เก็บบน Storage
                             </span>
                           )}
                           {!file.playSrc && (
-                            <span className="break-all text-[var(--muted)]">{file.storagePath}</span>
+                            <span className="break-all text-faint">{file.storagePath}</span>
                           )}
                         </div>
                       </div>
@@ -240,34 +260,38 @@ export default async function VideoDetailPage({
                   )}
 
                   {recording.markers.length > 0 && (
-                    <div className="border-t border-[var(--border)] px-3 py-3 md:px-4">
-                      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wide text-[var(--muted)]">
-                        ไทม์ไลน์
+                    <div className="border-t border-line px-4 py-4 sm:px-5">
+                      <h3 className="mb-3 text-[11px] font-semibold tracking-[0.1em] text-muted uppercase">
+                        ไทม์ไลน์เหตุการณ์
                       </h3>
-                      <ul className="space-y-1.5">
+                      <ol className="relative space-y-0">
+                        <span
+                          className="absolute top-3 bottom-3 left-[0.3rem] w-px bg-line"
+                          aria-hidden
+                        />
                         {recording.markers.map((m) => {
                           const at = addSeconds(recording.startedAt, m.atSec);
                           return (
-                            <li
-                              key={m.id}
-                              className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 rounded-md bg-[var(--surface-2)] px-2.5 py-1.5 text-sm"
-                            >
-                              <span className="font-medium text-[var(--ink)]">{m.label}</span>
+                            <li key={m.id} className="relative flex items-baseline gap-3 py-2">
+                              <span className="relative z-10 h-2.5 w-2.5 shrink-0 translate-y-1 rounded-full bg-brand ring-4 ring-surface" />
+                              <span className="flex-1 text-sm font-medium text-ink">
+                                {m.label}
+                              </span>
                               <time
                                 dateTime={at.toISOString()}
-                                className="text-xs text-[var(--muted)]"
+                                className="tabular shrink-0 text-xs text-muted"
                               >
-                                {format(at, "d MMM yyyy HH:mm:ss", { locale: th })}
+                                {format(at, "HH:mm:ss", { locale: th })}
                               </time>
                             </li>
                           );
                         })}
-                      </ul>
+                      </ol>
                     </div>
                   )}
                 </div>
 
-                <aside className="flex flex-col gap-3 p-3 lg:bg-[var(--surface-2)]/40">
+                <aside className="flex flex-col gap-3 bg-subtle/40 p-4">
                   <HashVerifyButton
                     tenantSlug={session.tenantSlug!}
                     recordingId={recording.id}
@@ -291,23 +315,23 @@ export default async function VideoDetailPage({
                     }
                   />
 
-                  <section className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
-                    <div className="mb-2 flex items-center gap-1.5">
-                      <ImageIcon className="h-3.5 w-3.5 text-[var(--muted)]" />
-                      <h3 className="text-xs font-semibold text-[var(--ink)]">Snapshots</h3>
-                      <span className="ml-auto text-[11px] text-[var(--muted)]">
+                  <section className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon size={14} className="text-muted" />
+                      <h3 className="text-[13px] font-semibold text-ink">Snapshots</h3>
+                      <span className="tabular ml-auto text-[11px] text-muted">
                         {recording.snapshots.length}
                       </span>
                     </div>
                     {recording.snapshots.length === 0 ? (
-                      <p className="text-xs text-[var(--muted)]">ไม่มี snapshot</p>
+                      <p className="mt-2.5 text-xs text-muted">ไม่มี snapshot สำหรับรายการนี้</p>
                     ) : (
-                      <ul className="max-h-32 space-y-1.5 overflow-y-auto text-xs">
+                      <ul className="mt-3 max-h-36 space-y-2 overflow-y-auto text-xs">
                         {recording.snapshots.map((s) => (
                           <li key={s.id} className="flex justify-between gap-2">
-                            <span className="truncate text-[var(--ink)]">{s.storagePath}</span>
-                            <span className="shrink-0 text-[var(--muted)]">
-                              {format(s.takenAt, "d MMM yyyy HH:mm:ss", { locale: th })}
+                            <span className="truncate text-ink-2">{s.storagePath}</span>
+                            <span className="tabular shrink-0 text-muted">
+                              {format(s.takenAt, "d MMM HH:mm:ss", { locale: th })}
                             </span>
                           </li>
                         ))}

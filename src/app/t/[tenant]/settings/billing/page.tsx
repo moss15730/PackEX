@@ -1,11 +1,65 @@
 import { redirect } from "next/navigation";
+import { AlertTriangle, Camera, HardDrive, Info, ReceiptText, Users } from "lucide-react";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card, Stat, Badge, TableScroll } from "@/components/ui";
-import { statusLabel } from "@/lib/utils";
+import {
+  Badge,
+  Callout,
+  Card,
+  EmptyState,
+  PageHeader,
+  Progress,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Toolbar,
+  Tr,
+} from "@/components/ui";
+import { statusLabel, statusTone } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { getUsageAndLimits } from "@/lib/tenant-limits";
+
+function QuotaCard({
+  label,
+  used,
+  limit,
+  unit,
+  pct,
+  icon: Icon,
+}: {
+  label: string;
+  used: string;
+  limit: string;
+  unit?: string;
+  pct: number;
+  icon: typeof Camera;
+}) {
+  const tone = pct >= 100 ? "danger" : pct >= 80 ? "warning" : "brand";
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[13px] font-medium text-muted">{label}</p>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-subtle text-muted">
+          <Icon size={16} strokeWidth={2} />
+        </span>
+      </div>
+      <p className="tabular mt-3 text-2xl leading-none font-semibold tracking-tight text-ink">
+        {used}
+        <span className="text-base font-normal text-muted">
+          {" / "}
+          {limit}
+          {unit ? ` ${unit}` : ""}
+        </span>
+      </p>
+      <Progress className="mt-4" value={Math.min(pct, 100)} tone={tone} />
+      <p className="mt-2 text-xs text-muted">ใช้ไปแล้ว {pct}%</p>
+    </Card>
+  );
+}
 
 export default async function SettingsBillingPage() {
   const session = await requireTenantSession();
@@ -18,24 +72,15 @@ export default async function SettingsBillingPage() {
   const tenantId = session.tenantId;
 
   const [subscription, { limits, usage }, invoices] = await Promise.all([
-    prisma.subscription.findUnique({
-      where: { tenantId },
-      include: { plan: true },
-    }),
+    prisma.subscription.findUnique({ where: { tenantId }, include: { plan: true } }),
     getUsageAndLimits(tenantId),
-    prisma.invoice.findMany({
-      where: { tenantId },
-      orderBy: { issuedAt: "desc" },
-      take: 6,
-    }),
+    prisma.invoice.findMany({ where: { tenantId }, orderBy: { issuedAt: "desc" }, take: 6 }),
   ]);
 
   if (!subscription || !limits) return null;
 
   const plan = subscription.plan;
-  const maxStations = limits.maxStations;
-  const maxStorageGb = limits.maxStorageGb;
-  const maxUsers = limits.maxUsers;
+  const { maxStations, maxStorageGb, maxUsers } = limits;
 
   const stationsPct = Math.round((usage.stationsUsed / maxStations) * 100);
   const storagePct = Math.round((usage.storageUsedGb / maxStorageGb) * 100);
@@ -43,103 +88,138 @@ export default async function SettingsBillingPage() {
 
   const nearLimit = stationsPct >= 80 || storagePct >= 80 || usersPct >= 80;
   const overLimit = stationsPct >= 100 || storagePct >= 100 || usersPct >= 100;
+  const hasOverride =
+    limits.maxStationsOverride != null ||
+    limits.maxStorageGbOverride != null ||
+    limits.maxUsersOverride != null;
 
   return (
     <div>
       <PageHeader
         title="แพ็กเกจและการใช้งาน"
-        description={`แผน ${plan.nameTh} · ${statusLabel(subscription.status)}`}
+        description="ติดตามโควต้าการใช้งานและประวัติการเรียกเก็บเงินขององค์กร"
+        actions={
+          <Badge tone={statusTone(subscription.status)} dot>
+            แผน {plan.nameTh} · {statusLabel(subscription.status)}
+          </Badge>
+        }
       />
 
-      {limits.maxStationsOverride != null ||
-      limits.maxStorageGbOverride != null ||
-      limits.maxUsersOverride != null ? (
-        <div className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]">
-          องค์กรนี้มีโควต้าเฉพาะที่ Platform Admin กำหนด (อาจต่างจากแผนมาตรฐาน)
-        </div>
-      ) : null}
+      <div className="space-y-4">
+        {overLimit ? (
+          <Callout tone="danger" icon={AlertTriangle} title="เกินขีดจำกัดแพ็กเกจ">
+            ไม่สามารถเพิ่มสถานี ผู้ใช้ หรืออัดวิดีโอใหม่ได้ จนกว่าจะลดการใช้งานหรือขอเพิ่มโควต้า
+          </Callout>
+        ) : nearLimit ? (
+          <Callout tone="warning" icon={AlertTriangle} title="การใช้งานใกล้เต็ม">
+            พิจารณาลบวิดีโอเก่าที่ไม่จำเป็น หรือติดต่อทีมงานเพื่อขอเพิ่มโควต้า
+          </Callout>
+        ) : null}
 
-      {overLimit && (
-        <div className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
-          <strong>เกินขีดจำกัด:</strong> ไม่สามารถเพิ่มสถานี/ผู้ใช้ หรืออัดวิดีโอใหม่ได้
-          จนกว่าจะลดการใช้งานหรือขอเพิ่มโควต้า
-        </div>
-      )}
-      {nearLimit && !overLimit && (
-        <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-          <strong>ใกล้เต็ม:</strong> การใช้งานใกล้ถึงขีดจำกัด — พิจารณาลบวิดีโอเก่าหรือขอเพิ่มโควต้า
-        </div>
-      )}
+        {hasOverride ? (
+          <Callout tone="info" icon={Info}>
+            องค์กรนี้มีโควต้าเฉพาะที่ Platform Admin กำหนดไว้ ซึ่งอาจต่างจากแผนมาตรฐาน
+          </Callout>
+        ) : null}
+      </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Stat
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <QuotaCard
           label="สถานี"
-          value={`${usage.stationsUsed} / ${maxStations}`}
-          hint={`${stationsPct}%`}
+          icon={Camera}
+          used={String(usage.stationsUsed)}
+          limit={String(maxStations)}
+          pct={stationsPct}
         />
-        <Stat
+        <QuotaCard
           label="พื้นที่วิดีโอ"
-          value={`${usage.storageUsedGb.toFixed(2)} / ${maxStorageGb} GB`}
-          hint={`${storagePct}%`}
+          icon={HardDrive}
+          used={usage.storageUsedGb.toFixed(2)}
+          limit={String(maxStorageGb)}
+          unit="GB"
+          pct={storagePct}
         />
-        <Stat
+        <QuotaCard
           label="ผู้ใช้"
-          value={`${usage.usersUsed} / ${maxUsers}`}
-          hint={`${usersPct}%`}
+          icon={Users}
+          used={String(usage.usersUsed)}
+          limit={String(maxUsers)}
+          pct={usersPct}
         />
       </div>
 
-      <Card className="mt-6">
-        <h2 className="mb-4 font-semibold text-[var(--ink)]">ใบแจ้งหนี้</h2>
-        <div className="space-y-3 md:hidden">
-          {invoices.map((inv) => (
-            <div
-              key={inv.id}
-              className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm"
-            >
-              <p className="font-medium text-[var(--ink)]">{inv.description}</p>
-              <p className="mt-1 text-[var(--muted)]">
-                {inv.amount.toLocaleString()} {inv.currency} · {format(inv.issuedAt, "d MMM yyyy", { locale: th })}
-              </p>
-              <Badge tone={inv.status === "paid" ? "success" : "warning"} className="mt-2">
-                {inv.status}
-              </Badge>
+      <div className="mt-6">
+        {invoices.length === 0 ? (
+          <EmptyState
+            icon={ReceiptText}
+            title="ยังไม่มีใบแจ้งหนี้"
+            description="เมื่อรอบบิลแรกถูกออก ใบแจ้งหนี้จะแสดงที่นี่"
+          />
+        ) : (
+          <>
+            {/* Mobile */}
+            <div className="space-y-3 md:hidden">
+              {invoices.map((inv) => (
+                <div key={inv.id} className="rounded-xl border border-line bg-surface p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-medium text-ink">{inv.description}</p>
+                    <Badge tone={inv.status === "paid" ? "success" : "warning"} dot>
+                      {inv.status}
+                    </Badge>
+                  </div>
+                  <p className="tabular mt-2 text-[13px] text-muted">
+                    {inv.amount.toLocaleString()} {inv.currency} ·{" "}
+                    {format(inv.issuedAt, "d MMM yyyy", { locale: th })}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="hidden md:block">
-          <TableScroll>
-            <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="pb-2 font-medium">รายการ</th>
-              <th className="pb-2 font-medium">จำนวน</th>
-              <th className="pb-2 font-medium">สถานะ</th>
-              <th className="pb-2 font-medium">วันที่</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((inv) => (
-              <tr key={inv.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="py-2">{inv.description}</td>
-                <td className="py-2">
-                  {inv.amount.toLocaleString()} {inv.currency}
-                </td>
-                <td className="py-2">
-                  <Badge tone={inv.status === "paid" ? "success" : "warning"}>
-                    {inv.status}
-                  </Badge>
-                </td>
-                <td className="py-2 text-[var(--muted)]">
-                  {format(inv.issuedAt, "d MMM yyyy", { locale: th })}
-                </td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
-          </TableScroll>
-        </div>
-      </Card>
+
+            {/* Desktop */}
+            <div className="hidden md:block">
+              <TableCard
+                minWidthClassName="min-w-[560px]"
+                header={
+                  <Toolbar
+                    actions={
+                      <span className="text-xs text-muted">{invoices.length} รายการล่าสุด</span>
+                    }
+                  >
+                    <span className="text-[13px] font-medium text-ink">ใบแจ้งหนี้</span>
+                  </Toolbar>
+                }
+              >
+                <Table>
+                  <THead>
+                    <Th>รายการ</Th>
+                    <Th align="right">จำนวน</Th>
+                    <Th>สถานะ</Th>
+                    <Th align="right">วันที่ออก</Th>
+                  </THead>
+                  <TBody>
+                    {invoices.map((inv) => (
+                      <Tr key={inv.id}>
+                        <Td className="font-medium text-ink">{inv.description}</Td>
+                        <Td align="right" className="tabular">
+                          {inv.amount.toLocaleString()} {inv.currency}
+                        </Td>
+                        <Td>
+                          <Badge tone={inv.status === "paid" ? "success" : "warning"} dot>
+                            {inv.status}
+                          </Badge>
+                        </Td>
+                        <Td align="right" className="text-muted">
+                          {format(inv.issuedAt, "d MMM yyyy", { locale: th })}
+                        </Td>
+                      </Tr>
+                    ))}
+                  </TBody>
+                </Table>
+              </TableCard>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

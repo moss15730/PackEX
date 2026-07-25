@@ -17,7 +17,10 @@ export default async function AlertsPage() {
 
   return (
     <div>
-      <PageHeader title="แจ้งเตือน" description="เหตุการณ์ที่ต้องดำเนินการ" />
+      <PageHeader
+        title="แจ้งเตือน"
+        description="เหตุการณ์จากสถานีและอุปกรณ์ที่ต้องดำเนินการ"
+      />
       <AlertsList
         tenantSlug={session.tenantSlug!}
         alerts={alerts.map((a) => ({

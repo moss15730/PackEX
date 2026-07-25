@@ -2,7 +2,24 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card, TableScroll } from "@/components/ui";
+import { Pencil, Trash2, UserPlus, Users } from "lucide-react";
+import {
+  Avatar,
+  Badge,
+  Button,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/ui";
+import { Modal } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
 import { roleLabel } from "@/lib/utils";
 
@@ -246,326 +263,305 @@ export function EmployeesManager({
     }
   }
 
+  const employeeFormFields = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Field label="ชื่อ-นามสกุล" required>
+        <Input
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          required
+        />
+      </Field>
+      <Field label="รหัสพนักงาน" required>
+        <Input
+          value={form.employeeCode}
+          onChange={(e) => setForm((f) => ({ ...f, employeeCode: e.target.value }))}
+          placeholder="EMP-005"
+          required
+        />
+      </Field>
+      <Field label="อีเมล" required>
+        <Input
+          type="email"
+          value={form.email}
+          onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+          required
+        />
+      </Field>
+      <Field
+        label={showCreate ? "รหัสผ่าน" : "รหัสผ่านใหม่"}
+        required={showCreate}
+        hint={showCreate ? undefined : "เว้นว่างถ้าไม่ต้องการเปลี่ยน"}
+      >
+        <Input
+          type="password"
+          value={form.password}
+          onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+          required={showCreate}
+        />
+      </Field>
+      <Field label="บทบาท">
+        <Select
+          value={form.role}
+          onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+        >
+          {ROLE_OPTIONS.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="สถานะ">
+        <Select
+          value={form.status}
+          onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+        >
+          <option value="active">ใช้งาน</option>
+          <option value="disabled">ปิดใช้</option>
+        </Select>
+      </Field>
+
+      <div className="sm:col-span-2">
+        <p className="mb-2 text-[13px] font-medium text-ink">สถานีที่เข้าใช้ได้</p>
+        <label className="mb-2 flex cursor-pointer items-center gap-2.5 text-sm text-ink-2">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-[var(--brand)]"
+            checked={form.allStations}
+            onChange={(e) =>
+              setForm((f) => ({
+                ...f,
+                allStations: e.target.checked,
+                stationIds: e.target.checked ? [] : f.stationIds,
+              }))
+            }
+          />
+          ทุกสถานี
+        </label>
+
+        {!form.allStations && (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {stations.map((station) => (
+              <label
+                key={station.id}
+                className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition hover:bg-subtle has-checked:border-brand-border has-checked:bg-brand-soft/60"
+              >
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-[var(--brand)]"
+                  checked={form.stationIds.includes(station.id)}
+                  onChange={() => toggleStation(station.id)}
+                />
+                <span className="truncate">
+                  {station.code} — {station.name}
+                </span>
+              </label>
+            ))}
+            {stations.length === 0 && (
+              <p className="text-sm text-muted">ยังไม่มีสถานี — สร้างสถานีก่อน</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[var(--muted)]">
-          เพิ่ม แก้ไข ลบพนักงาน และตั้งรหัสให้เข้าใช้ระบบด้วยอีเมล
+        <p className="text-sm text-muted">
+          เพิ่ม แก้ไข ลบพนักงาน และกำหนดสิทธิ์เข้าใช้แต่ละสถานี
         </p>
-        <Button type="button" className="w-full sm:w-auto" onClick={openCreate} disabled={busy || showCreate}>
+        <Button type="button" onClick={openCreate} disabled={busy} icon={UserPlus}>
           เพิ่มพนักงาน
         </Button>
       </div>
 
-      {showCreate && (
-        <EmployeeForm
-          title="เพิ่มพนักงานใหม่"
-          isCreate
-          form={form}
-          setForm={setForm}
-          stations={stations}
-          busy={busy}
-          onSubmit={submitCreate}
-          onCancel={closeForm}
-          toggleStation={toggleStation}
+      {employees.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="ยังไม่มีพนักงาน"
+          description="เพิ่มบัญชีพนักงานเพื่อให้ทีมเข้าใช้ระบบและบันทึกการแพ็คได้"
+          action={
+            <Button type="button" onClick={openCreate} icon={UserPlus}>
+              เพิ่มพนักงาน
+            </Button>
+          }
         />
-      )}
-
-      {editingEmployee && (
-        <EmployeeForm
-          title={`แก้ไข ${editingEmployee.employeeCode}`}
-          isCreate={false}
-          form={form}
-          setForm={setForm}
-          stations={stations}
-          busy={busy}
-          onSubmit={submitEdit}
-          onCancel={closeForm}
-          toggleStation={toggleStation}
-        />
-      )}
-
-      <div className="space-y-3 md:hidden">
-        {employees.map((employee) => (
-          <Card key={employee.id} className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-mono text-xs text-[var(--muted)]">{employee.employeeCode}</p>
-                <p className="font-medium text-[var(--ink)]">{employee.name}</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{employee.email}</p>
-              </div>
-              <Badge tone={employee.status === "active" ? "success" : "danger"}>
-                {employee.status === "active" ? "ใช้งาน" : "ปิดใช้"}
-              </Badge>
-            </div>
-            <p className="text-sm text-[var(--muted)]">
-              {roleLabel(employee.role)} · {stationAccessLabel(employee.stationAccess, stations)}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                disabled={busy}
-                onClick={() => openEdit(employee)}
-              >
-                แก้ไข
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex-1 text-red-600"
-                disabled={busy || employee.id === currentUserId}
-                onClick={() => void handleDelete(employee)}
-              >
-                ลบ
-              </Button>
-            </div>
-          </Card>
-        ))}
-        {employees.length === 0 && (
-          <p className="py-6 text-center text-sm text-[var(--muted)]">ยังไม่มีพนักงาน</p>
-        )}
-      </div>
-
-      <div className="hidden md:block">
-      <TableScroll minWidthClassName="min-w-[900px]">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">รหัส</th>
-              <th className="px-4 py-3 font-medium">ชื่อ</th>
-              <th className="px-4 py-3 font-medium">อีเมล</th>
-              <th className="px-4 py-3 font-medium">บทบาท</th>
-              <th className="px-4 py-3 font-medium">สถานะ</th>
-              <th className="px-4 py-3 font-medium">สถานี</th>
-              <th className="px-4 py-3 font-medium" />
-            </tr>
-          </thead>
-          <tbody>
+      ) : (
+        <>
+          {/* Mobile */}
+          <div className="space-y-3 md:hidden">
             {employees.map((employee) => (
-              <tr key={employee.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="px-4 py-3 font-mono text-xs">{employee.employeeCode}</td>
-                <td className="px-4 py-3 font-medium">{employee.name}</td>
-                <td className="px-4 py-3">{employee.email}</td>
-                <td className="px-4 py-3">{roleLabel(employee.role)}</td>
-                <td className="px-4 py-3">
-                  <Badge tone={employee.status === "active" ? "success" : "danger"}>
+              <div
+                key={employee.id}
+                className="rounded-xl border border-line bg-surface p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar name={employee.name} size={38} />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-ink">{employee.name}</p>
+                      <p className="truncate text-[13px] text-muted">{employee.email}</p>
+                      <p className="mt-0.5 font-mono text-xs text-faint">
+                        {employee.employeeCode}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge tone={employee.status === "active" ? "success" : "danger"} dot>
                     {employee.status === "active" ? "ใช้งาน" : "ปิดใช้"}
                   </Badge>
-                </td>
-                <td className="px-4 py-3 text-[var(--muted)]">
+                </div>
+
+                <p className="mt-3 text-[13px] text-muted">
+                  {roleLabel(employee.role)} ·{" "}
                   {stationAccessLabel(employee.stationAccess, stations)}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="px-2 py-1 text-xs"
-                      disabled={busy}
-                      onClick={() => openEdit(employee)}
-                    >
-                      แก้ไข
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="px-2 py-1 text-xs text-red-600"
-                      disabled={busy || employee.id === currentUserId}
-                      onClick={() => void handleDelete(employee)}
-                    >
-                      ลบ
-                    </Button>
-                  </div>
-                </td>
-              </tr>
+                </p>
+
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    icon={Pencil}
+                    className="flex-1"
+                    disabled={busy}
+                    onClick={() => openEdit(employee)}
+                  >
+                    แก้ไข
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    className="flex-1 text-danger-ink hover:bg-danger-soft"
+                    disabled={busy || employee.id === currentUserId}
+                    onClick={() => void handleDelete(employee)}
+                  >
+                    ลบ
+                  </Button>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-        {employees.length === 0 && (
-          <p className="p-6 text-center text-sm text-[var(--muted)]">ยังไม่มีพนักงาน</p>
-        )}
-      </TableScroll>
-      </div>
-    </div>
-  );
-}
+          </div>
 
-function EmployeeForm({
-  title,
-  isCreate,
-  form,
-  setForm,
-  stations,
-  busy,
-  onSubmit,
-  onCancel,
-  toggleStation,
-}: {
-  title: string;
-  isCreate: boolean;
-  form: FormState;
-  setForm: React.Dispatch<React.SetStateAction<FormState>>;
-  stations: StationOption[];
-  busy: boolean;
-  onSubmit: (e: React.FormEvent) => void;
-  onCancel: () => void;
-  toggleStation: (stationId: string) => void;
-}) {
-  return (
-    <Card>
-      <h2 className="mb-4 font-semibold text-[var(--ink)]">{title}</h2>
-      <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-        <Field label="ชื่อ" value={form.name} onChange={(v) => setForm((f) => ({ ...f, name: v }))} required />
-        <Field
-          label="รหัสพนักงาน"
-          value={form.employeeCode}
-          onChange={(v) => setForm((f) => ({ ...f, employeeCode: v }))}
-          placeholder="EMP-005"
-          required
-        />
-        <Field
-          label="อีเมล"
-          type="email"
-          value={form.email}
-          onChange={(v) => setForm((f) => ({ ...f, email: v }))}
-          required
-        />
-        <Field
-          label={isCreate ? "รหัสผ่าน" : "รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)"}
-          type="password"
-          value={form.password}
-          onChange={(v) => setForm((f) => ({ ...f, password: v }))}
-          required={isCreate}
-        />
-        <SelectField
-          label="บทบาท"
-          value={form.role}
-          onChange={(v) => setForm((f) => ({ ...f, role: v }))}
-          options={ROLE_OPTIONS.map((r) => ({ value: r.value, label: r.label }))}
-        />
-        <SelectField
-          label="สถานะ"
-          value={form.status}
-          onChange={(v) => setForm((f) => ({ ...f, status: v }))}
-          options={[
-            { value: "active", label: "ใช้งาน" },
-            { value: "disabled", label: "ปิดใช้" },
-          ]}
-        />
-        <div className="sm:col-span-2">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            สถานีที่เข้าใช้ได้
-          </p>
-          <label className="mb-2 flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.allStations}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  allStations: e.target.checked,
-                  stationIds: e.target.checked ? [] : f.stationIds,
-                }))
-              }
-            />
-            ทุกสถานี
-          </label>
-          {!form.allStations && (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {stations.map((station) => (
-                <label key={station.id} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={form.stationIds.includes(station.id)}
-                    onChange={() => toggleStation(station.id)}
-                  />
-                  {station.code} — {station.name}
-                </label>
-              ))}
-              {stations.length === 0 && (
-                <p className="text-sm text-[var(--muted)]">ยังไม่มีสถานี — สร้างสถานีก่อน</p>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2 sm:col-span-2">
-          <Button type="submit" disabled={busy}>
-            บันทึก
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
-            ยกเลิก
-          </Button>
-        </div>
-      </form>
-    </Card>
-  );
-}
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <TableCard minWidthClassName="min-w-[900px]">
+              <Table>
+                <THead>
+                  <Th>พนักงาน</Th>
+                  <Th>รหัส</Th>
+                  <Th>บทบาท</Th>
+                  <Th>สถานะ</Th>
+                  <Th>สถานีที่เข้าถึงได้</Th>
+                  <Th align="right">จัดการ</Th>
+                </THead>
+                <TBody>
+                  {employees.map((employee) => (
+                    <Tr key={employee.id}>
+                      <Td>
+                        <div className="flex items-center gap-3">
+                          <Avatar name={employee.name} size={32} />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink">
+                              {employee.name}
+                            </p>
+                            <p className="truncate text-xs text-muted">{employee.email}</p>
+                          </div>
+                        </div>
+                      </Td>
+                      <Td className="font-mono text-xs">{employee.employeeCode}</Td>
+                      <Td>{roleLabel(employee.role)}</Td>
+                      <Td>
+                        <Badge tone={employee.status === "active" ? "success" : "danger"} dot>
+                          {employee.status === "active" ? "ใช้งาน" : "ปิดใช้"}
+                        </Badge>
+                      </Td>
+                      <Td className="max-w-[16rem] truncate text-muted">
+                        {stationAccessLabel(employee.stationAccess, stations)}
+                      </Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={Pencil}
+                            disabled={busy}
+                            onClick={() => openEdit(employee)}
+                          >
+                            แก้ไข
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={Trash2}
+                            className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                            disabled={busy || employee.id === currentUserId}
+                            onClick={() => void handleDelete(employee)}
+                          >
+                            ลบ
+                          </Button>
+                        </div>
+                      </Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </TableCard>
+          </div>
+        </>
+      )}
 
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  required,
-  type = "text",
-  className,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  type?: string;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-      />
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  options,
-  className,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
+      <Modal
+        open={showCreate}
+        onClose={closeForm}
+        title="เพิ่มพนักงานใหม่"
+        description="สร้างบัญชีและกำหนดสิทธิ์เข้าใช้สถานี"
+        icon={UserPlus}
+        size="lg"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="employee-create" loading={busy}>
+              บันทึก
+            </Button>
+          </>
+        }
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        <form id="employee-create" onSubmit={submitCreate}>
+          {employeeFormFields}
+        </form>
+      </Modal>
+
+      <Modal
+        open={Boolean(editingEmployee)}
+        onClose={closeForm}
+        title={`แก้ไข ${editingEmployee?.name ?? ""}`}
+        description={editingEmployee?.employeeCode}
+        icon={Pencil}
+        size="lg"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="employee-edit" loading={busy}>
+              บันทึกการแก้ไข
+            </Button>
+          </>
+        }
+      >
+        <form id="employee-edit" onSubmit={submitEdit}>
+          {employeeFormFields}
+        </form>
+      </Modal>
     </div>
   );
 }

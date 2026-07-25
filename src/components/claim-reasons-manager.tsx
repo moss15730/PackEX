@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import { Eye, EyeOff, ListChecks, Pencil, Plus, Trash2 } from "lucide-react";
+import { Badge, Button, Card, EmptyState, Field, Input } from "@/components/ui";
+import { Modal } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
 
 export type ClaimReasonItem = {
@@ -190,115 +192,147 @@ export function ClaimReasonsManager({
     }
   }
 
+  const labelField = (
+    <Field label="ชื่อเหตุผล" required>
+      <Input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="เช่น สินค้าหายจากกล่อง"
+        required
+        autoFocus
+      />
+    </Field>
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[var(--muted)]">
-          ใช้เป็นตัวเลือกดรอปดาวน์ตอนสร้างเคสเคลม
+        <p className="text-sm text-muted">
+          รายการนี้จะแสดงเป็นตัวเลือกดรอปดาวน์ตอนสร้างเคสเคลม
         </p>
         {canManage && (
-          <Button type="button" onClick={openCreate} disabled={busy || showCreate}>
+          <Button type="button" onClick={openCreate} disabled={busy} icon={Plus}>
             เพิ่มเหตุผล
           </Button>
         )}
       </div>
 
-      {showCreate && canManage && (
-        <Card>
-          <form onSubmit={submitCreate} className="flex flex-wrap gap-2">
-            <input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="เช่น สินค้าหายจากกล่อง"
-              required
-              className="min-w-[220px] flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-            />
-            <Button type="submit" disabled={busy}>
+      {initialReasons.length === 0 ? (
+        <EmptyState
+          icon={ListChecks}
+          title="ยังไม่มีเหตุผลเคลม"
+          description="สร้างรายการเหตุผล เพื่อให้ทีมเลือกได้อย่างสม่ำเสมอเมื่อเปิดเคส"
+          action={
+            canManage ? (
+              <Button type="button" onClick={openCreate} icon={Plus}>
+                เพิ่มเหตุผล
+              </Button>
+            ) : null
+          }
+        />
+      ) : (
+        <Card flush>
+          <ul className="divide-y divide-line">
+            {initialReasons.map((item) => (
+              <li
+                key={item.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5"
+              >
+                <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+                  <span className="text-sm font-medium text-ink">{item.label}</span>
+                  <Badge tone={item.active ? "success" : "neutral"} dot>
+                    {item.active ? "ใช้งาน" : "ปิดใช้"}
+                  </Badge>
+                  {item.caseCount > 0 && (
+                    <span className="text-xs text-muted">ใช้ใน {item.caseCount} เคส</span>
+                  )}
+                </div>
+
+                {canManage && (
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      icon={Pencil}
+                      onClick={() => openEdit(item)}
+                      disabled={busy}
+                    >
+                      แก้ไข
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      icon={item.active ? EyeOff : Eye}
+                      onClick={() => void toggleActive(item)}
+                      disabled={busy}
+                    >
+                      {item.active ? "ปิดใช้" : "เปิดใช้"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                      onClick={() => void handleDelete(item)}
+                      disabled={busy}
+                    >
+                      ลบ
+                    </Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      <Modal
+        open={showCreate && canManage}
+        onClose={closeForm}
+        title="เพิ่มเหตุผลเคลม"
+        description="ตัวเลือกใหม่จะปรากฏในดรอปดาวน์ตอนสร้างเคส"
+        icon={Plus}
+        size="sm"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="reason-create" loading={busy}>
               บันทึก
             </Button>
-            <Button type="button" variant="outline" onClick={closeForm} disabled={busy}>
+          </>
+        }
+      >
+        <form id="reason-create" onSubmit={submitCreate}>
+          {labelField}
+        </form>
+      </Modal>
+
+      <Modal
+        open={Boolean(editingId) && canManage}
+        onClose={closeForm}
+        title="แก้ไขเหตุผลเคลม"
+        icon={Pencil}
+        size="sm"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={closeForm} disabled={busy}>
               ยกเลิก
             </Button>
-          </form>
-        </Card>
-      )}
-
-      {editingId && canManage && (
-        <Card>
-          <form onSubmit={submitEdit} className="flex flex-wrap gap-2">
-            <input
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              required
-              className="min-w-[220px] flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-            />
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" form="reason-edit" loading={busy}>
               บันทึกการแก้ไข
             </Button>
-            <Button type="button" variant="outline" onClick={closeForm} disabled={busy}>
-              ยกเลิก
-            </Button>
-          </form>
-        </Card>
-      )}
-
-      <Card className="p-0">
-        <ul className="divide-y divide-[var(--border)]">
-          {initialReasons.map((item) => (
-            <li
-              key={item.id}
-              className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-[var(--ink)]">{item.label}</span>
-                <Badge tone={item.active ? "success" : "neutral"}>
-                  {item.active ? "ใช้งาน" : "ปิดใช้"}
-                </Badge>
-                {item.caseCount > 0 && (
-                  <span className="text-xs text-[var(--muted)]">ใช้ใน {item.caseCount} เคส</span>
-                )}
-              </div>
-              {canManage && (
-                <div className="flex flex-wrap gap-1.5">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="text-xs"
-                    onClick={() => openEdit(item)}
-                    disabled={busy}
-                  >
-                    แก้ไข
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="text-xs"
-                    onClick={() => void toggleActive(item)}
-                    disabled={busy}
-                  >
-                    {item.active ? "ปิดใช้" : "เปิดใช้"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    className="text-xs"
-                    onClick={() => void handleDelete(item)}
-                    disabled={busy}
-                  >
-                    ลบ
-                  </Button>
-                </div>
-              )}
-            </li>
-          ))}
-          {initialReasons.length === 0 && (
-            <li className="px-4 py-8 text-center text-sm text-[var(--muted)]">
-              ยังไม่มีเหตุผลเคลม
-              {canManage ? " — กด «เพิ่มเหตุผล» เพื่อเริ่มต้น" : ""}
-            </li>
-          )}
-        </ul>
-      </Card>
+          </>
+        }
+      >
+        <form id="reason-edit" onSubmit={submitEdit}>
+          {labelField}
+        </form>
+      </Modal>
     </div>
   );
 }

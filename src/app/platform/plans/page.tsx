@@ -26,30 +26,45 @@ export default async function PlatformPlansPage() {
 
   return (
     <div>
-      <PageHeader title="แผนราคา" description="แพ็กเกจที่เปิดขายบนแพลตฟอร์ม" />
+      <PageHeader
+        title="แผนบริการ"
+        description="แพ็กเกจที่เปิดขายบนแพลตฟอร์มและโควต้าที่กำหนดไว้"
+      />
 
       {canManage ? (
         <PlatformPlansManager plans={planItems} />
       ) : (
         <div className="grid gap-4 md:grid-cols-3">
-        {planItems.map((plan) => (
-          <Card key={plan.id}>
-            <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-              {plan.nameTh}
-            </h2>
-            <p className="text-sm text-[var(--muted)]">{plan.nameEn}</p>
-            <p className="mt-3 font-[family-name:var(--font-display)] text-2xl font-bold">
-              {plan.priceMonthly > 0 ? `฿${plan.priceMonthly.toLocaleString()}/เดือน` : "ติดต่อเรา"}
-            </p>
-            <ul className="mt-4 space-y-1 text-sm text-[var(--muted)]">
-              <li>สถานี: {plan.maxStations}</li>
-              <li>พื้นที่: {plan.maxStorageGb} GB</li>
-              <li>ผู้ใช้: {plan.maxUsers}</li>
-              <li>เก็บข้อมูล: {plan.retentionDays} วัน</li>
-              <li>ทดลอง: {plan.trialDays} วัน</li>
-            </ul>
-          </Card>
-        ))}
+          {planItems.map((plan) => (
+            <Card key={plan.id} interactive>
+              <h2 className="text-lg font-semibold tracking-tight text-ink">{plan.nameTh}</h2>
+              <p className="text-[13px] text-muted">{plan.nameEn}</p>
+              <p className="tabular mt-4 text-2xl font-semibold tracking-tight text-ink">
+                {plan.priceMonthly > 0 ? (
+                  <>
+                    ฿{plan.priceMonthly.toLocaleString()}
+                    <span className="text-base font-normal text-muted">/เดือน</span>
+                  </>
+                ) : (
+                  "ติดต่อเรา"
+                )}
+              </p>
+              <dl className="mt-5 space-y-2.5 border-t border-line pt-4 text-[13px]">
+                {[
+                  { k: "สถานี", v: plan.maxStations },
+                  { k: "พื้นที่", v: `${plan.maxStorageGb} GB` },
+                  { k: "ผู้ใช้", v: plan.maxUsers },
+                  { k: "เก็บข้อมูล", v: `${plan.retentionDays} วัน` },
+                  { k: "ทดลองใช้", v: `${plan.trialDays} วัน` },
+                ].map((row) => (
+                  <div key={row.k} className="flex items-center justify-between gap-3">
+                    <dt className="text-muted">{row.k}</dt>
+                    <dd className="tabular font-medium text-ink">{row.v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Card>
+          ))}
         </div>
       )}
     </div>

@@ -1,9 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge, Button, TableScroll } from "@/components/ui";
+import { RotateCcw, Trash2 } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Callout,
+  EmptyState,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Tr,
+} from "@/components/ui";
 import { useNotify } from "@/components/notify";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -60,104 +72,110 @@ export function DeletedVideosList({
     }
   }
 
+  const empty = (
+    <EmptyState
+      icon={Trash2}
+      title="ถังลบว่างเปล่า"
+      description="ยังไม่มีวิดีโอที่ถูกลบ — เมื่อลบวิดีโอ ระบบจะเก็บไว้ที่นี่ชั่วคราวก่อนลบถาวร"
+    />
+  );
+
   return (
-    <div>
-      <p className="mb-4 text-sm text-[var(--muted)]">
-        วิดีโอที่ลบแล้วจะกู้คืนได้ภายใน {softDeleteDays} วัน — ไฟล์ยังอยู่ใน Storage
-      </p>
+    <div className="space-y-5">
+      <Callout tone="info" icon={Trash2}>
+        วิดีโอที่ลบแล้วจะกู้คืนได้ภายใน {softDeleteDays} วัน — ไฟล์ยังคงอยู่ใน storage
+        จนกว่าจะพ้นกำหนด
+      </Callout>
 
-      <div className="mb-4">
-        <Link
-          href={`/t/${tenantSlug}/videos`}
-          className="text-sm font-medium text-[var(--accent)] hover:underline"
-        >
-          ← กลับรายการวิดีโอ
-        </Link>
-      </div>
-
+      {/* Mobile */}
       <div className="space-y-3 md:hidden">
-        {items.map((rec) => (
-          <div
-            key={rec.id}
-            className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow)]"
-          >
-            <p className="font-medium text-[var(--ink)]">{rec.orderNo}</p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {rec.stationCode} · ลบ{" "}
-              {format(new Date(rec.deletedAt), "d MMM HH:mm", { locale: th })}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge tone={rec.expired ? "danger" : "warning"}>
-                {rec.expired
-                  ? "หมดเวลากู้คืน"
-                  : `กู้ได้ถึง ${format(new Date(rec.restoreUntil), "d MMM", { locale: th })}`}
-              </Badge>
-              {!rec.expired && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="text-xs"
-                  disabled={busyId === rec.id}
-                  onClick={() => void restore(rec.id)}
-                >
-                  {busyId === rec.id ? "กำลังกู้…" : "กู้คืน"}
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-        {items.length === 0 && (
-          <p className="py-8 text-center text-[var(--muted)]">ไม่มีวิดีโอในถังลบ</p>
-        )}
+        {items.length === 0
+          ? empty
+          : items.map((rec) => (
+              <div
+                key={rec.id}
+                className="rounded-xl border border-line bg-surface p-4 shadow-sm"
+              >
+                <p className="font-medium text-ink">{rec.orderNo}</p>
+                <p className="mt-1 text-[13px] text-muted">
+                  {rec.stationCode} · ลบ{" "}
+                  {format(new Date(rec.deletedAt), "d MMM HH:mm", { locale: th })}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <Badge tone={rec.expired ? "danger" : "warning"} dot>
+                    {rec.expired
+                      ? "หมดเวลากู้คืน"
+                      : `กู้ได้ถึง ${format(new Date(rec.restoreUntil), "d MMM", { locale: th })}`}
+                  </Badge>
+                  {!rec.expired && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      icon={RotateCcw}
+                      loading={busyId === rec.id}
+                      onClick={() => void restore(rec.id)}
+                    >
+                      กู้คืน
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
       </div>
 
+      {/* Desktop */}
       <div className="hidden md:block">
-        <TableScroll>
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-[var(--border)] text-xs uppercase tracking-wide text-[var(--muted)]">
-              <tr>
-                <th className="px-3 py-2 font-medium">ออเดอร์</th>
-                <th className="px-3 py-2 font-medium">สถานี</th>
-                <th className="px-3 py-2 font-medium">ลบเมื่อ</th>
-                <th className="px-3 py-2 font-medium">กู้คืนได้ถึง</th>
-                <th className="px-3 py-2 font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((rec) => (
-                <tr key={rec.id} className="border-b border-[var(--border)]/70">
-                  <td className="px-3 py-2.5 font-medium text-[var(--ink)]">{rec.orderNo}</td>
-                  <td className="px-3 py-2.5 text-[var(--muted)]">{rec.stationCode}</td>
-                  <td className="px-3 py-2.5 text-[var(--muted)]">
-                    {format(new Date(rec.deletedAt), "d MMM yyyy HH:mm", { locale: th })}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <Badge tone={rec.expired ? "danger" : "warning"}>
-                      {rec.expired
-                        ? "หมดเวลา"
-                        : format(new Date(rec.restoreUntil), "d MMM yyyy", { locale: th })}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    {!rec.expired && (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="text-xs"
-                        disabled={busyId === rec.id}
-                        onClick={() => void restore(rec.id)}
-                      >
-                        {busyId === rec.id ? "กำลังกู้…" : "กู้คืน"}
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </TableScroll>
-        {items.length === 0 && (
-          <p className="py-8 text-center text-[var(--muted)]">ไม่มีวิดีโอในถังลบ</p>
+        {items.length === 0 ? (
+          empty
+        ) : (
+          <TableCard>
+            <Table>
+              <THead>
+                <Th>ออเดอร์</Th>
+                <Th>สถานี</Th>
+                <Th>พนักงาน</Th>
+                <Th>ลบเมื่อ</Th>
+                <Th>กู้คืนได้ถึง</Th>
+                <Th align="right">การจัดการ</Th>
+              </THead>
+              <TBody>
+                {items.map((rec) => (
+                  <Tr key={rec.id}>
+                    <Td className="font-medium text-ink">{rec.orderNo}</Td>
+                    <Td>{rec.stationCode}</Td>
+                    <Td>{rec.employeeName}</Td>
+                    <Td className="text-muted">
+                      {format(new Date(rec.deletedAt), "d MMM yyyy HH:mm", { locale: th })}
+                    </Td>
+                    <Td>
+                      <Badge tone={rec.expired ? "danger" : "warning"} dot>
+                        {rec.expired
+                          ? "หมดเวลา"
+                          : format(new Date(rec.restoreUntil), "d MMM yyyy", { locale: th })}
+                      </Badge>
+                    </Td>
+                    <Td align="right">
+                      {!rec.expired ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          icon={RotateCcw}
+                          loading={busyId === rec.id}
+                          onClick={() => void restore(rec.id)}
+                        >
+                          กู้คืน
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-faint">—</span>
+                      )}
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          </TableCard>
         )}
       </div>
     </div>

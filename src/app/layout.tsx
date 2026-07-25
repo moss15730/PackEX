@@ -1,19 +1,21 @@
-import type { Metadata } from "next";
-import { IBM_Plex_Sans_Thai, Prompt } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Anuphan } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NotifyProvider } from "@/components/notify";
 import "./globals.css";
 
-const ibmPlexThai = IBM_Plex_Sans_Thai({
-  variable: "--font-sans",
-  subsets: ["thai", "latin"],
-  weight: ["400", "500", "600", "700"],
+/** Latin + numerals — tight, neutral, excellent at UI sizes. */
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
 });
 
-const prompt = Prompt({
-  variable: "--font-display",
+/** Thai — modern, low-contrast loopless face that pairs with Inter. */
+const anuphan = Anuphan({
+  variable: "--font-thai",
   subsets: ["thai", "latin"],
-  weight: ["500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,6 +27,16 @@ export const metadata: Metadata = {
     "PackEX ระบบบันทึกวิดีโอการแพ็คสินค้าแบบ multi-tenant สำหรับคลังสินค้าและ fulfillment",
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafb" },
+    { media: "(prefers-color-scheme: dark)", color: "#111214" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,10 +45,18 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${ibmPlexThai.variable} ${prompt.variable} h-full antialiased`}
+      className={`${inter.variable} ${anuphan.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        {/* Paint the correct theme before first frame — no flash of wrong palette. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem("packex-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;var t=s==="light"||s==="dark"?s:(d?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className="flex min-h-full flex-col bg-canvas text-ink">
         <ThemeProvider>
           <NotifyProvider>{children}</NotifyProvider>
         </ThemeProvider>

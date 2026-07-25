@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button } from "@/components/ui";
+import { AlertTriangle, Building2, HardDrive, ShieldCheck, Users } from "lucide-react";
+import { Button, Callout, Field, Input, Select } from "@/components/ui";
 
 type Plan = {
   id: string;
@@ -81,140 +82,159 @@ export function CreateTenantForm({ plans }: { plans: Plan[] }) {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      {selectedPlan ? (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm">
-          <div className="font-medium text-[var(--ink)]">Capacity Plan</div>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[var(--muted)]">
-            <span>พื้นที่วิดีโอ: {selectedPlan.maxStorageGb} GB</span>
-            <span>ผู้ใช้สูงสุด: {selectedPlan.maxUsers}</span>
-            <span>
-              ราคา:{" "}
-              {selectedPlan.priceMonthly > 0
-                ? `฿${selectedPlan.priceMonthly.toLocaleString()}/เดือน`
-                : "ติดต่อเรา"}
-            </span>
-          </div>
-        </div>
-      ) : null}
-
+    <form onSubmit={submit} className="space-y-8">
       {error ? (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+        <Callout tone="danger" icon={AlertTriangle}>
           {error}
-        </div>
+        </Callout>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            Slug
-          </label>
-          <input
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            placeholder="acme"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
-            required
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            ชื่อองค์กร
-          </label>
-          <input
-            value={tenantName}
-            onChange={(e) => setTenantName(e.target.value)}
-            placeholder="ชื่อบริษัท"
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
-            required
-          />
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            เลือกแพ็กเกจ (กำหนดความจุจัดเก็บวิดีโอ)
-          </label>
-          <select
-            value={planId}
-            onChange={(e) => setPlanId(e.target.value)}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
-          >
-            {plans.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nameTh} · {p.maxStorageGb} GB · max users {p.maxUsers}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="pt-2">
-        <div className="mb-3 flex items-center gap-2">
-          <Badge tone="info">Tenant Admin เริ่มต้น</Badge>
-          <div className="text-xs text-[var(--muted)]">Platform จะสร้างบัญชีผู้ดูแลขององค์กรนี้</div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
+      {/* Organisation */}
+      <section>
+        <header className="mb-4 flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-subtle text-muted">
+            <Building2 size={16} strokeWidth={2} />
+          </span>
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              ชื่อ
-            </label>
-            <input
+            <h2 className="text-[15px] font-semibold text-ink">ข้อมูลองค์กร</h2>
+            <p className="text-[13px] text-muted">slug จะใช้เป็น URL ของ tenant</p>
+          </div>
+        </header>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Slug" htmlFor="slug" required hint="ตัวพิมพ์เล็ก ไม่มีช่องว่าง เช่น acme">
+            <Input
+              id="slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="acme"
+              required
+            />
+          </Field>
+          <Field label="ชื่อองค์กร" htmlFor="tenantName" required>
+            <Input
+              id="tenantName"
+              value={tenantName}
+              onChange={(e) => setTenantName(e.target.value)}
+              placeholder="บริษัท เอซีเอ็มอี จำกัด"
+              required
+            />
+          </Field>
+
+          <Field
+            label="แพ็กเกจ"
+            htmlFor="planId"
+            className="sm:col-span-2"
+            hint="กำหนดความจุจัดเก็บวิดีโอและจำนวนผู้ใช้"
+          >
+            <Select id="planId" value={planId} onChange={(e) => setPlanId(e.target.value)}>
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nameTh} · {p.maxStorageGb} GB · ผู้ใช้สูงสุด {p.maxUsers}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        {selectedPlan ? (
+          <div className="mt-4 grid gap-3 rounded-xl border border-brand-border bg-brand-soft p-4 sm:grid-cols-3">
+            <div className="flex items-center gap-2.5">
+              <HardDrive size={16} className="text-brand-soft-ink" />
+              <div>
+                <p className="text-[11px] text-brand-soft-ink/80">พื้นที่วิดีโอ</p>
+                <p className="tabular text-sm font-semibold text-brand-soft-ink">
+                  {selectedPlan.maxStorageGb} GB
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Users size={16} className="text-brand-soft-ink" />
+              <div>
+                <p className="text-[11px] text-brand-soft-ink/80">ผู้ใช้สูงสุด</p>
+                <p className="tabular text-sm font-semibold text-brand-soft-ink">
+                  {selectedPlan.maxUsers}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck size={16} className="text-brand-soft-ink" />
+              <div>
+                <p className="text-[11px] text-brand-soft-ink/80">ราคา</p>
+                <p className="tabular text-sm font-semibold text-brand-soft-ink">
+                  {selectedPlan.priceMonthly > 0
+                    ? `฿${selectedPlan.priceMonthly.toLocaleString()}/เดือน`
+                    : "ติดต่อเรา"}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      {/* Admin */}
+      <section className="border-t border-line pt-8">
+        <header className="mb-4 flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-subtle text-muted">
+            <ShieldCheck size={16} strokeWidth={2} />
+          </span>
+          <div>
+            <h2 className="text-[15px] font-semibold text-ink">Tenant admin เริ่มต้น</h2>
+            <p className="text-[13px] text-muted">
+              บัญชีผู้ดูแลคนแรกขององค์กรนี้ — ใช้เข้าสู่ระบบครั้งแรก
+            </p>
+          </div>
+        </header>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="ชื่อผู้ดูแล" htmlFor="adminName">
+            <Input
+              id="adminName"
               value={adminName}
               onChange={(e) => setAdminName(e.target.value)}
-              placeholder="ชื่อผู้ดูแล"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              placeholder="ชื่อ-นามสกุล"
             />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              รหัสพนักงาน
-            </label>
-            <input
+          </Field>
+          <Field label="รหัสพนักงาน" htmlFor="employeeCode" required>
+            <Input
+              id="employeeCode"
               value={employeeCode}
               onChange={(e) => setEmployeeCode(e.target.value)}
               placeholder="EMP-001"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
               required
             />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              Email
-            </label>
-            <input
+          </Field>
+          <Field label="อีเมล" htmlFor="adminEmail" required>
+            <Input
+              id="adminEmail"
+              type="email"
               value={adminEmail}
               onChange={(e) => setAdminEmail(e.target.value)}
               placeholder="admin@tenant.local"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
               required
             />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              Password
-            </label>
-            <input
+          </Field>
+          <Field label="รหัสผ่าน" htmlFor="adminPassword" required hint="อย่างน้อย 8 ตัวอักษร">
+            <Input
+              id="adminPassword"
               type="password"
               value={adminPassword}
               onChange={(e) => setAdminPassword(e.target.value)}
-              placeholder="อย่างน้อย 8 ตัวอักษร"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+              placeholder="••••••••"
               required
             />
-          </div>
+          </Field>
         </div>
-      </div>
+      </section>
 
-      <div className="flex flex-wrap gap-2 pt-2">
-        <Button type="submit" disabled={busy} className="min-h-11 px-6">
-          {busy ? "กำลังสร้าง..." : "สร้างองค์กร"}
+      <div className="flex flex-wrap gap-2 border-t border-line pt-6">
+        <Button type="submit" size="lg" loading={busy}>
+          {busy ? "กำลังสร้าง…" : "สร้างองค์กร"}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          className="min-h-11 px-6"
+          size="lg"
           disabled={busy}
           onClick={() => router.push("/platform/tenants")}
         >
@@ -224,4 +244,3 @@ export function CreateTenantForm({ plans }: { plans: Plan[] }) {
     </form>
   );
 }
-

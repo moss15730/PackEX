@@ -42,6 +42,39 @@ export function statusLabel(status: string) {
   return map[status] ?? status;
 }
 
+export type StatusTone = "neutral" | "brand" | "success" | "warning" | "danger" | "info" | "rec";
+
+/** Single source of truth for status colour across tables, cards and badges. */
+export function statusTone(status: string): StatusTone {
+  const map: Record<string, StatusTone> = {
+    ready: "success",
+    active: "success",
+    idle: "success",
+    packed: "success",
+    closed: "neutral",
+    archived: "neutral",
+    disabled: "neutral",
+    deleted: "neutral",
+    canceled: "neutral",
+    pending: "info",
+    packing: "info",
+    reviewing: "info",
+    open: "info",
+    trial: "info",
+    syncing: "info",
+    uploading: "info",
+    recording: "rec",
+    warning: "warning",
+    claimed: "warning",
+    suspended: "warning",
+    offline: "danger",
+    blocked: "danger",
+    disk_full: "danger",
+    camera_error: "danger",
+  };
+  return map[status] ?? "neutral";
+}
+
 export function roleLabel(role: string) {
   const map: Record<string, string> = {
     tenant_admin: "Tenant Admin",

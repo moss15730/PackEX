@@ -3,10 +3,18 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Building2, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import { PackExWordmark } from "@/components/brand";
-import { Button, Card, Field, inputClassName } from "@/components/ui";
+import { Button, Field, Input } from "@/components/ui";
+import { SegmentedControl } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
-import { cn } from "@/lib/utils";
+import { PageLoading } from "@/components/page-loading";
+
+const HIGHLIGHTS = [
+  "บันทึกวิดีโอทุกออเดอร์อัตโนมัติจากสถานีแพ็ค",
+  "ตรวจสอบ checksum และ audit log ย้อนหลังได้",
+  "แชร์ลิงก์หลักฐานแบบมีวันหมดอายุให้ลูกค้า",
+];
 
 function LoginForm() {
   const router = useRouter();
@@ -14,10 +22,14 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const platformMode = searchParams.get("platform") === "1";
 
-  const [platform, setPlatform] = useState(platformMode);
-  const [email, setEmail] = useState(platformMode ? "" : "");
+  const [mode, setMode] = useState<"tenant" | "platform">(
+    platformMode ? "platform" : "tenant",
+  );
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const platform = mode === "platform";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,118 +68,139 @@ function LoginForm() {
   }
 
   return (
-    <div className="warehouse-atmosphere relative flex min-h-screen">
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center gap-10 px-4 py-12 lg:flex-row lg:items-center lg:gap-16 lg:px-10">
-        <div className="hidden flex-1 lg:block">
-          <PackExWordmark className="mb-8" />
-          <h1 className="font-[family-name:var(--font-display)] text-4xl font-semibold leading-tight tracking-tight text-[var(--ink)]">
-            เข้าสู่ระบบ
-            <span className="mt-1 block text-[var(--accent)]">PackEX Ops</span>
+    <div className="flex min-h-[100dvh] flex-col lg:flex-row">
+      {/* Brand panel */}
+      <aside className="aurora relative hidden w-[46%] max-w-2xl flex-col justify-between border-r border-line p-12 lg:flex">
+        <Link href="/" className="inline-flex">
+          <PackExWordmark size="lg" />
+        </Link>
+
+        <div>
+          <h1 className="max-w-md text-4xl font-semibold tracking-[-0.03em] text-ink">
+            หลักฐานการแพ็ค
+            <span className="mt-1 block text-brand">ที่ทีมคุณเชื่อถือได้</span>
           </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-[var(--muted)]">
-            บันทึกวิดีโอสถานีแพ็ค ตรวจสอบหลักฐาน และจัดการเคลมในที่เดียว
-          </p>
+          <ul className="mt-8 space-y-3.5">
+            {HIGHLIGHTS.map((item) => (
+              <li key={item} className="flex items-start gap-3 text-sm text-ink-2">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-soft-ink">
+                  <ShieldCheck size={12} strokeWidth={2.4} />
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="w-full max-w-md lg:ml-auto">
+        <p className="text-xs text-muted">
+          © {new Date().getFullYear()} PackEX · Packing Video Systems
+        </p>
+      </aside>
+
+      {/* Form panel */}
+      <main className="flex flex-1 items-center justify-center bg-canvas px-4 py-10 sm:px-8">
+        <div className="w-full max-w-[25rem]">
           <div className="mb-8 flex justify-center lg:hidden">
             <Link href="/">
-              <PackExWordmark />
+              <PackExWordmark size="md" />
             </Link>
           </div>
 
-          <Card className="p-6 sm:p-7">
-            <div className="mb-5 flex rounded-[var(--radius-sm)] bg-[var(--surface-2)] p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setPlatform(false);
-                  setEmail("");
-                  setPassword("");
-                }}
-                className={cn(
-                  "flex-1 rounded-md px-3 py-2 text-sm font-semibold transition",
-                  !platform
-                    ? "bg-[var(--surface)] text-[var(--ink)] shadow-[var(--shadow)]"
-                    : "text-[var(--muted)] hover:text-[var(--ink)]",
-                )}
-              >
-                องค์กร
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPlatform(true);
-                  setEmail("");
-                  setPassword("");
-                }}
-                className={cn(
-                  "flex-1 rounded-md px-3 py-2 text-sm font-semibold transition",
-                  platform
-                    ? "bg-[var(--surface)] text-[var(--ink)] shadow-[var(--shadow)]"
-                    : "text-[var(--muted)] hover:text-[var(--ink)]",
-                )}
-              >
-                Platform
-              </button>
-            </div>
+          <div className="rounded-2xl border border-line bg-surface p-6 shadow-lg sm:p-8">
+            <SegmentedControl
+              className="w-full"
+              value={mode}
+              onChange={(next) => {
+                setMode(next);
+                setEmail("");
+                setPassword("");
+              }}
+              options={[
+                { value: "tenant", label: "องค์กร", icon: Building2 },
+                { value: "platform", label: "Platform", icon: ShieldCheck },
+              ]}
+            />
 
-            <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[var(--ink)]">
-              {platform ? "Platform Admin" : "เข้าสู่ระบบองค์กร"}
+            <h2 className="mt-6 text-xl font-semibold tracking-tight text-ink">
+              {platform ? "Platform admin" : "เข้าสู่ระบบองค์กร"}
             </h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">
+            <p className="mt-1.5 text-sm text-muted">
               {platform
-                ? "จัดการ tenant, แผน และสุขภาพระบบ"
-                : "ลงชื่อเข้าใช้ด้วยอีเมลและรหัสผ่าน"}
+                ? "จัดการ tenant แผนบริการ และสุขภาพระบบ"
+                : "ลงชื่อเข้าใช้ด้วยอีเมลและรหัสผ่านของคุณ"}
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <Field label="อีเมล">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClassName}
-                  required
-                />
+            <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+              <Field label="อีเมล" htmlFor="email">
+                <div className="relative">
+                  <Mail
+                    size={15}
+                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint"
+                  />
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-9"
+                    placeholder="you@company.com"
+                    required
+                  />
+                </div>
               </Field>
 
-              <Field label="รหัสผ่าน">
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputClassName}
-                  required
-                />
+              <Field label="รหัสผ่าน" htmlFor="password">
+                <div className="relative">
+                  <Lock
+                    size={15}
+                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint"
+                  />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10 pl-9"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1.5 text-faint transition hover:text-ink"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </Field>
 
-              <Button type="submit" variant="primary" className="w-full py-2.5" disabled={loading}>
+              <Button type="submit" size="lg" className="w-full" loading={loading}>
                 {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
               </Button>
             </form>
+          </div>
 
-            <div className="mt-5 text-center text-sm">
-              <Link href="/" className="text-[var(--muted)] transition hover:text-[var(--ink)]">
-                กลับหน้าแรก
-              </Link>
-            </div>
-          </Card>
+          <div className="mt-6 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-ink"
+            >
+              <ArrowLeft size={14} />
+              กลับหน้าแรก
+            </Link>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center text-sm text-[var(--muted)]">
-          กำลังโหลด…
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoading />}>
       <LoginForm />
     </Suspense>
   );

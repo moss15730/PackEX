@@ -1,6 +1,77 @@
-{"timestamp":"00:00:01.747","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:00:06.357","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:00:22.521","source":"Server","level":"LOG","message":"✓ Compiled in 1202ms"}
-{"timestamp":"00:01:11.169","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:01:59.424","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:04:09.919","source":"Server","level":"LOG","message":"✓ Compiled in 227ms"}
+{"timestamp":"00:00:01.865","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:05.064","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:00:20.100","source":"Server","level":"LOG","message":"✓ Compiled in 189ms"}
+{"timestamp":"00:01:27.382","source":"Server","level":"LOG","message":"✓ Compiled in 213ms"}
+{"timestamp":"00:01:49.242","source":"Server","level":"LOG","message":"✓ Compiled in 141ms"}
+{"timestamp":"00:02:42.976","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/notify.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:02:43.008","source":"Server","level":"LOG","message":"✓ Compiled in 118ms"}
+{"timestamp":"00:02:43.459","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:02:47.627","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/notify.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:02:47.658","source":"Server","level":"LOG","message":"✓ Compiled in 72ms"}
+{"timestamp":"00:02:47.978","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:04:46.230","source":"Server","level":"LOG","message":"✓ Compiled in 215ms"}
+{"timestamp":"00:05:27.960","source":"Server","level":"LOG","message":"✓ Compiled in 149ms"}
+{"timestamp":"00:05:40.582","source":"Server","level":"LOG","message":"✓ Compiled in 160ms"}
+{"timestamp":"00:06:19.448","source":"Server","level":"LOG","message":"✓ Compiled in 142ms"}
+{"timestamp":"00:06:24.812","source":"Server","level":"LOG","message":"✓ Compiled in 143ms"}
+{"timestamp":"00:07:28.802","source":"Server","level":"LOG","message":"✓ Compiled in 179ms"}
+{"timestamp":"00:07:44.856","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/lib/utils.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:07:44.889","source":"Server","level":"LOG","message":"✓ Compiled in 128ms"}
+{"timestamp":"00:07:45.374","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:08:30.819","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/ui.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:08:30.851","source":"Server","level":"LOG","message":"✓ Compiled in 151ms"}
+{"timestamp":"00:08:31.274","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:10:28.434","source":"Server","level":"LOG","message":"✓ Compiled in 172ms"}
+{"timestamp":"00:11:13.794","source":"Server","level":"LOG","message":"✓ Compiled in 162ms"}
+{"timestamp":"00:11:45.097","source":"Server","level":"LOG","message":"✓ Compiled in 177ms"}
+{"timestamp":"00:12:29.686","source":"Server","level":"LOG","message":"✓ Compiled in 165ms"}
+{"timestamp":"00:12:50.379","source":"Server","level":"LOG","message":"✓ Compiled in 113ms"}
+{"timestamp":"00:13:52.497","source":"Server","level":"LOG","message":"✓ Compiled in 170ms"}
+{"timestamp":"00:14:18.435","source":"Server","level":"LOG","message":"✓ Compiled in 142ms"}
+{"timestamp":"00:15:59.200","source":"Server","level":"LOG","message":"✓ Compiled in 102ms"}
+{"timestamp":"00:17:43.758","source":"Server","level":"LOG","message":"✓ Compiled in 172ms"}
+{"timestamp":"00:18:49.752","source":"Server","level":"LOG","message":"✓ Compiled in 149ms"}
+{"timestamp":"00:20:47.411","source":"Server","level":"LOG","message":"✓ Compiled in 156ms"}
+{"timestamp":"00:21:51.578","source":"Server","level":"LOG","message":"✓ Compiled in 182ms"}
+{"timestamp":"00:23:52.191","source":"Server","level":"LOG","message":"✓ Compiled in 177ms"}
+{"timestamp":"00:25:26.992","source":"Server","level":"LOG","message":"✓ Compiled in 199ms"}
+{"timestamp":"00:27:42.376","source":"Server","level":"LOG","message":"✓ Compiled in 172ms"}
+{"timestamp":"00:29:31.602","source":"Server","level":"LOG","message":"✓ Compiled in 191ms"}
+{"timestamp":"00:31:04.866","source":"Server","level":"LOG","message":"✓ Compiled in 147ms"}
+{"timestamp":"00:33:30.806","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:34:24.518","source":"Server","level":"LOG","message":"✓ Compiled in 136ms"}
+{"timestamp":"00:34:33.038","source":"Server","level":"LOG","message":"✓ Compiled in 270ms"}
+{"timestamp":"00:34:37.405","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:34:56.903","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:35:12.783","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:36:21.356","source":"Server","level":"LOG","message":"✓ Compiled in 161ms"}
+{"timestamp":"00:36:25.177","source":"Server","level":"LOG","message":"✓ Compiled in 278ms"}
+{"timestamp":"00:36:30.063","source":"Server","level":"LOG","message":"✓ Compiled in 254ms"}
+{"timestamp":"00:36:35.648","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:37:03.190","source":"Server","level":"LOG","message":"✓ Compiled in 314ms"}
+{"timestamp":"00:37:15.709","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:39:45.207","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/ui.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:39:45.212","source":"Server","level":"LOG","message":"✓ Compiled in 158ms"}
+{"timestamp":"00:39:45.218","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/ui.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:39:46.104","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:39:46.118","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:39:49.241","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:40:32.819","source":"Server","level":"LOG","message":"✓ Compiled in 163ms"}
+{"timestamp":"00:40:32.822","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/ui.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:40:32.881","source":"Server","level":"WARN","message":"⚠ Fast Refresh had to perform a full reload when ./src/components/ui.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload"}
+{"timestamp":"00:40:33.567","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:40:33.607","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:40:37.550","source":"Server","level":"LOG","message":"✓ Compiled in 198ms"}
+{"timestamp":"00:40:46.453","source":"Server","level":"LOG","message":"✓ Compiled in 149ms"}
+{"timestamp":"00:40:50.355","source":"Server","level":"LOG","message":"✓ Compiled in 281ms"}
+{"timestamp":"00:41:54.813","source":"Server","level":"LOG","message":"✓ Compiled in 422ms"}
+{"timestamp":"00:42:00.758","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:44:58.706","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:45:12.138","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:45:14.607","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
+{"timestamp":"00:47:12.576","source":"Browser","level":"WARN","message":"Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"}
+{"timestamp":"00:47:12.637","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mDetected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\\\"smooth\\\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior\\u001b[39m\""}
+{"timestamp":"00:47:12.637","source":"Browser","level":"WARN","message":"\u001b[33mDetected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior\u001b[39m"}
+{"timestamp":"00:49:05.259","source":"Browser","level":"WARN","message":"Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"}
+{"timestamp":"00:49:16.983","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mDetected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\\\"smooth\\\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior\\u001b[39m\""}
+{"timestamp":"00:49:16.984","source":"Browser","level":"WARN","message":"\u001b[33mDetected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior\u001b[39m"}

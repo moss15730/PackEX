@@ -4,7 +4,35 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { Badge, Button, Card } from "@/components/ui";
+import {
+  AlertTriangle,
+  Building2,
+  Eye,
+  EyeOff,
+  PauseCircle,
+  Pencil,
+  PlayCircle,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
+  Callout,
+  EmptyState,
+  Field,
+  Input,
+  Select,
+  Table,
+  TableCard,
+  TBody,
+  Td,
+  Th,
+  THead,
+  Toolbar,
+  Tr,
+} from "@/components/ui";
+import { Modal } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
 import { statusLabel } from "@/lib/utils";
 
@@ -276,399 +304,406 @@ export function PlatformTenantsManager({
     }
   }
 
+  const usageLine = (t: TenantListItem) =>
+    `สถานี ${t.stationCount}${t.maxStations != null ? `/${t.maxStations}` : ""} · ผู้ใช้ ${t.userCount}${
+      t.maxUsers != null ? `/${t.maxUsers}` : ""
+    } · ${t.storageUsedGb.toFixed(1)} GB${t.maxStorageGb != null ? `/${t.maxStorageGb} GB` : ""}`;
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-[var(--muted)]">
-          จัดการองค์กร แผนราคา และสถานะการใช้งาน
-        </p>
-        {!showCreate && !editingId ? (
-          <Button type="button" onClick={() => setShowCreate(true)} disabled={busy}>
-            สร้างองค์กร
-          </Button>
-        ) : null}
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">จัดการองค์กร แผนบริการ โควต้า และสถานะการใช้งาน</p>
+        <Button type="button" onClick={() => setShowCreate(true)} disabled={busy} icon={Plus}>
+          สร้างองค์กร
+        </Button>
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+        <Callout tone="danger" icon={AlertTriangle}>
           {error}
-        </div>
+        </Callout>
       ) : null}
 
-      {showCreate && (
-        <Card>
-          <h2 className="mb-4 font-semibold text-[var(--ink)]">สร้างองค์กรใหม่</h2>
-          <form onSubmit={submitCreate} className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  Slug
-                </label>
-                <input
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="acme"
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  ชื่อองค์กร
-                </label>
-                <input
-                  value={tenantName}
-                  onChange={(e) => setTenantName(e.target.value)}
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                  required
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  แพ็กเกจ
-                </label>
-                <select
-                  value={planId}
-                  onChange={(e) => setPlanId(e.target.value)}
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
+      {tenants.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title="ยังไม่มีองค์กร"
+          description="สร้าง tenant แรกเพื่อเริ่มให้บริการบนแพลตฟอร์ม"
+          action={
+            <Button type="button" onClick={() => setShowCreate(true)} icon={Plus}>
+              สร้างองค์กร
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <TableCard
+              minWidthClassName="min-w-[960px]"
+              header={
+                <Toolbar
+                  actions={<span className="text-xs text-muted">{tenants.length} องค์กร</span>}
                 >
-                  {plans.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nameTh} · {p.maxStorageGb} GB
-                    </option>
+                  <span className="text-[13px] font-medium text-ink">องค์กรทั้งหมด</span>
+                </Toolbar>
+              }
+            >
+              <Table>
+                <THead>
+                  <Th>องค์กร</Th>
+                  <Th>สถานะ</Th>
+                  <Th>แผน</Th>
+                  <Th align="right">พื้นที่</Th>
+                  <Th align="right">สถานี / ผู้ใช้</Th>
+                  <Th align="right">สร้างเมื่อ</Th>
+                  <Th align="right">จัดการ</Th>
+                </THead>
+                <TBody>
+                  {tenants.map((t) => (
+                    <Tr key={t.id}>
+                      <Td>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-ink">{t.name}</p>
+                          <p className="font-mono text-xs text-muted">{t.slug}</p>
+                        </div>
+                      </Td>
+                      <Td>
+                        <Badge tone={statusTone(t.status)} dot>
+                          {statusLabel(t.status)}
+                        </Badge>
+                      </Td>
+                      <Td>{t.planName ?? "—"}</Td>
+                      <Td align="right" className="tabular">
+                        {t.storageUsedGb.toFixed(1)}
+                        {t.maxStorageGb != null ? ` / ${t.maxStorageGb} GB` : " GB"}
+                      </Td>
+                      <Td align="right" className="tabular">
+                        {t.stationCount}
+                        {t.maxStations != null ? `/${t.maxStations}` : ""} · {t.userCount}
+                        {t.maxUsers != null ? `/${t.maxUsers}` : ""}
+                      </Td>
+                      <Td align="right" className="text-muted">
+                        {format(new Date(t.createdAt), "d MMM yyyy", { locale: th })}
+                      </Td>
+                      <Td align="right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={Pencil}
+                            disabled={busy}
+                            onClick={() => startEdit(t)}
+                          >
+                            แก้ไข
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={t.status === "suspended" ? PlayCircle : PauseCircle}
+                            disabled={busy}
+                            onClick={() => void toggleSuspend(t)}
+                          >
+                            {t.status === "suspended" ? "เปิดใช้" : "ปิดใช้"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={Trash2}
+                            className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                            disabled={busy}
+                            onClick={() => void handleDelete(t)}
+                          >
+                            ลบ
+                          </Button>
+                        </div>
+                      </Td>
+                    </Tr>
                   ))}
-                </select>
-              </div>
-            </div>
+                </TBody>
+              </Table>
+            </TableCard>
+          </div>
 
-            <div className="border-t border-[var(--border)] pt-4">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Tenant Admin เริ่มต้น
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  placeholder="ชื่อผู้ดูแล"
-                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                />
-                <input
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {tenants.map((t) => (
+              <div key={t.id} className="rounded-xl border border-line bg-surface p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-ink">{t.name}</p>
+                    <p className="font-mono text-xs text-muted">{t.slug}</p>
+                  </div>
+                  <Badge tone={statusTone(t.status)} dot>
+                    {statusLabel(t.status)}
+                  </Badge>
+                </div>
+                <p className="mt-2.5 text-[13px] text-muted">
+                  {t.planName ?? "ไม่มีแผน"} · {usageLine(t)}
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    icon={Pencil}
+                    className="flex-1"
+                    disabled={busy}
+                    onClick={() => startEdit(t)}
+                  >
+                    แก้ไข
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1"
+                    disabled={busy}
+                    onClick={() => void toggleSuspend(t)}
+                  >
+                    {t.status === "suspended" ? "เปิดใช้" : "ปิดใช้"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                    disabled={busy}
+                    onClick={() => void handleDelete(t)}
+                  >
+                    ลบ
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Create modal */}
+      <Modal
+        open={showCreate}
+        onClose={resetCreate}
+        title="สร้างองค์กรใหม่"
+        description="กำหนดแพ็กเกจและบัญชีผู้ดูแลเริ่มต้น"
+        icon={Building2}
+        size="lg"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={resetCreate} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="tenant-create" loading={busy}>
+              สร้างองค์กร
+            </Button>
+          </>
+        }
+      >
+        <form id="tenant-create" onSubmit={submitCreate} className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Slug" required hint="ใช้เป็น URL ของ tenant">
+              <Input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="acme"
+                className="font-mono"
+                required
+              />
+            </Field>
+            <Field label="ชื่อองค์กร" required>
+              <Input
+                value={tenantName}
+                onChange={(e) => setTenantName(e.target.value)}
+                required
+              />
+            </Field>
+            <Field label="แพ็กเกจ" className="sm:col-span-2">
+              <Select value={planId} onChange={(e) => setPlanId(e.target.value)}>
+                {plans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nameTh} · {p.maxStorageGb} GB
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+
+          <div className="border-t border-line pt-5">
+            <p className="mb-3 text-[13px] font-medium text-ink">Tenant admin เริ่มต้น</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="ชื่อผู้ดูแล">
+                <Input value={adminName} onChange={(e) => setAdminName(e.target.value)} />
+              </Field>
+              <Field label="รหัสพนักงาน" required>
+                <Input
                   value={employeeCode}
                   onChange={(e) => setEmployeeCode(e.target.value)}
-                  placeholder="รหัสพนักงาน"
-                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
+                  placeholder="EMP-001"
                   required
                 />
-                <input
+              </Field>
+              <Field label="อีเมล" required>
+                <Input
+                  type="email"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="admin@tenant.local"
-                  type="email"
-                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
-                <input
+              </Field>
+              <Field label="รหัสผ่าน" required hint="อย่างน้อย 8 ตัวอักษร">
+                <Input
+                  type="password"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="รหัสผ่าน (≥8)"
-                  type="password"
-                  className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
-              </div>
+              </Field>
             </div>
+          </div>
+        </form>
+      </Modal>
 
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={busy}>
-                {busy ? "กำลังสร้าง..." : "สร้างองค์กร"}
-              </Button>
-              <Button type="button" variant="secondary" onClick={resetCreate} disabled={busy}>
-                ยกเลิก
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {editing && (
-        <Card>
-          <h2 className="mb-1 font-semibold text-[var(--ink)]">แก้ไของค์กร</h2>
-          <p className="mb-4 font-mono text-sm text-[var(--muted)]">{editing.slug}</p>
-          <form onSubmit={submitEdit} className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  ชื่อองค์กร
-                </label>
-                <input
+      {/* Edit modal */}
+      <Modal
+        open={Boolean(editing)}
+        onClose={cancelEdit}
+        title={`แก้ไของค์กร ${editing?.name ?? ""}`}
+        description={editing?.slug}
+        icon={Pencil}
+        size="lg"
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={cancelEdit} disabled={busy}>
+              ยกเลิก
+            </Button>
+            <Button type="submit" form="tenant-edit" loading={busy}>
+              บันทึก
+            </Button>
+          </>
+        }
+      >
+        {editing ? (
+          <form id="tenant-edit" onSubmit={submitEdit} className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="ชื่อองค์กร" required>
+                <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                   required
                 />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  สถานะ
-                </label>
-                <select
-                  value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value)}
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                >
+              </Field>
+              <Field label="สถานะ">
+                <Select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
                   <option value="trial">ทดลองใช้</option>
                   <option value="active">ใช้งาน</option>
                   <option value="suspended">ระงับ</option>
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  แพ็กเกจ
-                </label>
-                <select
-                  value={editPlanId}
-                  onChange={(e) => setEditPlanId(e.target.value)}
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                >
+                </Select>
+              </Field>
+              <Field label="แพ็กเกจ" className="sm:col-span-2">
+                <Select value={editPlanId} onChange={(e) => setEditPlanId(e.target.value)}>
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nameTh} · {p.maxStorageGb} GB · max {p.maxUsers} users
+                      {p.nameTh} · {p.maxStorageGb} GB · ผู้ใช้สูงสุด {p.maxUsers}
                     </option>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </Field>
             </div>
-            <div className="border-t border-[var(--border)] pt-4">
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Tenant Admin
-              </p>
+
+            <div className="border-t border-line pt-5">
+              <p className="mb-1 text-[13px] font-medium text-ink">Tenant admin</p>
               {editing.adminUserId ? (
                 <>
                   {editing.adminName ? (
-                    <p className="mb-3 text-sm text-[var(--muted)]">
+                    <p className="mb-3 text-xs text-muted">
                       {editing.adminName}
                       {editing.adminEmployeeCode ? ` · ${editing.adminEmployeeCode}` : ""}
                     </p>
                   ) : null}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
-                        อีเมล
-                      </label>
-                      <input
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="อีเมล" required>
+                      <Input
+                        type="email"
                         value={editAdminEmail}
                         onChange={(e) => setEditAdminEmail(e.target.value)}
-                        type="email"
-                        className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                         required
                       />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
-                        รหัสผ่าน
-                      </label>
-                      <div className="flex gap-2">
-                        <input
+                    </Field>
+                    <Field
+                      label="รหัสผ่านใหม่"
+                      hint="เว้นว่างถ้าไม่เปลี่ยน — ระบบไม่เก็บรหัสผ่านแบบอ่านกลับได้"
+                    >
+                      <div className="relative">
+                        <Input
                           value={editAdminPassword}
                           onChange={(e) => setEditAdminPassword(e.target.value)}
                           type={showEditPassword ? "text" : "password"}
-                          placeholder="เว้นว่างถ้าไม่เปลี่ยน"
-                          className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
+                          className="pr-10"
                         />
-                        <Button
+                        <button
                           type="button"
-                          variant="secondary"
-                          className="shrink-0 px-3"
                           onClick={() => setShowEditPassword((v) => !v)}
+                          aria-label={showEditPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1.5 text-faint transition hover:text-ink"
                         >
-                          {showEditPassword ? "ซ่อน" : "แสดง"}
-                        </Button>
+                          {showEditPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
                       </div>
-                      <p className="mt-1 text-xs text-[var(--muted)]">
-                        กรอกรหัสผ่านใหม่เพื่อเปลี่ยน — ระบบไม่เก็บรหัสผ่านแบบอ่านกลับได้
-                      </p>
-                    </div>
+                    </Field>
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-[var(--muted)]">ไม่พบ Tenant Admin ในองค์กรนี้</p>
+                <p className="text-sm text-muted">ไม่พบ tenant admin ในองค์กรนี้</p>
               )}
             </div>
-            <div className="rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-4">
-              <p className="mb-1 text-sm font-semibold text-[var(--ink)]">
-                โควต้าเฉพาะองค์กร
+
+            <div className="rounded-xl border border-brand-border bg-brand-soft/60 p-4">
+              <p className="text-[13px] font-semibold text-ink">โควต้าเฉพาะองค์กร</p>
+              <p className="mt-0.5 mb-3 text-xs text-muted">
+                เว้นว่าง = ใช้ตามแผน · กรอกตัวเลข = กำหนดเองเฉพาะองค์กรนี้
               </p>
-              <p className="mb-3 text-xs text-[var(--muted)]">
-                ว่าง = ใช้ตามแผน · กรอกตัวเลข = กำหนดเองสำหรับองค์กรนี้เท่านั้น
-              </p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
-                    สถานีสูงสุด
-                    <span className="ml-1 font-normal">(แผน: {editing.planMaxStations ?? "—"})</span>
-                  </label>
-                  <input
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label={`สถานีสูงสุด (แผน: ${editing.planMaxStations ?? "—"})`}>
+                  <Input
                     value={editMaxStations}
                     onChange={(e) => setEditMaxStations(e.target.value)}
                     placeholder={String(editing.planMaxStations ?? "")}
                     type="number"
                     min={0}
-                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                   />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
-                    พื้นที่วิดีโอ (GB)
-                    <span className="ml-1 font-normal">(แผน: {editing.planMaxStorageGb ?? "—"})</span>
-                  </label>
-                  <input
+                </Field>
+                <Field label={`พื้นที่ GB (แผน: ${editing.planMaxStorageGb ?? "—"})`}>
+                  <Input
                     value={editMaxStorageGb}
                     onChange={(e) => setEditMaxStorageGb(e.target.value)}
                     placeholder={String(editing.planMaxStorageGb ?? "")}
                     type="number"
                     min={0}
-                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                   />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-[var(--muted)]">
-                    ผู้ใช้สูงสุด
-                    <span className="ml-1 font-normal">(แผน: {editing.planMaxUsers ?? "—"})</span>
-                  </label>
-                  <input
+                </Field>
+                <Field label={`ผู้ใช้สูงสุด (แผน: ${editing.planMaxUsers ?? "—"})`}>
+                  <Input
                     value={editMaxUsers}
                     onChange={(e) => setEditMaxUsers(e.target.value)}
                     placeholder={String(editing.planMaxUsers ?? "")}
                     type="number"
                     min={0}
-                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                   />
-                </div>
+                </Field>
               </div>
             </div>
-            <div className="rounded-lg bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted)]">
-              ใช้งาน: สถานี {editing.stationCount}
-              {editing.maxStations != null ? ` / ${editing.maxStations}` : ""}
-              {" · "}ผู้ใช้ {editing.userCount}
-              {editing.maxUsers != null ? ` / ${editing.maxUsers}` : ""}
-              {" · "}พื้นที่ {editing.storageUsedGb.toFixed(1)} GB
-              {editing.maxStorageGb != null ? ` / ${editing.maxStorageGb} GB` : ""}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={busy}>
-                {busy ? "กำลังบันทึก..." : "บันทึก"}
-              </Button>
-              <Button type="button" variant="secondary" onClick={cancelEdit} disabled={busy}>
-                ยกเลิก
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
 
-      <Card className="hidden overflow-x-auto p-0 md:block">
-        <table className="min-w-[900px] w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--border)] text-left text-[var(--muted)]">
-              <th className="px-4 py-3 font-medium">Slug</th>
-              <th className="px-4 py-3 font-medium">ชื่อ</th>
-              <th className="px-4 py-3 font-medium">สถานะ</th>
-              <th className="px-4 py-3 font-medium">แผน</th>
-              <th className="px-4 py-3 font-medium">พื้นที่</th>
-              <th className="px-4 py-3 font-medium">สถานี/ผู้ใช้</th>
-              <th className="px-4 py-3 font-medium">สร้างเมื่อ</th>
-              <th className="px-4 py-3 font-medium">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tenants.map((t) => (
-              <tr key={t.id} className="border-b border-[var(--border)] last:border-0">
-                <td className="px-4 py-3 font-mono">{t.slug}</td>
-                <td className="px-4 py-3">{t.name}</td>
-                <td className="px-4 py-3">
-                  <Badge tone={statusTone(t.status)}>{statusLabel(t.status)}</Badge>
-                </td>
-                <td className="px-4 py-3">{t.planName ?? "—"}</td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {t.storageUsedGb.toFixed(1)}
-                  {t.maxStorageGb != null ? ` / ${t.maxStorageGb} GB` : ""}
-                </td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {t.stationCount}
-                  {t.maxStations != null ? ` / ${t.maxStations}` : ""} · {t.userCount}
-                  {t.maxUsers != null ? ` / ${t.maxUsers}` : ""}
-                </td>
-                <td className="px-4 py-3 text-[var(--muted)]">
-                  {format(new Date(t.createdAt), "d MMM yyyy", { locale: th })}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-wrap gap-1">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="px-2 py-1 text-xs"
-                      disabled={busy}
-                      onClick={() => startEdit(t)}
-                    >
-                      แก้ไข
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="px-2 py-1 text-xs"
-                      disabled={busy}
-                      onClick={() => void toggleSuspend(t)}
-                    >
-                      {t.status === "suspended" ? "เปิดใช้" : "ปิดใช้"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="px-2 py-1 text-xs text-rose-600 hover:text-rose-700"
-                      disabled={busy}
-                      onClick={() => void handleDelete(t)}
-                    >
-                      ลบ
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {tenants.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-[var(--muted)]">ยังไม่มีองค์กร</p>
-        )}
-      </Card>
-
-      <div className="space-y-3 md:hidden">
-        {tenants.map((t) => (
-          <Card key={t.id}>
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="font-mono text-sm">{t.slug}</div>
-                <div className="font-medium text-[var(--ink)]">{t.name}</div>
-              </div>
-              <Badge tone={statusTone(t.status)}>{statusLabel(t.status)}</Badge>
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {t.planName ?? "—"} · {t.storageUsedGb.toFixed(1)} GB
-              {t.maxStorageGb != null ? ` / ${t.maxStorageGb}` : ""}
+            <p className="rounded-lg bg-subtle px-3 py-2.5 text-xs text-muted">
+              การใช้งานปัจจุบัน — {usageLine(editing)}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" className="flex-1 text-sm" disabled={busy} onClick={() => startEdit(t)}>
-                แก้ไข
-              </Button>
-              <Button type="button" variant="outline" className="flex-1 text-sm" disabled={busy} onClick={() => void toggleSuspend(t)}>
-                {t.status === "suspended" ? "เปิดใช้" : "ปิดใช้"}
-              </Button>
-              <Button type="button" variant="outline" className="text-sm text-rose-600" disabled={busy} onClick={() => void handleDelete(t)}>
-                ลบ
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+          </form>
+        ) : null}
+      </Modal>
     </div>
   );
 }

@@ -1,58 +1,186 @@
 import Link from "next/link";
-import { PackExWordmark, PackExMark } from "@/components/brand";
-import { Button } from "@/components/ui";
+import {
+  ArrowRight,
+  Camera,
+  FileCheck2,
+  Link2,
+  ShieldCheck,
+  Sparkles,
+  Timer,
+} from "lucide-react";
+import { PackExWordmark } from "@/components/brand";
+import { ButtonLink } from "@/components/ui";
+
+const FEATURES = [
+  {
+    icon: Camera,
+    title: "บันทึกอัตโนมัติทุกสถานี",
+    body: "เริ่มอัดเมื่อสแกนออเดอร์ หยุดเมื่อปิดกล่อง ได้วิดีโอครบทุกออเดอร์โดยไม่ต้องกดเอง",
+  },
+  {
+    icon: ShieldCheck,
+    title: "หลักฐานที่พิสูจน์ได้",
+    body: "ทุกไฟล์มี checksum และ audit log กำกับ ตรวจสอบย้อนหลังได้ว่าไม่มีการแก้ไข",
+  },
+  {
+    icon: Link2,
+    title: "แชร์ลิงก์ให้ลูกค้า",
+    body: "สร้างลิงก์หมดอายุพร้อมรหัสผ่าน ส่งให้ลูกค้าหรือขนส่งดูวิดีโอได้ทันที",
+  },
+  {
+    icon: FileCheck2,
+    title: "จัดการเคลมครบวงจร",
+    body: "ผูกเคลมกับวิดีโอ แนบเหตุผล และส่งออกชุดหลักฐานเป็นไฟล์เดียว",
+  },
+];
+
+const STEPS = [
+  { step: "01", title: "สแกนออเดอร์", body: "พนักงานสแกนบาร์โค้ดที่สถานีแพ็ค ระบบเริ่มอัดทันที" },
+  { step: "02", title: "แพ็คตามปกติ", body: "กล้องบันทึกทุกมุมพร้อม overlay เลขออเดอร์และเวลา" },
+  { step: "03", title: "ปิดงาน", body: "วิดีโออัปโหลดขึ้นคลาวด์อัตโนมัติ ค้นหาได้ในไม่กี่วินาที" },
+];
 
 export default function HomePage() {
   return (
-    <div className="warehouse-atmosphere relative flex min-h-screen flex-col overflow-hidden">
-      <header className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-8 md:px-12">
-        <PackExWordmark />
-        <Link href="/login">
-          <Button variant="ghost">เข้าสู่ระบบ</Button>
-        </Link>
+    <div className="aurora flex min-h-[100dvh] flex-col">
+      <header className="glass sticky top-0 z-40 border-b border-line/60">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <PackExWordmark />
+          <nav className="flex items-center gap-2">
+            <ButtonLink href="/login?platform=1" variant="ghost" size="sm" className="hidden sm:inline-flex">
+              Platform
+            </ButtonLink>
+            <ButtonLink href="/login" variant="primary" size="sm" iconRight={ArrowRight}>
+              เข้าสู่ระบบ
+            </ButtonLink>
+          </nav>
+        </div>
       </header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 pb-16 pt-4 text-center sm:px-8 md:px-12">
-        <div className="mb-8 animate-[page-enter_500ms_ease-out]">
-          <PackExMark size={88} className="mx-auto drop-shadow-[0_12px_40px_color-mix(in_srgb,var(--accent)_35%,transparent)]" />
-          <div className="mt-5 font-[family-name:var(--font-display)] text-4xl font-bold tracking-tight sm:text-5xl">
-            <span className="text-[var(--ink)]">Pack</span>
-            <span className="text-[var(--accent)]">EX</span>
+      <main className="relative z-10 flex-1">
+        {/* Hero */}
+        <section className="grid-lines relative mx-auto w-full max-w-6xl px-4 pt-16 pb-20 text-center sm:px-6 sm:pt-24 lg:px-8">
+          <div className="animate-rise mx-auto inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand-soft-ink">
+            <Sparkles size={13} strokeWidth={2.2} />
+            ระบบหลักฐานการแพ็คสำหรับคลังสินค้าไทย
           </div>
-        </div>
 
-        <h1 className="max-w-2xl animate-[page-enter_560ms_ease-out] font-[family-name:var(--font-display)] text-3xl font-semibold leading-[1.15] tracking-tight text-[var(--ink)] sm:text-4xl md:text-5xl">
-          หลักฐานวิดีโอการแพ็ค
-          <span className="mt-1 block text-[var(--accent)]">ที่พิสูจน์ได้ทุกออเดอร์</span>
-        </h1>
+          <h1 className="animate-rise mx-auto mt-7 max-w-3xl text-4xl font-semibold tracking-[-0.03em] text-ink sm:text-5xl lg:text-6xl">
+            หลักฐานวิดีโอการแพ็ค
+            <span className="mt-2 block text-brand">ที่พิสูจน์ได้ทุกออเดอร์</span>
+          </h1>
 
-        <p className="mt-6 max-w-lg animate-[page-enter_620ms_ease-out] text-base leading-relaxed text-[var(--muted)] md:text-lg">
-          บันทึกวิดีโอหลายมุมกล้องจากสถานีแพ็ค ตรวจสอบความครบถ้วน
-          และแชร์ลิงก์หลักฐานให้ทีมเคลม — สำหรับคลังสินค้าไทย
-        </p>
+          <p className="animate-rise mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+            บันทึกวิดีโอหลายมุมกล้องจากสถานีแพ็ค ตรวจสอบความครบถ้วน
+            และแชร์ลิงก์หลักฐานให้ทีมเคลมได้ในคลิกเดียว
+          </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 animate-[page-enter_700ms_ease-out]">
-          <Link href="/login">
-            <Button variant="primary" className="px-7 py-3 text-base">
+          <div className="animate-rise mt-10 flex flex-wrap items-center justify-center gap-3">
+            <ButtonLink href="/login" variant="primary" size="lg" iconRight={ArrowRight}>
               เข้าสู่ระบบองค์กร
-            </Button>
-          </Link>
-          <Link href="/login?platform=1">
-            <Button variant="outline" className="px-7 py-3 text-base">
-              Platform Admin
-            </Button>
-          </Link>
-        </div>
+            </ButtonLink>
+            <ButtonLink href="/login?platform=1" variant="secondary" size="lg">
+              Platform admin
+            </ButtonLink>
+          </div>
+
+          <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { k: "อัปโหลดอัตโนมัติ", v: "100%" },
+              { k: "ค้นหาวิดีโอ", v: "< 3 วิ" },
+              { k: "เก็บหลักฐาน", v: "90 วัน" },
+              { k: "Multi-tenant", v: "แยกข้อมูล" },
+            ].map((item) => (
+              <div
+                key={item.k}
+                className="rounded-xl border border-line bg-surface/70 p-4 shadow-xs backdrop-blur-sm"
+              >
+                <dt className="text-[11px] font-medium text-muted">{item.k}</dt>
+                <dd className="mt-1 text-lg font-semibold tracking-tight text-ink">{item.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Features */}
+        <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              ทุกอย่างที่ทีมคลังต้องใช้
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+              ตั้งแต่หน้าสถานีจนถึงห้องเคลม PackEX ครอบคลุมทั้งกระบวนการในระบบเดียว
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            {FEATURES.map((feature) => (
+              <article
+                key={feature.title}
+                className="card-interactive rounded-2xl border border-line bg-surface p-6 shadow-sm"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-ink">
+                  <feature.icon size={20} strokeWidth={1.9} />
+                </span>
+                <h3 className="mt-4 text-base font-semibold text-ink">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{feature.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-10">
+            <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.12em] text-brand uppercase">
+              <Timer size={14} strokeWidth={2.2} />
+              ใช้เวลาติดตั้งไม่ถึงหนึ่งวัน
+            </div>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              ทำงานได้ทันทีในสามขั้นตอน
+            </h2>
+
+            <ol className="mt-10 grid gap-8 sm:grid-cols-3">
+              {STEPS.map((item) => (
+                <li key={item.step} className="relative">
+                  <span className="text-sm font-semibold text-brand tabular">{item.step}</span>
+                  <h3 className="mt-2 text-base font-semibold text-ink">{item.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-6 rounded-3xl border border-brand-border bg-brand-soft px-6 py-12 text-center">
+            <h2 className="max-w-lg text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+              พร้อมลดข้อพิพาทเรื่องของหายแล้วหรือยัง
+            </h2>
+            <p className="max-w-md text-sm leading-relaxed text-ink-2">
+              เข้าสู่ระบบเพื่อจัดการสถานี วิดีโอ และเคลมขององค์กรคุณ
+            </p>
+            <ButtonLink href="/login" variant="primary" size="lg" iconRight={ArrowRight}>
+              เริ่มใช้งาน
+            </ButtonLink>
+          </div>
+        </section>
       </main>
 
-      <footer className="relative z-10 flex flex-wrap items-center justify-center gap-4 px-6 py-6 text-xs text-[var(--muted)]">
-        <Link href="/privacy" className="transition hover:text-[var(--ink)]">
-          นโยบายความเป็นส่วนตัว
-        </Link>
-        <span className="opacity-40">·</span>
-        <Link href="/terms" className="transition hover:text-[var(--ink)]">
-          ข้อกำหนดการใช้งาน
-        </Link>
+      <footer className="relative z-10 border-t border-line">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-xs text-muted sm:flex-row sm:px-6 lg:px-8">
+          <PackExWordmark size="sm" />
+          <div className="flex items-center gap-5">
+            <Link href="/privacy" className="transition hover:text-ink">
+              นโยบายความเป็นส่วนตัว
+            </Link>
+            <Link href="/terms" className="transition hover:text-ink">
+              ข้อกำหนดการใช้งาน
+            </Link>
+          </div>
+          <p>© {new Date().getFullYear()} PackEX</p>
+        </div>
       </footer>
     </div>
   );

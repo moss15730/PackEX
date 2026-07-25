@@ -2,9 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/components/ui";
+import { Building2, ShieldCheck } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Checkbox,
+  Field,
+  Input,
+  Select,
+} from "@/components/ui";
 import { useNotify } from "@/components/notify";
-import { statusLabel } from "@/lib/utils";
+import { statusLabel, statusTone } from "@/lib/utils";
 
 type TenantInfo = {
   name: string;
@@ -89,194 +101,128 @@ export function OrganizationSettingsForm({
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <Card>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <h2 className="font-semibold text-[var(--ink)]">ข้อมูลทั่วไป</h2>
-            <p className="mt-0.5 text-sm text-[var(--muted)]">ชื่อ ภาษา และโซนเวลาขององค์กร</p>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--ink)]">ชื่อองค์กร</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-[var(--muted)]">Slug</label>
-            <p className="font-mono text-sm text-[var(--ink)]">{tenant.slug}</p>
-          </div>
+    <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-5">
+      {/* General */}
+      <Card flush>
+        <CardHeader
+          icon={Building2}
+          title="ข้อมูลทั่วไป"
+          description="ชื่อ ภาษา และโซนเวลาขององค์กร"
+          actions={<Badge tone={statusTone(tenant.status)} dot>{statusLabel(tenant.status)}</Badge>}
+        />
+        <CardBody className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">ภาษา</label>
-              <select
-                value={locale}
-                onChange={(e) => setLocale(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-              >
+            <Field label="ชื่อองค์กร" required>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </Field>
+            <Field label="Slug" hint="ใช้เป็น URL ขององค์กร — แก้ไขไม่ได้">
+              <Input value={tenant.slug} disabled className="font-mono" />
+            </Field>
+            <Field label="ภาษา" hint="เก็บค่าไว้ในระบบ — UI ยังเป็นภาษาไทยเป็นหลัก">
+              <Select value={locale} onChange={(e) => setLocale(e.target.value)}>
                 <option value="th">ไทย</option>
                 <option value="en">English</option>
                 <option value="zh">中文</option>
-              </select>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                เก็บค่าไว้ในระบบ — UI ยังเป็นภาษาไทยเป็นหลัก
-              </p>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">Timezone</label>
-              <select
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-              >
+              </Select>
+            </Field>
+            <Field label="โซนเวลา" hint="ใช้กับเวลาที่แสดงบนวิดีโอ">
+              <Select value={timezone} onChange={(e) => setTimezone(e.target.value)}>
                 <option value="Asia/Bangkok">Asia/Bangkok (GMT+7)</option>
                 <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
                 <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
                 <option value="UTC">UTC</option>
-              </select>
-            </div>
+              </Select>
+            </Field>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--muted)]">สถานะ</span>
-            <span className="font-medium">{statusLabel(tenant.status)}</span>
-          </div>
+        </CardBody>
+      </Card>
 
-          <div className="border-t border-[var(--border)] pt-5">
-            <h2 className="font-semibold text-[var(--ink)]">นโยบายการอัด / หลักฐาน</h2>
-            <p className="mt-0.5 text-sm text-[var(--muted)]">
-              มีผลกับ Station Console, completeness score และช่วงกู้คืนวิดีโอ
-            </p>
-          </div>
-
-          <label className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
-            <input
-              type="checkbox"
+      {/* Recording policy */}
+      <Card flush>
+        <CardHeader
+          icon={ShieldCheck}
+          title="นโยบายการอัดและหลักฐาน"
+          description="มีผลกับ Station Console, คะแนนความครบถ้วน และช่วงกู้คืนวิดีโอ"
+        />
+        <CardBody className="space-y-5">
+          <div className="space-y-3">
+            <Checkbox
               checked={overlayEnabled}
               onChange={(e) => setOverlayEnabled(e.target.checked)}
-              className="mt-1"
+              label="Burn-in overlay"
+              description="ใส่เลขออเดอร์ / สถานี / พนักงาน / เวลาลงในไฟล์วิดีโอและ snapshot"
             />
-            <span>
-              <span className="block text-sm font-medium text-[var(--ink)]">Burn-in overlay</span>
-              <span className="text-xs text-[var(--muted)]">
-                ใส่เลขออเดอร์ / สถานี / พนักงาน / เวลาลงในไฟล์วิดีโอและ snapshot
-              </span>
-            </span>
-          </label>
-
-          <label className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={snapshotRequired}
               onChange={(e) => setSnapshotRequired(e.target.checked)}
-              className="mt-1"
+              label="บังคับ snapshot ก่อนจบงาน"
+              description="ถ้าไม่มี snapshot คะแนนความครบถ้วนจะลดลง"
             />
-            <span>
-              <span className="block text-sm font-medium text-[var(--ink)]">บังคับ snapshot ก่อนจบ</span>
-              <span className="text-xs text-[var(--muted)]">
-                ถ้าไม่มี snapshot คะแนนครบถ้วนจะลดลง
-              </span>
-            </span>
-          </label>
-
-          <label className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={consentRequired}
               onChange={(e) => setConsentRequired(e.target.checked)}
-              className="mt-1"
+              label="ต้องมี consent จากพนักงาน"
+              description="นโยบายบันทึกภาพตอนทำงาน (เก็บค่าสำหรับ flow consent ในอนาคต)"
             />
-            <span>
-              <span className="block text-sm font-medium text-[var(--ink)]">ต้องมี consent พนักงาน</span>
-              <span className="text-xs text-[var(--muted)]">
-                นโยบายบันทึกภาพตอนทำงาน (เก็บค่าสำหรับ flow consent ในอนาคต)
-              </span>
-            </span>
-          </label>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-                ความยาวขั้นต่ำ (วินาที)
-              </label>
-              <input
+            <Field label="ความยาวขั้นต่ำ (วินาที)">
+              <Input
                 type="number"
                 min={5}
                 max={600}
                 value={minRecordingSeconds}
                 onChange={(e) => setMinRecordingSeconds(e.target.value)}
                 required
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
               />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-                จำนวนกล้องขั้นต่ำ
-              </label>
-              <input
+            </Field>
+            <Field label="จำนวนกล้องขั้นต่ำ">
+              <Input
                 type="number"
                 min={1}
                 max={8}
                 value={minCameras}
                 onChange={(e) => setMinCameras(e.target.value)}
                 required
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
               />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-                Auto-stop เมื่อ idle (นาที)
-              </label>
-              <input
+            </Field>
+            <Field label="หยุดอัตโนมัติเมื่อไม่มีการใช้งาน (นาที)">
+              <Input
                 type="number"
                 min={1}
                 max={120}
                 value={idleAutoStopMinutes}
                 onChange={(e) => setIdleAutoStopMinutes(e.target.value)}
                 required
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
               />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-                ช่วงกู้คืนหลังลบ (วัน)
-              </label>
-              <input
+            </Field>
+            <Field label="ช่วงกู้คืนหลังลบ (วัน)">
+              <Input
                 type="number"
                 min={1}
                 max={365}
                 value={softDeleteDays}
                 onChange={(e) => setSoftDeleteDays(e.target.value)}
                 required
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
               />
-            </div>
+            </Field>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--ink)]">
-              คุณภาพวิดีโอ (preset)
-            </label>
-            <select
-              value={videoPreset}
-              onChange={(e) => setVideoPreset(e.target.value)}
-              className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-            >
+          <Field label="คุณภาพวิดีโอ" hint="คุณภาพสูงขึ้นใช้พื้นที่จัดเก็บมากขึ้น">
+            <Select value={videoPreset} onChange={(e) => setVideoPreset(e.target.value)}>
               <option value="economy">Economy — ประหยัดพื้นที่</option>
               <option value="standard">Standard — ค่าเริ่มต้น</option>
               <option value="high">High — คมชัดขึ้น</option>
-            </select>
-          </div>
-
-          <Button type="submit" variant="primary" disabled={loading}>
-            {loading ? "กำลังบันทึก…" : "บันทึก"}
+            </Select>
+          </Field>
+        </CardBody>
+        <CardFooter>
+          <Button type="submit" loading={loading}>
+            {loading ? "กำลังบันทึก…" : "บันทึกการตั้งค่า"}
           </Button>
-        </form>
+        </CardFooter>
       </Card>
-    </div>
+    </form>
   );
 }

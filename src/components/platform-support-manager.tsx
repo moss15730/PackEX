@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import { Ban, KeyRound, LifeBuoy, LogIn } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  EmptyState,
+  Field,
+  Input,
+} from "@/components/ui";
 import { useNotify } from "@/components/notify";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -75,84 +85,113 @@ export function PlatformSupportManager({ grants: initial }: { grants: Grant[] })
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <h2 className="mb-4 font-semibold text-[var(--ink)]">สร้าง Support Grant</h2>
-        <form onSubmit={createGrant} className="grid gap-3 sm:grid-cols-2">
-          <input
-            value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
-            placeholder="tenant slug"
-            required
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-          />
-          <input
-            value={grantedTo}
-            onChange={(e) => setGrantedTo(e.target.value)}
-            placeholder="อีเมล support"
-            required
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-          />
-          <input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="เหตุผล"
-            required
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)] sm:col-span-2"
-          />
-          <input
-            type="number"
-            min={1}
-            value={expiresInHours}
-            onChange={(e) => setExpiresInHours(e.target.value)}
-            placeholder="ชั่วโมง"
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-          />
-          <Button type="submit" variant="primary" disabled={busy}>
-            {busy ? "กำลังสร้าง…" : "สร้าง Grant"}
-          </Button>
-        </form>
+    <div className="grid gap-5 lg:grid-cols-[24rem_minmax(0,1fr)] lg:items-start">
+      <Card flush className="lg:sticky lg:top-6">
+        <CardHeader
+          icon={KeyRound}
+          title="สร้าง support grant"
+          description="ให้สิทธิ์เข้าถึงชั่วคราวแบบมีวันหมดอายุ"
+        />
+        <CardBody>
+          <form onSubmit={createGrant} className="space-y-4">
+            <Field label="Tenant slug" required>
+              <Input
+                value={tenantSlug}
+                onChange={(e) => setTenantSlug(e.target.value)}
+                placeholder="acme"
+                className="font-mono"
+                required
+              />
+            </Field>
+            <Field label="อีเมลผู้รับสิทธิ์" required>
+              <Input
+                type="email"
+                value={grantedTo}
+                onChange={(e) => setGrantedTo(e.target.value)}
+                placeholder="support@packex.app"
+                required
+              />
+            </Field>
+            <Field label="เหตุผล" required hint="บันทึกไว้ใน audit log">
+              <Input
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="ตรวจสอบปัญหาการอัปโหลด"
+                required
+              />
+            </Field>
+            <Field label="อายุสิทธิ์ (ชั่วโมง)">
+              <Input
+                type="number"
+                min={1}
+                value={expiresInHours}
+                onChange={(e) => setExpiresInHours(e.target.value)}
+              />
+            </Field>
+            <Button type="submit" className="w-full" loading={busy} icon={KeyRound}>
+              {busy ? "กำลังสร้าง…" : "สร้าง grant"}
+            </Button>
+          </form>
+        </CardBody>
       </Card>
 
       <div className="space-y-3">
-        {initial.map((g) => {
-          const expired = new Date(g.expiresAt) < new Date();
-          const revoked = !!g.revokedAt;
-          return (
-            <Card key={g.id}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono">{g.tenant.slug}</span>
-                <div className="flex items-center gap-2">
-                  <Badge tone={revoked ? "neutral" : expired ? "danger" : "success"}>
-                    {revoked ? "ยกเลิกแล้ว" : expired ? "หมดอายุ" : "ใช้งานได้"}
-                  </Badge>
-                  {!revoked && !expired && (
-                    <>
+        {initial.length === 0 ? (
+          <EmptyState
+            icon={LifeBuoy}
+            title="ยังไม่มี support grant"
+            description="สร้าง grant เมื่อทีมซัพพอร์ตต้องเข้าดูข้อมูลของ tenant ชั่วคราว"
+          />
+        ) : (
+          initial.map((g) => {
+            const expired = new Date(g.expiresAt) < new Date();
+            const revoked = !!g.revokedAt;
+            const active = !revoked && !expired;
+            return (
+              <Card key={g.id}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-medium text-ink">
+                        {g.tenant.slug}
+                      </span>
+                      <Badge tone={revoked ? "neutral" : expired ? "danger" : "success"} dot>
+                        {revoked ? "ยกเลิกแล้ว" : expired ? "หมดอายุ" : "ใช้งานได้"}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm text-ink-2">{g.reason}</p>
+                    <p className="mt-1.5 text-xs text-muted">
+                      ให้กับ {g.grantedTo} · หมดอายุ{" "}
+                      {format(new Date(g.expiresAt), "d MMM yyyy HH:mm", { locale: th })}
+                    </p>
+                  </div>
+
+                  {active && (
+                    <div className="flex shrink-0 gap-1.5">
                       <Button
                         variant="secondary"
-                        className="text-xs"
+                        size="sm"
+                        icon={LogIn}
                         disabled={busy}
                         onClick={() => void enterTenant(g.tenant.slug)}
                       >
                         เข้าองค์กร
                       </Button>
-                      <Button variant="outline" className="text-xs" onClick={() => void revoke(g.id)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={Ban}
+                        className="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                        onClick={() => void revoke(g.id)}
+                      >
                         ยกเลิก
                       </Button>
-                    </>
+                    </div>
                   )}
                 </div>
-              </div>
-              <p className="mt-2 text-sm text-[var(--muted)]">{g.reason}</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                ให้กับ {g.grantedTo} · หมดอายุ{" "}
-                {format(new Date(g.expiresAt), "d MMM yyyy HH:mm", { locale: th })}
-              </p>
-            </Card>
-          );
-        })}
-        {initial.length === 0 && (
-          <p className="text-center text-[var(--muted)]">ไม่มี grant</p>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

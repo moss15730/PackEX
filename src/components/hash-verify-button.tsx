@@ -58,13 +58,14 @@ export function HashVerifyButton({
   return (
     <Button
       type="button"
-      variant="outline"
-      className="w-full px-2.5 py-1.5 text-xs"
-      disabled={busy}
+      variant="secondary"
+      size="sm"
+      className="w-full"
+      loading={busy}
+      icon={ShieldCheck}
       onClick={() => void verify()}
     >
-      <ShieldCheck className="h-3 w-3" />
-      {busy ? "กำลังตรวจ…" : "ตรวจ SHA-256"}
+      {busy ? "กำลังตรวจ…" : "ตรวจสอบ SHA-256"}
     </Button>
   );
 }

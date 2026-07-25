@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Link2, Copy, Check, Trash2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Link2, Copy, Check, Trash2, RefreshCw, ShieldAlert } from "lucide-react";
+import { Button, Field, Input } from "@/components/ui";
 import { useNotify } from "@/components/notify";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -154,103 +154,125 @@ export function VideoActions({
 
   return (
     <div className="space-y-3">
-      <section className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow)]">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)]/15 text-[var(--accent-ink)] dark:text-[var(--accent)]">
-            <Link2 className="h-3.5 w-3.5" />
+      <section className="rounded-xl border border-line bg-surface p-4 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-ink">
+            <Link2 size={15} strokeWidth={2.1} />
           </span>
-          <div>
-            <h2 className="text-xs font-semibold text-[var(--ink)]">แชร์ลิงก์</h2>
-            <p className="text-[11px] text-[var(--muted)]">ดูได้โดยไม่ต้องล็อกอิน</p>
+          <div className="min-w-0">
+            <h3 className="text-[13px] font-semibold text-ink">แชร์ลิงก์หลักฐาน</h3>
+            <p className="text-[11px] text-muted">ผู้รับดูได้โดยไม่ต้องล็อกอิน</p>
           </div>
         </div>
 
-        {canShare ? (
-          share ? (
-            <div className="space-y-2">
-              <code className="block break-all rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-[11px] leading-relaxed text-[var(--ink)]">
+        <div className="mt-3.5">
+          {!canShare ? (
+            <p className="text-xs text-muted">บัญชีนี้ไม่มีสิทธิ์แชร์ลิงก์</p>
+          ) : share ? (
+            <div className="space-y-3">
+              <code className="block rounded-lg border border-line bg-subtle px-2.5 py-2 text-[11px] leading-relaxed break-all text-ink-2">
                 {fullShareUrl(share.token)}
               </code>
-              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[var(--muted)]">
-                <span>
-                  หมดอายุ {format(new Date(share.expiresAt), "d MMM yyyy", { locale: th })}
-                </span>
-                <span aria-hidden>·</span>
-                <span>
-                  เปิดแล้ว {share.openCount}
-                  {share.maxOpens != null ? ` / ${share.maxOpens}` : ""} ครั้ง
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                <Button type="button" onClick={copyLink} disabled={busy} className="px-2.5 py-1.5 text-xs">
-                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  {copied ? "คัดลอกแล้ว" : "คัดลอก"}
+              <dl className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
+                <div className="flex gap-1">
+                  <dt>หมดอายุ</dt>
+                  <dd className="text-ink-2">
+                    {format(new Date(share.expiresAt), "d MMM yyyy", { locale: th })}
+                  </dd>
+                </div>
+                <div className="flex gap-1">
+                  <dt>เปิดแล้ว</dt>
+                  <dd className="tabular text-ink-2">
+                    {share.openCount}
+                    {share.maxOpens != null ? `/${share.maxOpens}` : ""} ครั้ง
+                  </dd>
+                </div>
+              </dl>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={copyLink}
+                  disabled={busy}
+                  icon={copied ? Check : Copy}
+                >
+                  {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  size="sm"
+                  variant="secondary"
                   onClick={handleCreateShare}
-                  disabled={busy}
-                  className="px-2.5 py-1.5 text-xs"
+                  loading={busy}
+                  icon={RefreshCw}
                 >
-                  <RefreshCw className="h-3 w-3" />
                   สร้างใหม่
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="text-xs leading-relaxed text-[var(--muted)]">
-                สร้างลิงก์สาธารณะให้คนอื่นดูวิดีโอได้โดยไม่ต้องล็อกอิน
+            <div className="space-y-3">
+              <p className="text-xs leading-relaxed text-muted">
+                สร้างลิงก์สาธารณะแบบมีวันหมดอายุ เพื่อส่งให้ลูกค้าหรือขนส่งตรวจสอบหลักฐาน
               </p>
-              <input
-                type="password"
-                value={sharePassword}
-                onChange={(e) => setSharePassword(e.target.value)}
-                placeholder="รหัสผ่าน (ว่าง = ไม่ใส่)"
-                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs outline-none focus:border-[var(--accent)]"
-              />
-              <input
-                type="number"
-                min={1}
-                value={maxOpens}
-                onChange={(e) => setMaxOpens(e.target.value)}
-                placeholder="จำกัดครั้งเปิด (ว่าง = ไม่จำกัด)"
-                className="w-full rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1.5 text-xs outline-none focus:border-[var(--accent)]"
-              />
+              <Field label="รหัสผ่าน (ไม่บังคับ)">
+                <Input
+                  type="password"
+                  value={sharePassword}
+                  onChange={(e) => setSharePassword(e.target.value)}
+                  placeholder="เว้นว่าง = ไม่ใส่รหัส"
+                  className="py-1.5 text-xs"
+                />
+              </Field>
+              <Field label="จำกัดจำนวนครั้งที่เปิด">
+                <Input
+                  type="number"
+                  min={1}
+                  value={maxOpens}
+                  onChange={(e) => setMaxOpens(e.target.value)}
+                  placeholder="เว้นว่าง = ไม่จำกัด"
+                  className="py-1.5 text-xs"
+                />
+              </Field>
               <Button
                 type="button"
+                size="sm"
                 onClick={handleCreateShare}
-                disabled={busy}
-                className="w-full px-2.5 py-1.5 text-xs"
+                loading={busy}
+                icon={Link2}
+                className="w-full"
               >
-                <Link2 className="h-3 w-3" />
                 สร้างลิงก์แชร์
               </Button>
             </div>
-          )
-        ) : (
-          <p className="text-xs text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์แชร์ลิงก์</p>
-        )}
+          )}
+        </div>
       </section>
 
-      <section className="rounded-lg border border-dashed border-[var(--border)] px-3 py-2">
+      <section className="rounded-xl border border-dashed border-line px-4 py-3">
         {canDelete ? (
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-[var(--muted)]">ลบวิดีโอ (soft delete)</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-ink">ลบวิดีโอ</p>
+              <p className="text-[11px] text-muted">กู้คืนได้ภายในระยะเวลาที่ตั้งไว้</p>
+            </div>
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               onClick={handleDelete}
               disabled={busy}
-              className="shrink-0 px-2 py-1 text-xs text-rose-600 hover:bg-rose-500/10 hover:text-rose-500"
+              icon={Trash2}
+              className="shrink-0 text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
             >
-              <Trash2 className="h-3 w-3" />
               ลบ
             </Button>
           </div>
         ) : (
-          <p className="text-[11px] text-[var(--muted)]">บัญชีนี้ไม่มีสิทธิ์ลบวิดีโอ</p>
+          <p className="flex items-center gap-2 text-[11px] text-muted">
+            <ShieldAlert size={13} />
+            บัญชีนี้ไม่มีสิทธิ์ลบวิดีโอ
+          </p>
         )}
       </section>
     </div>

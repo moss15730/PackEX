@@ -1,11 +1,33 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import {
+  Download,
+  FileWarning,
+  Film,
+  Lock,
+  Plus,
+  RotateCcw,
+  ScanSearch,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react";
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Callout,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  Progress,
+  Select,
+} from "@/components/ui";
+import { Modal } from "@/components/ui-client";
 import { useNotify } from "@/components/notify";
-import { statusLabel } from "@/lib/utils";
+import { statusLabel, statusTone, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -261,68 +283,222 @@ export function ClaimsManager({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-        <strong>Legal Hold:</strong> วิดีโอที่แนบเป็นหลักฐานในเคสเคลมจะไม่ถูกลบตาม retention
+    <div className="space-y-5">
+      <Callout tone="warning" icon={Lock} title="Legal hold">
+        วิดีโอที่แนบเป็นหลักฐานในเคสเคลมจะไม่ถูกลบตามนโยบาย retention
         จนกว่าเคสจะปิดและยกเลิก hold
-      </div>
+      </Callout>
 
       {canManage && (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-[var(--muted)]">
-            สร้างเคสจากเลขออเดอร์ แล้วเลือกวิดีโอแพ็คเป็นหลักฐาน
+          <p className="text-sm text-muted">
+            สร้างเคสจากเลขออเดอร์ แล้วเลือกวิดีโอการแพ็คเป็นหลักฐาน
           </p>
-          <Button type="button" onClick={openCreate} disabled={busy || showCreate}>
+          <Button type="button" onClick={openCreate} disabled={busy} icon={Plus}>
             สร้างเคสเคลม
           </Button>
         </div>
       )}
 
-      {showCreate && canManage && (
-        <Card>
-          <h2 className="mb-1 font-semibold text-[var(--ink)]">สร้างเคสเคลมใหม่</h2>
-          <p className="mb-4 text-sm text-[var(--muted)]">
-            1) ใส่เลขออเดอร์ · 2) เลือกเหตุผล · 3) เลือกวิดีโอหลักฐาน
-          </p>
-          {reasonOptions.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-[var(--border)] px-4 py-6 text-center text-sm text-[var(--muted)]">
-              ยังไม่มีเหตุผลเคลมในระบบ —{" "}
-              <Link
+      {claims.length === 0 ? (
+        <EmptyState
+          icon={FileWarning}
+          title="ยังไม่มีเคสเคลม"
+          description="เมื่อลูกค้าแจ้งปัญหา สร้างเคสและแนบวิดีโอหลักฐานเพื่อใช้ตรวจสอบย้อนหลัง"
+          action={
+            canManage ? (
+              <Button type="button" onClick={openCreate} icon={Plus}>
+                สร้างเคสเคลม
+              </Button>
+            ) : null
+          }
+        />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {claims.map((claim) => (
+            <Card key={claim.id} className="flex flex-col">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-base font-semibold tracking-tight text-ink">
+                      {claim.orderNo}
+                    </h3>
+                    <Badge tone={statusTone(claim.status)} dot>
+                      {statusLabel(claim.status)}
+                    </Badge>
+                    {claim.hasLegalHold && (
+                      <Badge tone="danger" icon={Lock}>
+                        Legal hold
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[13px] text-muted">{claim.reason}</p>
+                </div>
+                <time className="shrink-0 text-xs text-faint">
+                  {format(new Date(claim.createdAt), "d MMM yyyy", { locale: th })}
+                </time>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                <Badge icon={Film}>{claim.packageCount} หลักฐาน</Badge>
+                {claim.recordingIds[0] && (
+                  <ButtonLink
+                    href={`/t/${tenantSlug}/videos/${claim.recordingIds[0]}`}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    เปิดวิดีโอ
+                  </ButtonLink>
+                )}
+                <ButtonLink
+                  href={`/api/t/${tenantSlug}/claims/${claim.id}/export`}
+                  variant="ghost"
+                  size="sm"
+                  icon={Download}
+                >
+                  Claim package
+                </ButtonLink>
+              </div>
+
+              {canManage && (
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
+                  {claim.status !== "closed" && claim.status !== "reviewing" && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      icon={ScanSearch}
+                      disabled={busy}
+                      onClick={() => void handleMarkReviewing(claim)}
+                    >
+                      กำลังตรวจ
+                    </Button>
+                  )}
+                  {claim.status !== "closed" &&
+                    (claim.hasLegalHold ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => void handleClose(claim, false)}
+                        >
+                          ปิดเคส (เก็บ hold)
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="danger"
+                          size="sm"
+                          icon={ShieldAlert}
+                          disabled={busy}
+                          onClick={() => void handleClose(claim, true)}
+                        >
+                          ปิด + ยกเลิก hold
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => void handleClose(claim, false)}
+                      >
+                        ปิดเคส
+                      </Button>
+                    ))}
+                  {claim.status === "closed" && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      icon={RotateCcw}
+                      disabled={busy}
+                      onClick={() => void handleReopen(claim)}
+                    >
+                      เปิดอีกครั้ง
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    className="ml-auto text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                    disabled={busy}
+                    onClick={() => void handleDelete(claim)}
+                  >
+                    ลบเคส
+                  </Button>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal
+        open={showCreate && canManage}
+        onClose={closeCreate}
+        title="สร้างเคสเคลมใหม่"
+        description="ใส่เลขออเดอร์ เลือกเหตุผล แล้วแนบวิดีโอหลักฐาน"
+        icon={FileWarning}
+        size="lg"
+        footer={
+          reasonOptions.length === 0 ? (
+            <Button type="button" variant="secondary" onClick={closeCreate}>
+              ปิด
+            </Button>
+          ) : (
+            <>
+              <Button type="button" variant="secondary" onClick={closeCreate} disabled={busy}>
+                ยกเลิก
+              </Button>
+              <Button
+                type="submit"
+                form="claim-create"
+                loading={busy}
+                disabled={selectedIds.length === 0 || !reasonId}
+                icon={Lock}
+              >
+                สร้างเคสและใส่ legal hold
+              </Button>
+            </>
+          )
+        }
+      >
+        {reasonOptions.length === 0 ? (
+          <EmptyState
+            icon={FileWarning}
+            title="ยังไม่มีเหตุผลเคลมในระบบ"
+            description="ตั้งค่ารายการเหตุผลก่อน เพื่อให้ทีมเลือกได้อย่างสม่ำเสมอ"
+            action={
+              <ButtonLink
                 href={`/t/${tenantSlug}/settings/claim-reasons`}
-                className="text-[var(--accent)] hover:underline"
+                variant="primary"
+                size="sm"
               >
                 ไปตั้งค่าเหตุผลเคลม
-              </Link>
-              <div className="mt-3">
-                <Button type="button" variant="outline" onClick={closeCreate}>
-                  ปิด
-                </Button>
-              </div>
-            </div>
-          ) : (
-          <form onSubmit={submitCreate} className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  เลขออเดอร์
-                </label>
-                <input
+              </ButtonLink>
+            }
+          />
+        ) : (
+          <form id="claim-create" onSubmit={submitCreate} className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="เลขออเดอร์" required>
+                <Input
                   value={orderNo}
                   onChange={(e) => pickOrderFromEvidence(e.target.value)}
                   placeholder="ORD-XXXXX"
                   required
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  เหตุผลเคลม
-                </label>
-                <select
+              </Field>
+              <Field label="เหตุผลเคลม" required>
+                <Select
                   value={reasonId}
                   onChange={(e) => setReasonId(e.target.value)}
                   required
-                  className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
                 >
                   <option value="" disabled>
                     เลือกเหตุผล
@@ -332,46 +508,53 @@ export function ClaimsManager({
                       {r.label}
                     </option>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </Field>
             </div>
 
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                  แนบหลักฐานวิดีโอ
-                </label>
-                <span className="text-xs text-[var(--muted)]">
+                <span className="text-[13px] font-medium text-ink">แนบหลักฐานวิดีโอ</span>
+                <span className="text-xs text-muted">
                   เลือกแล้ว {selectedIds.length} รายการ
                 </span>
               </div>
 
               {filteredEvidence.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-[var(--border)] px-4 py-6 text-center text-sm text-[var(--muted)]">
-                  {orderNo.trim()
-                    ? "ไม่พบวิดีโอของออเดอร์นี้ — ตรวจเลขออเดอร์หรืออัดวิดีโอก่อน"
-                    : "พิมพ์เลขออเดอร์เพื่อกรองวิดีโอ หรือเลือกจากรายการด้านล่าง"}
-                  <div className="mt-2">
-                    <Link
+                <EmptyState
+                  icon={Film}
+                  title={
+                    orderNo.trim() ? "ไม่พบวิดีโอของออเดอร์นี้" : "ยังไม่ได้เลือกออเดอร์"
+                  }
+                  description={
+                    orderNo.trim()
+                      ? "ตรวจสอบเลขออเดอร์อีกครั้ง หรือบันทึกวิดีโอก่อนสร้างเคส"
+                      : "พิมพ์เลขออเดอร์เพื่อกรองวิดีโอที่เกี่ยวข้อง"
+                  }
+                  className="py-10"
+                  action={
+                    <ButtonLink
                       href={`/t/${tenantSlug}/videos${orderNo.trim() ? `?q=${encodeURIComponent(orderNo.trim())}` : ""}`}
-                      className="text-[var(--accent)] hover:underline"
+                      variant="secondary"
+                      size="sm"
                     >
                       ไปหน้าวิดีโอ
-                    </Link>
-                  </div>
-                </div>
+                    </ButtonLink>
+                  }
+                />
               ) : (
-                <ul className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-[var(--border)] p-2">
+                <ul className="max-h-72 space-y-2 overflow-y-auto rounded-xl border border-line p-2">
                   {filteredEvidence.map((item) => {
                     const checked = selectedIds.includes(item.id);
                     return (
                       <li key={item.id}>
                         <label
-                          className={`flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition ${
+                          className={cn(
+                            "flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 transition",
                             checked
-                              ? "bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40"
-                              : "hover:bg-[var(--surface-2)]"
-                          }`}
+                              ? "bg-brand-soft ring-1 ring-brand-border"
+                              : "hover:bg-subtle",
+                          )}
                         >
                           <input
                             type="checkbox"
@@ -386,32 +569,32 @@ export function ClaimsManager({
                               setOrderNo(item.orderNo);
                               setSelectedIds([item.id]);
                             }}
-                            className="mt-1"
+                            className="mt-1 h-4 w-4 shrink-0 accent-[var(--brand)]"
                           />
-                          <span className="min-w-0 flex-1 text-sm">
-                            <span className="font-medium text-[var(--ink)]">
-                              {item.orderNo}
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-baseline gap-x-2">
+                              <span className="text-sm font-medium text-ink">
+                                {item.orderNo}
+                              </span>
+                              <span className="text-xs text-muted">
+                                {item.stationCode} ·{" "}
+                                {format(new Date(item.startedAt), "d MMM HH:mm", {
+                                  locale: th,
+                                })}
+                              </span>
                             </span>
-                            <span className="text-[var(--muted)]">
-                              {" "}
-                              · {item.stationCode} ·{" "}
-                              {format(new Date(item.startedAt), "d MMM HH:mm", {
-                                locale: th,
-                              })}
-                            </span>
-                            <span className="mt-1 flex flex-wrap gap-1.5">
-                              <Badge
-                                tone={item.status === "ready" ? "success" : "neutral"}
-                              >
+                            <span className="mt-1.5 flex flex-wrap items-center gap-2">
+                              <Badge tone={statusTone(item.status)} dot>
                                 {statusLabel(item.status)}
                               </Badge>
-                              <Badge
-                                tone={
-                                  item.completenessScore >= 80 ? "success" : "warning"
-                                }
-                              >
-                                ครบถ้วน {item.completenessScore}%
-                              </Badge>
+                              <Progress
+                                value={item.completenessScore}
+                                tone={item.completenessScore >= 80 ? "brand" : "warning"}
+                                className="w-14"
+                              />
+                              <span className="tabular text-xs text-muted">
+                                {item.completenessScore}%
+                              </span>
                             </span>
                           </span>
                         </label>
@@ -421,147 +604,9 @@ export function ClaimsManager({
                 </ul>
               )}
             </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={busy || selectedIds.length === 0 || !reasonId}>
-                สร้างเคสและใส่ Legal Hold
-              </Button>
-              <Button type="button" variant="outline" onClick={closeCreate} disabled={busy}>
-                ยกเลิก
-              </Button>
-            </div>
           </form>
-          )}
-        </Card>
-      )}
-
-      <div className="space-y-4">
-        {claims.map((claim) => (
-          <Card key={claim.id}>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-semibold text-[var(--ink)]">{claim.orderNo}</h2>
-                  <Badge
-                    tone={
-                      claim.status === "open"
-                        ? "warning"
-                        : claim.status === "reviewing"
-                          ? "info"
-                          : "neutral"
-                    }
-                  >
-                    {statusLabel(claim.status)}
-                  </Badge>
-                  {claim.hasLegalHold && <Badge tone="danger">Legal Hold</Badge>}
-                </div>
-                <p className="mt-1 text-sm text-[var(--muted)]">{claim.reason}</p>
-              </div>
-              <time className="text-xs text-[var(--muted)]">
-                {format(new Date(claim.createdAt), "d MMM yyyy", { locale: th })}
-              </time>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-[var(--muted)]">
-              <span>หลักฐานวิดีโอ {claim.packageCount} รายการ</span>
-              {claim.recordingIds[0] && (
-                <Link
-                  href={`/t/${tenantSlug}/videos/${claim.recordingIds[0]}`}
-                  className="text-[var(--accent)] hover:underline"
-                >
-                  เปิดวิดีโอหลักฐาน
-                </Link>
-              )}
-              <a
-                href={`/api/t/${tenantSlug}/claims/${claim.id}/export`}
-                className="text-[var(--accent)] hover:underline"
-              >
-                ดาวน์โหลด Claim Package (.zip)
-              </a>
-            </div>
-
-            {canManage && (
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--border)] pt-3">
-                {claim.status !== "closed" && claim.status !== "reviewing" && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="text-sm"
-                    disabled={busy}
-                    onClick={() => void handleMarkReviewing(claim)}
-                  >
-                    กำลังตรวจ
-                  </Button>
-                )}
-                {claim.status !== "closed" && (
-                  <>
-                    {claim.hasLegalHold ? (
-                      <>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="text-sm"
-                          disabled={busy}
-                          onClick={() => void handleClose(claim, false)}
-                        >
-                          ปิดเคส (เก็บ Hold)
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="danger"
-                          className="text-sm"
-                          disabled={busy}
-                          onClick={() => void handleClose(claim, true)}
-                        >
-                          ปิดเคส + ยกเลิก Hold
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="danger"
-                        className="text-sm"
-                        disabled={busy}
-                        onClick={() => void handleClose(claim, false)}
-                      >
-                        ปิดเคส
-                      </Button>
-                    )}
-                  </>
-                )}
-                {claim.status === "closed" && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="text-sm"
-                    disabled={busy}
-                    onClick={() => void handleReopen(claim)}
-                  >
-                    เปิดอีกครั้ง
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-sm text-rose-600 hover:text-rose-700"
-                  disabled={busy}
-                  onClick={() => void handleDelete(claim)}
-                >
-                  ลบเคส
-                </Button>
-              </div>
-            )}
-          </Card>
-        ))}
-
-        {claims.length === 0 && !showCreate && (
-          <Card>
-            <p className="py-6 text-center text-sm text-[var(--muted)]">
-              ยังไม่มีเคสเคลม
-              {canManage ? " — กด «สร้างเคสเคลม» เพื่อเริ่มต้น" : ""}
-            </p>
-          </Card>
         )}
-      </div>
+      </Modal>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import Link from "next/link";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader } from "@/components/ui";
+import { ButtonLink, EmptyState, PageHeader } from "@/components/ui";
 import { VideosList } from "@/components/videos-list";
 import { DeletedVideosList } from "@/components/deleted-videos-list";
 
@@ -22,7 +22,17 @@ export default async function VideosPage({
     if (!canRestore) {
       return (
         <div>
-          <PageHeader title="ถังลบวิดีโอ" description="ไม่มีสิทธิ์ดูรายการนี้" />
+          <PageHeader title="ถังลบวิดีโอ" />
+          <EmptyState
+            icon={Trash2}
+            title="ไม่มีสิทธิ์เข้าถึง"
+            description="บัญชีของคุณไม่มีสิทธิ์ดูหรือกู้คืนวิดีโอที่ถูกลบ"
+            action={
+              <ButtonLink href={`/t/${session.tenantSlug}/videos`} variant="secondary" icon={ArrowLeft}>
+                กลับรายการวิดีโอ
+              </ButtonLink>
+            }
+          />
         </div>
       );
     }
@@ -62,8 +72,18 @@ export default async function VideosPage({
     return (
       <div>
         <PageHeader
+          eyebrow="วิดีโอ"
           title="ถังลบวิดีโอ"
-          description={`กู้คืนได้ภายใน ${softDeleteDays} วันหลังลบ`}
+          description={`วิดีโอที่ถูกลบจะกู้คืนได้ภายใน ${softDeleteDays} วันหลังลบ`}
+          actions={
+            <ButtonLink
+              href={`/t/${session.tenantSlug}/videos`}
+              variant="secondary"
+              icon={ArrowLeft}
+            >
+              กลับรายการวิดีโอ
+            </ButtonLink>
+          }
         />
         <DeletedVideosList
           tenantSlug={session.tenantSlug}
@@ -132,17 +152,21 @@ export default async function VideosPage({
 
   return (
     <div>
-      <PageHeader title="วิดีโอการแพ็ค" description="ค้นหาและตรวจสอบบันทึกทั้งหมด" />
-      {canRestore && (
-        <p className="mb-4 text-sm">
-          <Link
-            href={`/t/${session.tenantSlug}/videos?trash=1`}
-            className="font-medium text-[var(--accent)] hover:underline"
-          >
-            เปิดถังลบวิดีโอ
-          </Link>
-        </p>
-      )}
+      <PageHeader
+        title="วิดีโอการแพ็ค"
+        description="ค้นหา ตรวจสอบ และแชร์บันทึกการแพ็คทั้งหมดขององค์กร"
+        actions={
+          canRestore ? (
+            <ButtonLink
+              href={`/t/${session.tenantSlug}/videos?trash=1`}
+              variant="secondary"
+              icon={Trash2}
+            >
+              ถังลบวิดีโอ
+            </ButtonLink>
+          ) : null
+        }
+      />
       <VideosList
         key={q || ""}
         tenantSlug={session.tenantSlug}

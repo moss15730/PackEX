@@ -1,6 +1,6 @@
 import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { SettingsTheme } from "../theme-toggle";
 
 export default async function ThemeSettingsPage() {
@@ -15,11 +15,11 @@ export default async function ThemeSettingsPage() {
 
   return (
     <div>
-      <PageHeader title="ธีม" description="ปรับโหมดการแสดงผลของแอป" />
-      <Card className="max-w-xl">
-        <p className="mb-4 text-sm text-[var(--muted)]">
-          ค่าเริ่มต้นองค์กร: {settings.theme}
-        </p>
+      <PageHeader
+        title="ธีม"
+        description="เลือกโหมดการแสดงผลของแอปสำหรับอุปกรณ์นี้"
+      />
+      <Card className="max-w-2xl">
         <SettingsTheme defaultTheme={settings.theme} />
       </Card>
     </div>

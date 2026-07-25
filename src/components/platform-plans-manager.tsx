@@ -2,7 +2,18 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge, Button, Card } from "@/components/ui";
+import { AlertTriangle, Package, Pencil, Trash2 } from "lucide-react";
+import {
+  Badge,
+  Button,
+  Callout,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Field,
+  Input,
+} from "@/components/ui";
 import { useNotify } from "@/components/notify";
 
 type PlanSubscription = {
@@ -201,236 +212,221 @@ export function PlatformPlansManager({ plans }: { plans: Plan[] }) {
     }
   }
 
+  const FEATURE_TOGGLES = [
+    { label: "IP Camera", checked: allowIpCamera, onChange: setAllowIpCamera },
+    { label: "Multi Cam", checked: allowMultiCam, onChange: setAllowMultiCam },
+    { label: "Share Link", checked: allowShareLink, onChange: setAllowShareLink },
+    { label: "Integrations", checked: allowIntegrations, onChange: setAllowIntegrations },
+    { label: "AI", checked: allowAi, onChange: setAllowAi },
+    { label: "SSO", checked: allowSso, onChange: setAllowSso },
+    { label: "Custom Domain", checked: allowCustomDomain, onChange: setAllowCustomDomain },
+  ] as const;
+
   return (
     <div className="space-y-6">
-      <Card className="p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="font-semibold text-[var(--ink)]">
-              {mode === "create" ? "สร้าง/เพิ่มแพ็กเกจ" : "แก้ไขแพ็กเกจ"}
-            </h2>
-            {mode === "edit" && editingPlan ? (
-              <div className="mt-1 text-xs text-[var(--muted)]">
-                Editing: <span className="font-mono">{editingPlan.code}</span>
-              </div>
-            ) : null}
-          </div>
-          {mode === "edit" ? (
-            <Button type="button" variant="secondary" className="min-h-11" onClick={resetForm} disabled={busy}>
-              ยกเลิกแก้ไข
-            </Button>
+      <Card flush>
+        <CardHeader
+          icon={Package}
+          title={mode === "create" ? "สร้างแพ็กเกจใหม่" : `แก้ไขแพ็กเกจ ${editingPlan?.code ?? ""}`}
+          description="กำหนดโควต้าและฟีเจอร์ที่เปิดให้ใช้ในแต่ละแผน"
+          actions={
+            mode === "edit" ? (
+              <Button type="button" variant="secondary" size="sm" onClick={resetForm} disabled={busy}>
+                ยกเลิกแก้ไข
+              </Button>
+            ) : null
+          }
+        />
+        <CardBody className="space-y-5">
+          {error ? (
+            <Callout tone="danger" icon={AlertTriangle}>
+              {error}
+            </Callout>
           ) : null}
-        </div>
 
-        {error ? (
-          <div className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
-            {error}
-          </div>
-        ) : null}
-
-        <form onSubmit={submit} className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                Code
-              </label>
-              <input
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                placeholder="starter | business | enterprise"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                ราคา/เดือน (THB)
-              </label>
-              <input
-                value={priceMonthly}
-                onChange={(e) => setPriceMonthly(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                ชื่อ (TH)
-              </label>
-              <input
-                value={nameTh}
-                onChange={(e) => setNameTh(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                placeholder="Starter"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                ชื่อ (EN)
-              </label>
-              <input
-                value={nameEn}
-                onChange={(e) => setNameEn(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                placeholder="Starter"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                maxStations
-              </label>
-              <input
-                value={maxStations}
-                onChange={(e) => setMaxStations(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                maxStorageGb
-              </label>
-              <input
-                value={maxStorageGb}
-                onChange={(e) => setMaxStorageGb(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                maxUsers
-              </label>
-              <input
-                value={maxUsers}
-                onChange={(e) => setMaxUsers(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                retentionDays
-              </label>
-              <input
-                value={retentionDays}
-                onChange={(e) => setRetentionDays(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-                trialDays
-              </label>
-              <input
-                value={trialDays}
-                onChange={(e) => setTrialDays(e.target.value)}
-                className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 text-sm outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_28%,transparent)]"
-                inputMode="numeric"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(
-              [
-                { label: "IP Camera", checked: allowIpCamera, onChange: setAllowIpCamera },
-                { label: "Multi Cam", checked: allowMultiCam, onChange: setAllowMultiCam },
-                { label: "Share Link", checked: allowShareLink, onChange: setAllowShareLink },
-                {
-                  label: "Integrations",
-                  checked: allowIntegrations,
-                  onChange: setAllowIntegrations,
-                },
-                { label: "AI", checked: allowAi, onChange: setAllowAi },
-                { label: "SSO", checked: allowSso, onChange: setAllowSso },
-                {
-                  label: "Custom Domain",
-                  checked: allowCustomDomain,
-                  onChange: setAllowCustomDomain,
-                },
-              ] as const
-            ).map((c) => (
-              <label
-                key={c.label}
-                className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={c.checked}
-                  onChange={(e) => c.onChange(e.target.checked)}
+          <form id="plan-form" onSubmit={submit} className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Code" required hint="ตัวระบุแผนในระบบ">
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="starter | business | enterprise"
+                  className="font-mono"
+                  required
                 />
-                <span className="text-[var(--muted)]">{c.label}</span>
-              </label>
-            ))}
-          </div>
+              </Field>
+              <Field label="ราคาต่อเดือน (THB)">
+                <Input
+                  value={priceMonthly}
+                  onChange={(e) => setPriceMonthly(e.target.value)}
+                  inputMode="numeric"
+                />
+              </Field>
+              <Field label="ชื่อแผน (ไทย)" required>
+                <Input
+                  value={nameTh}
+                  onChange={(e) => setNameTh(e.target.value)}
+                  placeholder="สตาร์ทเตอร์"
+                  required
+                />
+              </Field>
+              <Field label="ชื่อแผน (English)" required>
+                <Input
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder="Starter"
+                  required
+                />
+              </Field>
+            </div>
 
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button type="submit" disabled={busy} className="min-h-11 px-6">
-              {busy ? "กำลังบันทึก..." : mode === "create" ? "สร้างแพ็กเกจ" : "บันทึกการแก้ไข"}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              className="min-h-11 px-6"
-              onClick={resetForm}
-            >
-              ล้างฟอร์ม
-            </Button>
-          </div>
-        </form>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Field label="จำนวนสถานีสูงสุด" required>
+                <Input
+                  value={maxStations}
+                  onChange={(e) => setMaxStations(e.target.value)}
+                  inputMode="numeric"
+                  required
+                />
+              </Field>
+              <Field label="พื้นที่จัดเก็บ (GB)" required>
+                <Input
+                  value={maxStorageGb}
+                  onChange={(e) => setMaxStorageGb(e.target.value)}
+                  inputMode="numeric"
+                  required
+                />
+              </Field>
+              <Field label="ผู้ใช้สูงสุด" required>
+                <Input
+                  value={maxUsers}
+                  onChange={(e) => setMaxUsers(e.target.value)}
+                  inputMode="numeric"
+                  required
+                />
+              </Field>
+              <Field label="เก็บข้อมูล (วัน)" required>
+                <Input
+                  value={retentionDays}
+                  onChange={(e) => setRetentionDays(e.target.value)}
+                  inputMode="numeric"
+                  required
+                />
+              </Field>
+              <Field label="ทดลองใช้ (วัน)">
+                <Input
+                  value={trialDays}
+                  onChange={(e) => setTrialDays(e.target.value)}
+                  inputMode="numeric"
+                />
+              </Field>
+            </div>
+
+            <div>
+              <p className="mb-2 text-[13px] font-medium text-ink">ฟีเจอร์ที่เปิดใช้</p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {FEATURE_TOGGLES.map((c) => (
+                  <label
+                    key={c.label}
+                    className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line px-3 py-2 text-sm text-ink-2 transition hover:bg-subtle has-checked:border-brand-border has-checked:bg-brand-soft/60 has-checked:text-ink"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-[var(--brand)]"
+                      checked={c.checked}
+                      onChange={(e) => c.onChange(e.target.checked)}
+                    />
+                    {c.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </form>
+        </CardBody>
+        <CardFooter>
+          <Button type="button" variant="secondary" disabled={busy} onClick={resetForm}>
+            ล้างฟอร์ม
+          </Button>
+          <Button type="submit" form="plan-form" loading={busy}>
+            {mode === "create" ? "สร้างแพ็กเกจ" : "บันทึกการแก้ไข"}
+          </Button>
+        </CardFooter>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((p) => (
-          <Card key={p.id} className="p-5">
+          <Card key={p.id} className="flex flex-col">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate font-semibold text-[var(--ink)]">{p.nameTh}</div>
-                <div className="mt-1 text-xs text-[var(--muted)] font-mono">{p.code}</div>
+                <h3 className="truncate text-base font-semibold tracking-tight text-ink">
+                  {p.nameTh}
+                </h3>
+                <p className="mt-0.5 font-mono text-xs text-muted">{p.code}</p>
               </div>
-              <Badge tone={p.trialDays > 0 ? "info" : "neutral"}>{p.trialDays > 0 ? `Trial ${p.trialDays}d` : "Paid"}</Badge>
+              <Badge tone={p.trialDays > 0 ? "info" : "neutral"}>
+                {p.trialDays > 0 ? `ทดลอง ${p.trialDays} วัน` : "Paid"}
+              </Badge>
             </div>
-            <div className="mt-3 text-2xl font-bold">
-              {p.priceMonthly > 0 ? `฿${p.priceMonthly.toLocaleString()}/เดือน` : "ติดต่อเรา"}
-            </div>
-            <ul className="mt-3 space-y-1 text-sm text-[var(--muted)]">
-              <li>สถานี: {p.maxStations}</li>
-              <li>พื้นที่: {p.maxStorageGb} GB</li>
-              <li>ผู้ใช้: {p.maxUsers}</li>
-              <li>Retention: {p.retentionDays} วัน</li>
-            </ul>
 
-            {p.subscriptions && p.subscriptions.length > 0 ? (
-              <p className="mt-3 text-xs text-[var(--muted)]">
-                องค์กรที่ใช้:{" "}
-                <span className="font-mono text-[var(--ink)]">
-                  {p.subscriptions.map((s) => s.slug).join(", ")}
-                </span>
-              </p>
-            ) : (
-              <p className="mt-3 text-xs text-[var(--muted)]">ยังไม่มีองค์กรใช้แผนนี้</p>
-            )}
+            <p className="tabular mt-4 text-2xl font-semibold tracking-tight text-ink">
+              {p.priceMonthly > 0 ? (
+                <>
+                  ฿{p.priceMonthly.toLocaleString()}
+                  <span className="text-base font-normal text-muted">/เดือน</span>
+                </>
+              ) : (
+                "ติดต่อเรา"
+              )}
+            </p>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button type="button" variant="secondary" className="flex-1 min-h-11" disabled={busy} onClick={() => loadFromPlan(p)}>
+            <dl className="mt-4 space-y-2 border-t border-line pt-4 text-[13px]">
+              {[
+                { k: "สถานี", v: p.maxStations },
+                { k: "พื้นที่", v: `${p.maxStorageGb} GB` },
+                { k: "ผู้ใช้", v: p.maxUsers },
+                { k: "Retention", v: `${p.retentionDays} วัน` },
+              ].map((row) => (
+                <div key={row.k} className="flex items-center justify-between gap-3">
+                  <dt className="text-muted">{row.k}</dt>
+                  <dd className="tabular font-medium text-ink">{row.v}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <p className="mt-4 text-xs text-muted">
+              {p.subscriptions && p.subscriptions.length > 0 ? (
+                <>
+                  ใช้งานโดย{" "}
+                  <span className="font-mono text-ink-2">
+                    {p.subscriptions.map((s) => s.slug).join(", ")}
+                  </span>
+                </>
+              ) : (
+                "ยังไม่มีองค์กรใช้แผนนี้"
+              )}
+            </p>
+
+            <div className="mt-4 flex gap-2 border-t border-line pt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                icon={Pencil}
+                className="flex-1"
+                disabled={busy}
+                onClick={() => loadFromPlan(p)}
+              >
                 แก้ไข
               </Button>
-              <Button type="button" variant="outline" className="flex-1 min-h-11 text-rose-600 hover:text-rose-700" disabled={busy} onClick={() => void handleDelete(p)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                icon={Trash2}
+                className="flex-1 text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
+                disabled={busy}
+                onClick={() => void handleDelete(p)}
+              >
                 ลบ
               </Button>
             </div>

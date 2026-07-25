@@ -12,13 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  X,
-  XCircle,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -49,36 +43,41 @@ type ToastItem = {
 type NotifyContextValue = {
   confirm: (options: ConfirmOptions) => Promise<boolean>;
   alert: (options: AlertOptions) => Promise<void>;
-  toast: (options: {
-    title: string;
-    description?: string;
-    tone?: Tone;
-  }) => void;
+  toast: (options: { title: string; description?: string; tone?: Tone }) => void;
 };
 
 const NotifyContext = createContext<NotifyContextValue | null>(null);
 
 const toneStyles: Record<
   Tone,
-  { iconWrap: string; icon: typeof Info; confirmVariant: "primary" | "danger" }
+  {
+    iconWrap: string;
+    accent: string;
+    icon: typeof Info;
+    confirmVariant: "primary" | "danger";
+  }
 > = {
   info: {
-    iconWrap: "bg-sky-500/15 text-sky-600 dark:text-sky-300",
+    iconWrap: "bg-info-soft text-info-ink",
+    accent: "bg-info",
     icon: Info,
     confirmVariant: "primary",
   },
   success: {
-    iconWrap: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
+    iconWrap: "bg-success-soft text-success-ink",
+    accent: "bg-success",
     icon: CheckCircle2,
     confirmVariant: "primary",
   },
   warning: {
-    iconWrap: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    iconWrap: "bg-warning-soft text-warning-ink",
+    accent: "bg-warning",
     icon: AlertTriangle,
     confirmVariant: "primary",
   },
   danger: {
-    iconWrap: "bg-rose-500/15 text-rose-600 dark:text-rose-300",
+    iconWrap: "bg-danger-soft text-danger-ink",
+    accent: "bg-danger",
     icon: XCircle,
     confirmVariant: "danger",
   },
@@ -118,11 +117,12 @@ function DialogShell({
   if (!mounted || !open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-6">
       <button
         type="button"
         aria-label="ปิด"
-        className="absolute inset-0 bg-[color-mix(in_srgb,var(--ink)_45%,transparent)] backdrop-blur-[2px] animate-[backdrop-in_160ms_ease-out]"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[3px]"
+        style={{ animation: "fade-in 150ms var(--ease-out) both" }}
         onClick={onClose}
       />
       <div
@@ -130,10 +130,10 @@ function DialogShell({
         aria-modal="true"
         aria-labelledby={labelledBy}
         className={cn(
-          "relative z-10 w-full max-w-md overflow-hidden rounded-[var(--radius)] border border-[var(--border)]",
-          "bg-[var(--surface)] shadow-[var(--shadow-lg)]",
-          "animate-[dialog-in_180ms_ease-out]",
+          "relative z-10 w-full overflow-hidden border border-line bg-surface shadow-xl",
+          "rounded-t-2xl sm:max-w-md sm:rounded-2xl",
         )}
+        style={{ animation: "scale-in 200ms var(--ease-out) both" }}
       >
         {children}
       </div>
@@ -161,54 +161,52 @@ function DialogBody({
   const Icon = style.icon;
 
   return (
-    <div className="p-5 sm:p-6">
-      <div className="flex items-start gap-4">
-        <div
-          className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-            style.iconWrap,
-          )}
-        >
-          <Icon className="h-5 w-5" strokeWidth={2.25} />
-        </div>
-        <div className="min-w-0 flex-1 pt-0.5">
-          <div className="flex items-start justify-between gap-3">
-            <h2
-              id={titleId}
-              className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-[var(--ink)]"
-            >
-              {title}
-            </h2>
-            {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg p-1 text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
-                aria-label="ปิด"
-              >
-                <X className="h-4 w-4" />
-              </button>
+    <>
+      <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-line sm:hidden" />
+      <div className="p-5 sm:p-6">
+        <div className="flex items-start gap-4">
+          <div
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+              style.iconWrap,
             )}
+          >
+            <Icon className="h-5 w-5" strokeWidth={2.1} />
           </div>
-          {description ? (
-            <p className="mt-1.5 text-sm leading-relaxed text-[var(--muted)]">
-              {description}
-            </p>
-          ) : null}
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex items-start justify-between gap-3">
+              <h2
+                id={titleId}
+                className="text-[17px] font-semibold tracking-tight text-ink"
+              >
+                {title}
+              </h2>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="-mt-1 -mr-1 rounded-md p-1.5 text-muted transition hover:bg-subtle hover:text-ink"
+                  aria-label="ปิด"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            {description ? (
+              <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
+            ) : null}
+          </div>
         </div>
       </div>
-      <div className="mt-5 flex flex-wrap justify-end gap-2">{children}</div>
-    </div>
+      <div className="flex flex-col-reverse gap-2 border-t border-line bg-subtle/50 p-4 sm:flex-row sm:justify-end sm:px-6">
+        {children}
+      </div>
+    </>
   );
 }
 
-type PendingConfirm = ConfirmOptions & {
-  resolve: (value: boolean) => void;
-};
-
-type PendingAlert = AlertOptions & {
-  resolve: () => void;
-};
+type PendingConfirm = ConfirmOptions & { resolve: (value: boolean) => void };
+type PendingAlert = AlertOptions & { resolve: () => void };
 
 export function NotifyProvider({ children }: { children: ReactNode }) {
   const confirmTitleId = useId();
@@ -288,7 +286,8 @@ export function NotifyProvider({ children }: { children: ReactNode }) {
           >
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
+              className="sm:w-auto"
               onClick={() => closeConfirm(false)}
             >
               {confirmState.cancelLabel ?? "ยกเลิก"}
@@ -323,32 +322,30 @@ export function NotifyProvider({ children }: { children: ReactNode }) {
 
       {toasts.length > 0 &&
         createPortal(
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[110] flex flex-col items-center gap-2 p-4 sm:items-end">
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[110] flex flex-col items-center gap-2 p-4 sm:top-0 sm:bottom-auto sm:items-end sm:p-5">
             {toasts.map((item) => {
               const style = toneStyles[item.tone];
               const Icon = style.icon;
               return (
                 <div
                   key={item.id}
-                  className={cn(
-                    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-[var(--radius)] border border-[var(--border)]",
-                    "bg-[var(--surface)] p-3.5 shadow-[var(--shadow-lg)]",
-                    "animate-[toast-in_200ms_ease-out]",
-                  )}
                   role="status"
+                  className="pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-xl border border-line bg-surface p-3.5 shadow-lg"
+                  style={{ animation: "scale-in 220ms var(--ease-out) both" }}
                 >
+                  <span className={cn("absolute left-0 h-full w-0.5", style.accent)} aria-hidden />
                   <div
                     className={cn(
                       "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
                       style.iconWrap,
                     )}
                   >
-                    <Icon className="h-4 w-4" strokeWidth={2.25} />
+                    <Icon className="h-4 w-4" strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[var(--ink)]">{item.title}</p>
+                    <p className="text-sm font-medium text-ink">{item.title}</p>
                     {item.description ? (
-                      <p className="mt-0.5 text-xs leading-relaxed text-[var(--muted)]">
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted">
                         {item.description}
                       </p>
                     ) : null}
@@ -356,7 +353,7 @@ export function NotifyProvider({ children }: { children: ReactNode }) {
                   <button
                     type="button"
                     onClick={() => removeToast(item.id)}
-                    className="rounded-md p-1 text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--ink)]"
+                    className="rounded-md p-1 text-faint transition hover:bg-subtle hover:text-ink"
                     aria-label="ปิด"
                   >
                     <X className="h-3.5 w-3.5" />
