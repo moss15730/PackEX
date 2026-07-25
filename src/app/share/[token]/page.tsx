@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import {
@@ -24,6 +25,12 @@ import { createSignedUrl } from "@/lib/storage";
 import { hasValidShareUnlock } from "@/lib/share-access";
 import { addSeconds, format, formatDistanceStrict } from "date-fns";
 import { th } from "date-fns/locale";
+
+/** Evidence links must never be indexed or previewed by link unfurlers. */
+export const metadata: Metadata = {
+  title: "หลักฐานวิดีโอการแพ็ค",
+  robots: { index: false, follow: false, nocache: true, noarchive: true, nosnippet: true },
+};
 
 function formatDuration(sec: number | null | undefined) {
   if (sec == null || sec < 0) return "—";

@@ -224,9 +224,11 @@ export default async function VideoDetailPage({
                             ) : (
                               <div className="flex h-full flex-col items-center justify-center gap-1.5 px-4 text-center text-sm text-white/70">
                                 <VideoOff size={20} className="opacity-60" />
-                                ไม่มีไฟล์วิดีโอให้เล่น
-                                <span className="text-xs text-white/45">
-                                  (อาจเป็นข้อมูลจำลองจาก seed)
+                                เล่นไฟล์นี้ไม่ได้
+                                <span className="max-w-xs text-xs text-white/45">
+                                  {storageReady
+                                    ? "ไม่พบไฟล์ใน storage — อาจถูกลบตามนโยบายเก็บข้อมูลหรืออัปโหลดไม่สำเร็จ"
+                                    : "ยังไม่ได้ตั้งค่า storage — ตั้งค่า Supabase เพื่อเล่นวิดีโอ"}
                                 </span>
                               </div>
                             )}

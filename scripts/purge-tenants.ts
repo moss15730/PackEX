@@ -19,7 +19,6 @@ async function purgeAllTenants() {
   await prisma.claimPackage.deleteMany();
   await prisma.claimCase.deleteMany();
   await prisma.claimReason.deleteMany();
-  await prisma.aiCheck.deleteMany();
   await prisma.timelineMarker.deleteMany();
   await prisma.snapshot.deleteMany();
   await prisma.recordingFile.deleteMany();
@@ -33,9 +32,7 @@ async function purgeAllTenants() {
   await prisma.onboardingState.deleteMany();
   await prisma.usageMeter.deleteMany();
   await prisma.invoice.deleteMany();
-  await prisma.featureFlag.deleteMany();
   await prisma.supportAccessGrant.deleteMany();
-  await prisma.integration.deleteMany();
   await prisma.tenantSettings.deleteMany();
   await prisma.subscription.deleteMany();
   await prisma.tenant.deleteMany();

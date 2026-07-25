@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { PackExWordmark } from "@/components/brand";
 import { ButtonLink } from "@/components/ui";
+import { prisma } from "@/lib/db";
+
+export const revalidate = 3600;
 
 const FEATURES = [
   {
@@ -40,7 +43,52 @@ const STEPS = [
   { step: "03", title: "ปิดงาน", body: "วิดีโออัปโหลดขึ้นคลาวด์อัตโนมัติ ค้นหาได้ในไม่กี่วินาที" },
 ];
 
-export default function HomePage() {
+/**
+ * Capability figures come from the live plan catalogue, so the marketing page
+ * can never drift from what the platform actually sells.
+ */
+async function getPlanHighlights() {
+  const plans = await prisma.plan.findMany({
+    select: {
+      retentionDays: true,
+      maxStorageGb: true,
+      maxStations: true,
+      trialDays: true,
+      allowMultiCam: true,
+      allowShareLink: true,
+    },
+  });
+
+  if (plans.length === 0) return null;
+
+  const max = (pick: (p: (typeof plans)[number]) => number) =>
+    plans.reduce((best, plan) => Math.max(best, pick(plan)), 0);
+
+  return {
+    retentionDays: max((p) => p.retentionDays),
+    storageGb: max((p) => p.maxStorageGb),
+    stations: max((p) => p.maxStations),
+    trialDays: max((p) => p.trialDays),
+    multiCam: plans.some((p) => p.allowMultiCam),
+    shareLink: plans.some((p) => p.allowShareLink),
+  };
+}
+
+export default async function HomePage() {
+  const highlights = await getPlanHighlights().catch(() => null);
+
+  const facts = highlights
+    ? [
+        { k: "เก็บหลักฐานสูงสุด", v: `${highlights.retentionDays} วัน` },
+        { k: "พื้นที่วิดีโอสูงสุด", v: `${highlights.storageGb.toLocaleString()} GB` },
+        { k: "สถานีต่อองค์กร", v: `${highlights.stations} สถานี` },
+        {
+          k: highlights.trialDays > 0 ? "ทดลองใช้ฟรี" : "รูปแบบระบบ",
+          v: highlights.trialDays > 0 ? `${highlights.trialDays} วัน` : "Multi-tenant",
+        },
+      ]
+    : [];
+
   return (
     <div className="aurora flex min-h-[100dvh] flex-col">
       <header className="glass sticky top-0 z-40 border-b border-line/60">
@@ -50,8 +98,11 @@ export default function HomePage() {
             <ButtonLink href="/login?platform=1" variant="ghost" size="sm" className="hidden sm:inline-flex">
               Platform
             </ButtonLink>
-            <ButtonLink href="/login" variant="primary" size="sm" iconRight={ArrowRight}>
+            <ButtonLink href="/login" variant="ghost" size="sm">
               เข้าสู่ระบบ
+            </ButtonLink>
+            <ButtonLink href="/signup" variant="primary" size="sm" iconRight={ArrowRight}>
+              ทดลองใช้ฟรี
             </ButtonLink>
           </nav>
         </div>
@@ -76,30 +127,29 @@ export default function HomePage() {
           </p>
 
           <div className="animate-rise mt-10 flex flex-wrap items-center justify-center gap-3">
-            <ButtonLink href="/login" variant="primary" size="lg" iconRight={ArrowRight}>
-              เข้าสู่ระบบองค์กร
+            <ButtonLink href="/signup" variant="primary" size="lg" iconRight={ArrowRight}>
+              เริ่มทดลองใช้ฟรี
             </ButtonLink>
-            <ButtonLink href="/login?platform=1" variant="secondary" size="lg">
-              Platform admin
+            <ButtonLink href="/login" variant="secondary" size="lg">
+              เข้าสู่ระบบองค์กร
             </ButtonLink>
           </div>
 
-          <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
-              { k: "อัปโหลดอัตโนมัติ", v: "100%" },
-              { k: "ค้นหาวิดีโอ", v: "< 3 วิ" },
-              { k: "เก็บหลักฐาน", v: "90 วัน" },
-              { k: "Multi-tenant", v: "แยกข้อมูล" },
-            ].map((item) => (
-              <div
-                key={item.k}
-                className="rounded-xl border border-line bg-surface/70 p-4 shadow-xs backdrop-blur-sm"
-              >
-                <dt className="text-[11px] font-medium text-muted">{item.k}</dt>
-                <dd className="mt-1 text-lg font-semibold tracking-tight text-ink">{item.v}</dd>
-              </div>
-            ))}
-          </dl>
+          {facts.length > 0 ? (
+            <dl className="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+              {facts.map((item) => (
+                <div
+                  key={item.k}
+                  className="rounded-xl border border-line bg-surface/70 p-4 shadow-xs backdrop-blur-sm"
+                >
+                  <dt className="text-[11px] font-medium text-muted">{item.k}</dt>
+                  <dd className="tabular mt-1 text-lg font-semibold tracking-tight text-ink">
+                    {item.v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
         </section>
 
         {/* Features */}
@@ -161,8 +211,8 @@ export default function HomePage() {
             <p className="max-w-md text-sm leading-relaxed text-ink-2">
               เข้าสู่ระบบเพื่อจัดการสถานี วิดีโอ และเคลมขององค์กรคุณ
             </p>
-            <ButtonLink href="/login" variant="primary" size="lg" iconRight={ArrowRight}>
-              เริ่มใช้งาน
+            <ButtonLink href="/signup" variant="primary" size="lg" iconRight={ArrowRight}>
+              สร้างองค์กรและทดลองใช้
             </ButtonLink>
           </div>
         </section>

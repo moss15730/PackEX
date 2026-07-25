@@ -1,4 +1,5 @@
 import { LegalPage, LegalSection } from "@/components/legal-page";
+import { PRIVACY_EMAIL } from "@/lib/contact";
 
 export const metadata = { title: "นโยบายความเป็นส่วนตัว" };
 
@@ -17,7 +18,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) คุณมีสิทธิขอเข้าถึง แก้ไข ส่งออก
-          หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ support@packex.app
+          หรือลบข้อมูล โดยติดต่อ admin ขององค์กรหรือ {PRIVACY_EMAIL}
         </p>
       </LegalSection>
 
@@ -29,7 +30,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           Under Thailand&apos;s PDPA, you may request access, correction, export, or deletion
-          of personal data via your tenant administrator or support@packex.app.
+          of personal data via your tenant administrator or {PRIVACY_EMAIL}.
         </p>
       </LegalSection>
     </LegalPage>

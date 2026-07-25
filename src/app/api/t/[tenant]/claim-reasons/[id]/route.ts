@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { can, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { denyIfReadOnly } from "@/lib/tenant-access";
 
 export async function PATCH(
   req: Request,
@@ -11,6 +12,11 @@ export async function PATCH(
 
   if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  const denied = await denyIfReadOnly(session.tenantId);
+  if (denied) {
+    return NextResponse.json({ error: denied.error }, { status: denied.status });
   }
 
   if (!can(session.role, "claim_reasons.manage")) {
@@ -86,6 +92,11 @@ export async function DELETE(
 
   if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  const denied = await denyIfReadOnly(session.tenantId);
+  if (denied) {
+    return NextResponse.json({ error: denied.error }, { status: denied.status });
   }
 
   if (!can(session.role, "claim_reasons.manage")) {

@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ButtonLink, Card, PageHeader } from "@/components/ui";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 const GUIDES: { title: string; body: string; icon: LucideIcon }[] = [
   {
@@ -64,8 +65,8 @@ export default function HelpPage() {
             </p>
           </div>
         </div>
-        <ButtonLink href="mailto:support@packex.app" variant="secondary" icon={Mail}>
-          support@packex.app
+        <ButtonLink href={`mailto:${SUPPORT_EMAIL}`} variant="secondary" icon={Mail}>
+          {SUPPORT_EMAIL}
         </ButtonLink>
       </Card>
     </div>

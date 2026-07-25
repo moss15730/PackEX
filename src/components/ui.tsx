@@ -767,7 +767,7 @@ export function Field({
       {label ? (
         <label
           htmlFor={htmlFor}
-          className="mb-1.5 flex items-center gap-1 text-[13px] font-medium text-ink"
+          className="mb-1.5 flex w-full items-center gap-1 text-[13px] font-medium text-ink"
         >
           {label}
           {required ? <span className="text-danger">*</span> : null}

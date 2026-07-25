@@ -11,7 +11,6 @@ async function main() {
   await prisma.claimPackage.deleteMany();
   await prisma.claimCase.deleteMany();
   await prisma.claimReason.deleteMany();
-  await prisma.aiCheck.deleteMany();
   await prisma.timelineMarker.deleteMany();
   await prisma.snapshot.deleteMany();
   await prisma.recordingFile.deleteMany();
@@ -25,9 +24,7 @@ async function main() {
   await prisma.onboardingState.deleteMany();
   await prisma.usageMeter.deleteMany();
   await prisma.invoice.deleteMany();
-  await prisma.featureFlag.deleteMany();
   await prisma.supportAccessGrant.deleteMany();
-  await prisma.integration.deleteMany();
   await prisma.tenantSettings.deleteMany();
   await prisma.subscription.deleteMany();
   await prisma.tenant.deleteMany();
@@ -456,13 +453,6 @@ async function main() {
     },
   });
 
-  await prisma.integration.createMany({
-    data: [
-      { tenantId: tenant.id, provider: "shopee", enabled: true },
-      { tenantId: tenant.id, provider: "lazada", enabled: false },
-      { tenantId: tenant.id, provider: "webhook", enabled: true },
-    ],
-  });
 
   await prisma.auditLog.createMany({
     data: [

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { can, hashPassword, requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { refreshOnboardingState } from "@/lib/onboarding";
+import { denyIfReadOnly } from "@/lib/tenant-access";
 import {
   getUsageAndLimits,
   isUserLimitReached,
@@ -81,6 +82,11 @@ export async function POST(
 
   if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  const denied = await denyIfReadOnly(session.tenantId);
+  if (denied) {
+    return NextResponse.json({ error: denied.error }, { status: denied.status });
   }
 
   if (!can(session.role, "employees.manage")) {

@@ -5,32 +5,17 @@
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
     ],
-    "[project]/src/app/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/platform/announcements/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/platform/data-requests/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
     "[project]/src/app/platform/health/page": [
       "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
     ],
-    "[project]/src/app/platform/page": [
+    "[project]/src/app/platform/inbox/page": [
       "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
     ],
-    "[project]/src/app/platform/support/page": [
+    "[project]/src/app/platform/page": [
       "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
@@ -45,27 +30,12 @@
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
     ],
+    "[project]/src/app/signup/page": [
+      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
+      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
+      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
+    ],
     "[project]/src/app/t/[tenant]/dashboard/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/t/[tenant]/station/[stationId]/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/t/[tenant]/station/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/t/[tenant]/videos/[id]/page": [
-      "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
-      "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
-      "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"
-    ],
-    "[project]/src/app/t/[tenant]/videos/page": [
       "static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2",
       "static/media/48a9130fde140ce9-s.p.2chmmw5jncpj5.woff2",
       "static/media/41668b7e976a3c46-s.p.2vx-usavuz-_v.woff2"

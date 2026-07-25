@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { loginPlatform, loginTenantByEmail } from "@/lib/auth";
 import { assertProductionReady } from "@/lib/env";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   }
 
   const ip = clientIp(req);
-  const limited = rateLimit({
+  const limited = await checkRateLimit({
     key: `login:${ip}`,
     limit: 20,
     windowMs: 15 * 60 * 1000,
@@ -37,6 +37,20 @@ export async function POST(req: Request) {
 
   if (!email || !password) {
     return NextResponse.json({ ok: false, error: "กรุณากรอกอีเมลและรหัสผ่าน" }, { status: 400 });
+  }
+
+  // Second, tighter budget per account so one address cannot be brute-forced
+  // from a rotating pool of IPs.
+  const perAccount = await checkRateLimit({
+    key: `login-account:${email.trim().toLowerCase()}`,
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!perAccount.ok) {
+    return NextResponse.json(
+      { ok: false, error: `บัญชีนี้ถูกล็อกชั่วคราว — รอ ${perAccount.retryAfterSec} วินาที` },
+      { status: 429 },
+    );
   }
 
   if (platform) {

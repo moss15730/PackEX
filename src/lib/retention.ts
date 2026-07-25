@@ -3,6 +3,7 @@ import { deleteRecordingFiles } from "@/lib/storage";
 import { syncUsageMeter } from "@/lib/tenant-limits";
 import { cleanupStuckRecordings } from "@/lib/recording-cleanup";
 import { pruneRateLimitBuckets } from "@/lib/rate-limit";
+import { purgeExpiredResetTokens } from "@/lib/password-reset";
 
 const STALE_HEARTBEAT_MS = 5 * 60 * 1000;
 
@@ -11,11 +12,20 @@ export type RetentionPurgeResult = {
   purgedFiles: number;
   stationsMarkedOffline: number;
   stuckRecordingsCanceled: number;
-  tenantsSuspended: number;
+  /** Trials/past-due subscriptions moved to read-only. */
+  tenantsRestricted: number;
   errors: string[];
 };
 
-async function suspendExpiredTrials(): Promise<number> {
+/**
+ * Trials that ran out move to `trial_expired`, which puts the organisation in
+ * read-only mode: they keep full access to their evidence and to support chat,
+ * but every mutation is refused until an admin extends or upgrades them.
+ *
+ * The tenant is deliberately NOT suspended — locking people out of data they
+ * already recorded is both hostile and a support burden.
+ */
+async function markExpiredTrialsReadOnly(): Promise<number> {
   const now = new Date();
   const expired = await prisma.subscription.findMany({
     where: {
@@ -31,16 +41,12 @@ async function suspendExpiredTrials(): Promise<number> {
     await prisma.$transaction([
       prisma.subscription.update({
         where: { id: sub.id },
-        data: { status: "past_due" },
-      }),
-      prisma.tenant.update({
-        where: { id: sub.tenantId },
-        data: { status: "suspended" },
+        data: { status: "trial_expired" },
       }),
       prisma.auditLog.create({
         data: {
           tenantId: sub.tenantId,
-          action: "billing.trial_expired_suspend",
+          action: "billing.trial_expired_read_only",
           entityType: "tenant",
           entityId: sub.tenantId,
         },
@@ -50,13 +56,15 @@ async function suspendExpiredTrials(): Promise<number> {
           tenantId: sub.tenantId,
           severity: "critical",
           title: "หมดช่วงทดลองใช้งาน",
-          message: "บัญชีถูกระงับเพราะหมด trial — ติดต่อ PackEX เพื่อต่ออายุหรืออัปเกรดแพ็กเกจ",
+          message:
+            "ตอนนี้ดูข้อมูลเดิมได้ทั้งหมด แต่เพิ่ม/แก้ไข/ลบไม่ได้ — ติดต่อผู้ดูแลระบบผ่านแชทเพื่อเปิดใช้งานต่อ",
         },
       }),
     ]);
   }
 
-  // Past-due subscriptions whose period ended → suspend tenant if still active
+  // Unpaid subscriptions past their period also drop to read-only rather than
+  // being locked out, so the customer can still reach support and settle up.
   const pastDue = await prisma.subscription.findMany({
     where: {
       status: { in: ["past_due", "canceled"] },
@@ -68,20 +76,14 @@ async function suspendExpiredTrials(): Promise<number> {
   });
 
   for (const sub of pastDue) {
-    await prisma.$transaction([
-      prisma.tenant.update({
-        where: { id: sub.tenantId },
-        data: { status: "suspended" },
-      }),
-      prisma.auditLog.create({
-        data: {
-          tenantId: sub.tenantId,
-          action: "billing.past_due_suspend",
-          entityType: "tenant",
-          entityId: sub.tenantId,
-        },
-      }),
-    ]);
+    await prisma.auditLog.create({
+      data: {
+        tenantId: sub.tenantId,
+        action: "billing.past_due_read_only",
+        entityType: "tenant",
+        entityId: sub.tenantId,
+      },
+    });
   }
 
   return expired.length + pastDue.length;
@@ -90,6 +92,7 @@ async function suspendExpiredTrials(): Promise<number> {
 /** Hard-delete soft-deleted recordings past softDeleteDays; mark stale agents offline; suspend expired trials. */
 export async function runRetentionMaintenance(): Promise<RetentionPurgeResult> {
   pruneRateLimitBuckets();
+  await purgeExpiredResetTokens().catch(() => 0);
 
   const stuck = await cleanupStuckRecordings();
 
@@ -98,11 +101,11 @@ export async function runRetentionMaintenance(): Promise<RetentionPurgeResult> {
     purgedFiles: 0,
     stationsMarkedOffline: 0,
     stuckRecordingsCanceled: stuck.recordingsCanceled,
-    tenantsSuspended: 0,
+    tenantsRestricted: 0,
     errors: [],
   };
 
-  result.tenantsSuspended = await suspendExpiredTrials();
+  result.tenantsRestricted = await markExpiredTrialsReadOnly();
 
   const tenants = await prisma.tenant.findMany({
     where: { status: { not: "deleted" } },
@@ -208,6 +211,17 @@ export async function runRetentionMaintenance(): Promise<RetentionPurgeResult> {
       result.stationsMarkedOffline += 1;
     }
   }
+
+  // Heartbeat for the job itself — platform health reads this to prove cron runs.
+  await prisma.auditLog
+    .create({
+      data: {
+        action: "retention.run",
+        entityType: "cron",
+        meta: JSON.stringify(result),
+      },
+    })
+    .catch(() => undefined);
 
   return result;
 }

@@ -1,6 +1,7 @@
 import { ArrowLeft, LifeBuoy, PauseCircle } from "lucide-react";
 import { PackExWordmark } from "@/components/brand";
 import { ButtonLink } from "@/components/ui";
+import { BILLING_EMAIL } from "@/lib/contact";
 
 export const metadata = { title: "บัญชีถูกระงับ" };
 
@@ -24,7 +25,12 @@ export default function SuspendedPage() {
           </p>
 
           <div className="mt-7 flex flex-col gap-2">
-            <ButtonLink href="mailto:billing@packex.app" variant="primary" size="lg" icon={LifeBuoy}>
+            <ButtonLink
+              href={`mailto:${BILLING_EMAIL}`}
+              variant="primary"
+              size="lg"
+              icon={LifeBuoy}
+            >
               ติดต่อฝ่าย Billing
             </ButtonLink>
             <ButtonLink href="/login" variant="ghost" size="md" icon={ArrowLeft}>

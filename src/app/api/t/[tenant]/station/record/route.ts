@@ -6,6 +6,7 @@ import { refreshOnboardingState } from "@/lib/onboarding";
 import { canAccessStation } from "@/lib/station-access";
 import { cleanupStuckRecordings } from "@/lib/recording-cleanup";
 import { getUsageAndLimits, isStorageFull, syncUsageMeter } from "@/lib/tenant-limits";
+import { denyIfReadOnly } from "@/lib/tenant-access";
 
 async function loadUserAccess(userId: string) {
   return prisma.user.findUnique({
@@ -91,6 +92,11 @@ export async function POST(
 
   if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
     return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+  }
+
+  const denied = await denyIfReadOnly(session.tenantId);
+  if (denied) {
+    return NextResponse.json({ error: denied.error }, { status: denied.status });
   }
 
   const body = await req.json();

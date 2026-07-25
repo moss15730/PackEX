@@ -9,6 +9,7 @@ import {
 } from "@/lib/storage";
 import { checkStorageAlert } from "@/lib/alerts";
 import { syncUsageMeter } from "@/lib/tenant-limits";
+import { denyIfReadOnly } from "@/lib/tenant-access";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,11 @@ export async function POST(
 
     if (!session || session.tenantSlug !== tenantSlug || !session.tenantId) {
       return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    const denied = await denyIfReadOnly(session.tenantId);
+    if (denied) {
+      return NextResponse.json({ error: denied.error }, { status: denied.status });
     }
 
     if (!can(session.role, "recording.stop") && !can(session.role, "recording.start")) {

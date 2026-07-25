@@ -1,14 +1,62 @@
-import { Cpu, HardDrive, HeartPulse, Radio, ServerOff } from "lucide-react";
+import {
+  CheckCircle2,
+  Cpu,
+  HardDrive,
+  HeartPulse,
+  Radio,
+  ServerOff,
+  TriangleAlert,
+  XCircle,
+} from "lucide-react";
 import { prisma } from "@/lib/db";
-import { Badge, Card, EmptyState, PageHeader, Progress, Stat } from "@/components/ui";
+import {
+  Badge,
+  Callout,
+  Card,
+  EmptyState,
+  PageHeader,
+  Progress,
+  Stat,
+} from "@/components/ui";
+import { collectSystemChecks, type CheckStatus } from "@/lib/system-health";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
+export const dynamic = "force-dynamic";
+
+const CHECK_STYLES: Record<
+  CheckStatus,
+  { icon: typeof CheckCircle2; wrap: string; label: string; tone: "success" | "warning" | "danger" }
+> = {
+  ok: {
+    icon: CheckCircle2,
+    wrap: "bg-success-soft text-success-ink",
+    label: "ปกติ",
+    tone: "success",
+  },
+  warn: {
+    icon: TriangleAlert,
+    wrap: "bg-warning-soft text-warning-ink",
+    label: "ต้องดู",
+    tone: "warning",
+  },
+  fail: {
+    icon: XCircle,
+    wrap: "bg-danger-soft text-danger-ink",
+    label: "ล้มเหลว",
+    tone: "danger",
+  },
+};
+
 export default async function PlatformHealthPage() {
-  const agents = await prisma.stationAgent.findMany({
-    include: { station: { include: { tenant: true, cameras: true } } },
-    orderBy: { lastHeartbeatAt: "desc" },
-  });
+  const [agents, system] = await Promise.all([
+    prisma.stationAgent.findMany({
+      include: { station: { include: { tenant: true, cameras: true } } },
+      orderBy: { lastHeartbeatAt: "desc" },
+    }),
+    collectSystemChecks(),
+  ]);
 
   // Snapshot once per request for stale detection (server component).
   const nowMs = Date.now(); // eslint-disable-line react-hooks/purity -- request-time clock
@@ -21,8 +69,71 @@ export default async function PlatformHealthPage() {
     <div>
       <PageHeader
         title="สุขภาพระบบ"
-        description="Station Agent heartbeat ของทุก tenant ในแพลตฟอร์ม"
+        description="สถานะโครงสร้างพื้นฐานและ Station Agent ของทุก tenant"
+        actions={
+          <Badge tone={CHECK_STYLES[system.status].tone} dot>
+            ระบบ{CHECK_STYLES[system.status].label}
+          </Badge>
+        }
       />
+
+      {/* Infrastructure */}
+      <section className="mb-8">
+        <h2 className="mb-3 text-base font-semibold tracking-tight text-ink">
+          โครงสร้างพื้นฐาน
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {system.checks.map((check) => {
+            const style = CHECK_STYLES[check.status];
+            const Icon = style.icon;
+            return (
+              <div
+                key={check.key}
+                className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-sm"
+              >
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    style.wrap,
+                  )}
+                >
+                  <Icon size={17} strokeWidth={2} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-ink">{check.label}</p>
+                    {check.latencyMs != null ? (
+                      <span className="tabular shrink-0 text-xs text-faint">
+                        {check.latencyMs} ms
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 text-[13px] leading-relaxed text-muted">{check.detail}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {system.envIssues.length > 0 ? (
+          <Callout
+            tone={system.envIssues.some((i) => i.level === "error") ? "danger" : "warning"}
+            icon={TriangleAlert}
+            title="ค่าตั้งค่าที่ต้องแก้ก่อน go-live"
+            className="mt-3"
+          >
+            <ul className="mt-1 space-y-1">
+              {system.envIssues.map((issue) => (
+                <li key={issue.key}>
+                  <span className="font-mono text-xs">{issue.key}</span> — {issue.message}
+                </li>
+              ))}
+            </ul>
+          </Callout>
+        ) : null}
+      </section>
+
+      <h2 className="mb-3 text-base font-semibold tracking-tight text-ink">Station agents</h2>
 
       {agents.length > 0 ? (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">

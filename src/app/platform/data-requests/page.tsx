@@ -1,97 +1,57 @@
-import { Database, Download, Trash2 } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Badge, PageHeader } from "@/components/ui";
+import { requirePlatformSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import {
-  Badge,
-  EmptyState,
-  PageHeader,
-  Table,
-  TableCard,
-  TBody,
-  Td,
-  Th,
-  THead,
-  Toolbar,
-  Tr,
-} from "@/components/ui";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
+import { PlatformDataRequestsManager } from "@/components/platform-data-requests-manager";
+
+export const dynamic = "force-dynamic";
 
 export default async function PlatformDataRequestsPage() {
+  const session = await requirePlatformSession();
+  if (!session) redirect("/login?platform=1");
+
   const requests = await prisma.dataRequest.findMany({ orderBy: { createdAt: "desc" } });
 
-  const tenantIds = [...new Set(requests.map((r) => r.tenantId))];
   const tenants = await prisma.tenant.findMany({
-    where: { id: { in: tenantIds } },
-    select: { id: true, slug: true },
+    where: { id: { in: [...new Set(requests.map((r) => r.tenantId))] } },
+    select: { id: true, slug: true, name: true },
   });
-  const tenantMap = Object.fromEntries(tenants.map((t) => [t.id, t.slug]));
+  const tenantMap = new Map(tenants.map((t) => [t.id, t]));
 
-  const pending = requests.filter((r) => r.status === "pending").length;
+  const rows = requests.map((r) => ({
+    id: r.id,
+    tenantId: r.tenantId,
+    tenantSlug: tenantMap.get(r.tenantId)?.slug ?? r.tenantId,
+    tenantName: tenantMap.get(r.tenantId)?.name ?? "องค์กรที่ถูกลบแล้ว",
+    type: r.type,
+    status: r.status,
+    createdAt: r.createdAt.toISOString(),
+  }));
+
+  const open = rows.filter((r) => r.status === "pending" || r.status === "processing").length;
 
   return (
     <div>
       <PageHeader
         title="Data requests"
-        description="คำขอส่งออกหรือลบข้อมูลส่วนบุคคลตาม PDPA"
+        description="คำขอส่งออกหรือลบข้อมูลส่วนบุคคลตาม PDPA — ทุกการดำเนินการถูกบันทึกใน audit log"
         actions={
-          pending > 0 ? (
+          open > 0 ? (
             <Badge tone="warning" dot>
-              รอดำเนินการ {pending} รายการ
+              ค้างดำเนินการ {open} รายการ
             </Badge>
-          ) : null
+          ) : (
+            <Badge tone="success" dot>
+              ไม่มีคำขอค้าง
+            </Badge>
+          )
         }
       />
 
-      {requests.length === 0 ? (
-        <EmptyState
-          icon={Database}
-          title="ไม่มีคำขอข้อมูล"
-          description="เมื่อ tenant ยื่นคำขอส่งออกหรือลบข้อมูล รายการจะปรากฏที่นี่"
-        />
-      ) : (
-        <TableCard
-          minWidthClassName="min-w-[640px]"
-          header={
-            <Toolbar
-              actions={<span className="text-xs text-muted">{requests.length} รายการ</span>}
-            >
-              <span className="text-[13px] font-medium text-ink">คำขอทั้งหมด</span>
-            </Toolbar>
-          }
-        >
-          <Table>
-            <THead>
-              <Th>Tenant</Th>
-              <Th>ประเภท</Th>
-              <Th>สถานะ</Th>
-              <Th align="right">วันที่ยื่น</Th>
-            </THead>
-            <TBody>
-              {requests.map((r) => (
-                <Tr key={r.id}>
-                  <Td className="font-mono text-ink">{tenantMap[r.tenantId] ?? r.tenantId}</Td>
-                  <Td>
-                    <Badge
-                      tone={r.type === "export" ? "info" : "danger"}
-                      icon={r.type === "export" ? Download : Trash2}
-                    >
-                      {r.type === "export" ? "ส่งออกข้อมูล" : "ลบข้อมูล"}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <Badge tone={r.status === "pending" ? "warning" : "success"} dot>
-                      {r.status}
-                    </Badge>
-                  </Td>
-                  <Td align="right" className="text-muted">
-                    {format(r.createdAt, "d MMM yyyy", { locale: th })}
-                  </Td>
-                </Tr>
-              ))}
-            </TBody>
-          </Table>
-        </TableCard>
-      )}
+      <PlatformDataRequestsManager
+        requests={rows}
+        canManage={session.role === "super_admin"}
+      />
     </div>
   );
 }

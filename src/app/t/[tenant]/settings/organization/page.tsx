@@ -3,6 +3,7 @@ import { requireTenantSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/ui";
 import { OrganizationSettingsForm } from "@/components/organization-settings-form";
+import { DataRequestPanel } from "@/components/data-request-panel";
 
 export default async function OrganizationSettingsPage() {
   const session = await requireTenantSession();
@@ -37,6 +38,12 @@ export default async function OrganizationSettingsPage() {
 
   if (!tenant) return null;
 
+  const dataRequests = await prisma.dataRequest.findMany({
+    where: { tenantId: session.tenantId },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
   const policy = {
     overlayEnabled: tenant.settings?.overlayEnabled ?? true,
     snapshotRequired: tenant.settings?.snapshotRequired ?? true,
@@ -59,6 +66,18 @@ export default async function OrganizationSettingsPage() {
         tenantSlug={session.tenantSlug}
         policy={policy}
       />
+
+      <div className="mx-auto mt-5 max-w-3xl">
+        <DataRequestPanel
+          tenantSlug={session.tenantSlug}
+          requests={dataRequests.map((r) => ({
+            id: r.id,
+            type: r.type,
+            status: r.status,
+            createdAt: r.createdAt.toISOString(),
+          }))}
+        />
+      </div>
     </div>
   );
 }

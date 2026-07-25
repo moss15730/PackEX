@@ -150,7 +150,20 @@ function LoginForm() {
                 </div>
               </Field>
 
-              <Field label="รหัสผ่าน" htmlFor="password">
+              <Field
+                label={
+                  <span className="flex w-full items-center justify-between gap-2">
+                    รหัสผ่าน
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-normal text-brand transition hover:underline"
+                    >
+                      ลืมรหัสผ่าน?
+                    </Link>
+                  </span>
+                }
+                htmlFor="password"
+              >
                 <div className="relative">
                   <Lock
                     size={15}
@@ -183,7 +196,15 @@ function LoginForm() {
             </form>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 space-y-3 text-center">
+            {!platform ? (
+              <p className="text-sm text-muted">
+                ยังไม่มีองค์กร?{" "}
+                <Link href="/signup" className="font-medium text-brand transition hover:underline">
+                  สมัครทดลองใช้ฟรี
+                </Link>
+              </p>
+            ) : null}
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-ink"

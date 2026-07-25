@@ -19,6 +19,7 @@ import {
   Tr,
 } from "@/components/ui";
 import { statusLabel, statusTone } from "@/lib/utils";
+import { invoiceStatusLabel, invoiceStatusTone } from "@/lib/billing";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { getUsageAndLimits } from "@/lib/tenant-limits";
@@ -163,8 +164,8 @@ export default async function SettingsBillingPage() {
                 <div key={inv.id} className="rounded-xl border border-line bg-surface p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-sm font-medium text-ink">{inv.description}</p>
-                    <Badge tone={inv.status === "paid" ? "success" : "warning"} dot>
-                      {inv.status}
+                    <Badge tone={invoiceStatusTone(inv.status)} dot>
+                      {invoiceStatusLabel(inv.status)}
                     </Badge>
                   </div>
                   <p className="tabular mt-2 text-[13px] text-muted">
@@ -204,8 +205,8 @@ export default async function SettingsBillingPage() {
                           {inv.amount.toLocaleString()} {inv.currency}
                         </Td>
                         <Td>
-                          <Badge tone={inv.status === "paid" ? "success" : "warning"} dot>
-                            {inv.status}
+                          <Badge tone={invoiceStatusTone(inv.status)} dot>
+                            {invoiceStatusLabel(inv.status)}
                           </Badge>
                         </Td>
                         <Td align="right" className="text-muted">
